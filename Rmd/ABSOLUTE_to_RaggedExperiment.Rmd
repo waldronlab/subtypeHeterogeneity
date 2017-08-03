@@ -1,0 +1,82 @@
+---
+title: "Read ABSOLUTE ranges"
+output: html_document
+---
+
+
+```{r}
+if(!require(Biobase) || packageVersion("Biobase") < "2.37")
+  stop("Please install the development version of Bioconductor - this is cutting-edge stuff!")
+if(!require(RTCGAToolbox) || packageVersion("RTCGAToolbox") < "2.7.5")
+  BiocInstaller::biocLite("LiNk-NY/RTCGAToolbox")
+if(!require(TCGAutils) || packageVersion("TCGAutils") < "0.3.28")
+  BiocInstaller::biocLite("waldronlab/TCGAutils")
+```
+
+```{r}
+suppressPackageStartupMessages({
+  library(GenomicRanges)
+  library(MultiAssayExperiment)
+  library(dplyr)
+  library(RaggedExperiment)
+  library(TCGAutils)
+  library(readr)
+})
+```
+
+```{r}
+con = bzfile("../ABSOLUTE/TCGA_mastercalls.abs_segtabs.fixed.txt.bz2")
+df = readr::read_tsv(con, col_names = TRUE)
+df =  filter(df, !is.na(Chromosome))
+grl = makeGRangesListFromDataFrame(df, split.field = "Sample", keep.extra.columns = TRUE) 
+saveRDS(grl, file="ABSOLUTE_grangeslist.rds")
+```
+
+## GISTIC
+```{r}
+gistic = readLines("http://gdac.broadinstitute.org/runs/analyses__latest/reports/cancer/OV-TP/CopyNumber_Gistic2/amp_genes.conf_99.txt")
+gistic = strsplit(gistic, "\t")
+gistic = gistic[[4]][-1]
+gistic = as(gistic, "GRanges")
+seqlevels(gistic) = sub("chr", "", seqlevels(gistic))
+```
+
+
+## Broad subtypes
+
+
+```{r}
+url <- "http://gdac.broadinstitute.org/runs/analyses__latest/reports/cancer/OV-TP/mRNA_Clustering_CNMF/OV-TP.bestclus.txt"
+ovsubs <- read.delim(url, skip=1, as.is=TRUE)
+```
+
+```{r}
+ovsubs$sample <- TCGAutils::TCGAbarcode(ovsubs[, 1], sample=TRUE)
+ovsubs$sample <- sub("A$", "", ovsubs$sample)
+ovsubs <- ovsubs[ovsubs$sample %in% names(grl), ]
+grlmatched <- grl[match(ovsubs$sample, names(grl))]
+if(identical(all.equal(names(grlmatched), ovsubs$sample), TRUE)){
+  mcols(grlmatched) <- ovsubs
+}
+
+isSubClonal <- function(x) {
+  as.integer(x$Subclonal_HSCN_a1 | x$Subclonal_HSCN_a2)
+}
+addScore <- function(grl, FUN, removecurrentmcols = TRUE){
+  gr <- unlist(grl)
+  gr$score <- FUN(gr)
+  relist(flesh=gr, skeleton=grl)
+}
+grlmatched <- addScore(grlmatched, isSubClonal)
+library(RaggedExperiment)
+ra <- RaggedExperiment(grlmatched)
+simplify = function()
+mat = qreduceAssay(ra, query = gistic,
+             i = "score",
+              simplify = disjoinAssay,
+                    background = 0)
+
+re <- ra[1:100, 1:2]
+qreduceAssay(ra, query = gistic, simplify = mean, i="score", background = 0)
+```
+
