@@ -27,11 +27,11 @@ Sample 2
 ##########
 
 
-cnv_by_genes <- read.table("/Users/lavanyakannan/Documents/ovc_purecn/ABSOLUTE/OV/all_thresholded.by_genes.OV.txt", 
+cnv_by_genes <- read.table("ABSOLUTE/OV/all_thresholded.by_genes.OV.txt.bz2", 
            header = TRUE, sep = "\t",
            as.is=TRUE)
 
-cnv_lesions <- read.table("/Users/lavanyakannan/Documents/ovc_purecn/ABSOLUTE/OV/all_lesions.conf_95.OV.txt", 
+cnv_lesions <- read.table("ABSOLUTE/OV/all_lesions.conf_95.OV.txt.bz2", 
                            header = TRUE, sep = "\t",
                            as.is=TRUE)
 

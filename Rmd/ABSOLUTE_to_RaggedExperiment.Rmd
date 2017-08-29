@@ -1,8 +1,10 @@
 ---
 title: "Read ABSOLUTE ranges"
+author: Ludwig Geistlinger and Levi Waldron
 output: html_document
 ---
 
+## SETUP
 
 ```{r}
 if(!require(Biobase) || packageVersion("Biobase") < "2.37")
@@ -24,52 +26,136 @@ suppressPackageStartupMessages({
 })
 ```
 
-```{r}
-con = bzfile("../ABSOLUTE/TCGA_mastercalls.abs_segtabs.fixed.txt.bz2")
-df = readr::read_tsv(con, col_names = TRUE)
-df =  filter(df, !is.na(Chromosome))
-grl = makeGRangesListFromDataFrame(df, split.field = "Sample", keep.extra.columns = TRUE) 
-saveRDS(grl, file="ABSOLUTE_grangeslist.rds")
+## Read ABSOLUTE calls and transform to GRangesList
+
+### if already processed
+
+```{r readAbsoluteProc}
+grl <- readRDS("data/ABSOLUTE/ABSOLUTE_grangeslist.rds")
+grlOV <- readRDS("data/ABSOLUTE/ABSOLUTE_OV_grangeslist.rds")
+```
+
+### processing raw data
+
+```{r readAbsoluteRaw}
+con <- bzfile("data/ABSOLUTE/TCGA_mastercalls.abs_segtabs.fixed.txt.bz2")
+df <- readr::read_tsv(con, col_names = TRUE)
+df <-  filter(df, !is.na(Chromosome))
+df <-  filter(df, Chromosome != 23)
+df <- as.data.frame(df, stringsAsFactors=FALSE)
+df[,"Chromosome"] <- paste0("chr", df[,"Chromosome"])
+```
+
+```{r CNstats}
+ccomb <- paste(df[,"Modal_HSCN_1"], df[,"Modal_HSCN_2"], sep="/")
+sort(table(ccomb), decreasing=TRUE)
+sort(table(df[,"Modal_Total_CN"]), decreasing TRUE)
+```
+
+```{r rmDiploid}
+sum(df[,"Modal_HSCN_1"] == 1 & df[,"Modal_HSCN_2"] == 1)
+nrow(df)
+719766 / 1886457
+
+ind2n <- which(df[,"Modal_HSCN_1"] == 1 & df[,"Modal_HSCN_2"] == 1)
+df <- df[-ind2n,]
+```
+
+```{r keepExtraCols}
+isSubClonal <- function(x) as.integer(x$Subclonal_HSCN_a1 | x$Subclonal_HSCN_a2)
+df$score <- isSubClonal(df)
+rel.cols <- c("Sample", "Chromosome", "Start", 
+    "End", "Modal_HSCN_1", "Modal_HSCN_2", "score")
+df <- df[,rel.cols]
+```
+
+
+```{r toGRList}
+grl <- makeGRangesListFromDataFrame(df, split.field = "Sample", keep.extra.columns = TRUE) 
+saveRDS(grl, file="data/ABSOLUTE/ABSOLUTE_grangeslist.rds")
+```
+
+## Genome coverage
+```{r gcov}
+chr <- paste0("chr", 1:22)
+library(BSgenome.Hsapiens.UCSC.hg19)
+cinfo <- sapply(chr, function(x) length(BSgenome.Hsapiens.UCSC.hg19[[x]]))
+
+tcov <- sum(as.numeric(cinfo))
+scov <- sapply(grl, function(g) sum(as.numeric(width(g))))
+pcov <- round(scov / tcov * 100, digits=2) 
+summary(pcov)
 ```
 
 ## GISTIC
-```{r}
-gistic = readLines("http://gdac.broadinstitute.org/runs/analyses__latest/reports/cancer/OV-TP/CopyNumber_Gistic2/amp_genes.conf_99.txt")
-gistic = strsplit(gistic, "\t")
-gistic = gistic[[4]][-1]
-gistic = as(gistic, "GRanges")
-seqlevels(gistic) = sub("chr", "", seqlevels(gistic))
-```
+```{r gistic}
+gisticAmp <- readLines("http://gdac.broadinstitute.org/runs/analyses__latest/reports/cancer/OV-TP/CopyNumber_Gistic2/amp_genes.conf_99.txt")
+gisticDel <- readLines("http://gdac.broadinstitute.org/runs/analyses__latest/reports/cancer/OV-TP/CopyNumber_Gistic2/del_genes.conf_99.txt")
 
+gistic2Ranges <- function(gistic)
+{
+    gistic <- strsplit(gistic, "\t")
+    gistic <- gistic[[4]][-1]
+    gistic <- as(gistic, "GRanges")
+    ind <- orderSeqlevels(seqlevels(gistic))
+    seqlevels(gistic) <- seqlevels(gistic)[ind]
+    return(sort(gistic))
+}
+
+gisticAmp <- gistic2Ranges(gisticAmp)
+gisticDel <- sort(gistic2Ranges(gisticDel))
+```
 
 ## Broad subtypes
 
 
-```{r}
+```{r ovBroadSubs}
 url <- "http://gdac.broadinstitute.org/runs/analyses__latest/reports/cancer/OV-TP/mRNA_Clustering_CNMF/OV-TP.bestclus.txt"
 ovsubs <- read.delim(url, skip=1, as.is=TRUE)
 ```
 
-```{r}
+```{r absOV}
 ovsubs$sample <- TCGAutils::TCGAbarcode(ovsubs[, 1], sample=TRUE)
 ovsubs$sample <- sub("A$", "", ovsubs$sample)
 ovsubs <- ovsubs[ovsubs$sample %in% names(grl), ]
 grlmatched <- grl[match(ovsubs$sample, names(grl))]
-if(identical(all.equal(names(grlmatched), ovsubs$sample), TRUE)){
+if(all.equal(names(grlmatched), ovsubs$sample)){
   mcols(grlmatched) <- ovsubs
 }
+saveRDS(grlmatched, file="data/ABSOLUTE/ABSOLUTE_OV_grangeslist.rds")
+```
 
+```{r}
+scov_ov <- sapply(grlmatched, function(g) sum(as.numeric(width(g)))) 
+pcov_ov <- round(scov_ov / tcov * 100, digits=2)
+```
+
+## Create RaggedExperiment for OVC samples
+
+
+
+
+```{r}
 isSubClonal <- function(x) {
   as.integer(x$Subclonal_HSCN_a1 | x$Subclonal_HSCN_a2)
 }
+
+totalCN <- function(x) x$Modal_Total_CN
+
 addScore <- function(grl, FUN, removecurrentmcols = TRUE){
   gr <- unlist(grl)
   gr$score <- FUN(gr)
+  if(removecurrentmcols) mcols(gr) <- gr$score 
   relist(flesh=gr, skeleton=grl)
 }
+
 grlmatched <- addScore(grlmatched, isSubClonal)
 library(RaggedExperiment)
-ra <- RaggedExperiment(grlmatched)
+ra <- RaggedExperiment(grlmatched, colData=ra)
+colData(ra) <- mcols(grlmatched)
+```
+
+```{r}
 simplify = function()
 mat = qreduceAssay(ra, query = gistic,
              i = "score",
@@ -80,3 +166,59 @@ re <- ra[1:100, 1:2]
 qreduceAssay(ra, query = gistic, simplify = mean, i="score", background = 0)
 ```
 
+```{r}
+# TODO: check with Marcel on simplify
+da <- disjoinAssay(ra, simplify=mean)
+chr <- sapply(rownames(da), function(n) unlist(strsplit(n, ":"))[1], USE.NAMES=FALSE)
+starts <- sapply(rownames(da), 
+            function(n)
+            {
+               spl <- unlist(strsplit(n, ":"))[2]
+               spl2 <- unlist(strsplit(spl, "-"))[1]
+               return(as.integer(spl2))
+            },USE.NAMES=FALSE) 
+ends <- sapply(rownames(da), 
+            function(n)
+            {
+               spl <- unlist(strsplit(n, ":"))[2]
+               spl2 <- unlist(strsplit(spl, "-"))[2]
+               return(as.integer(spl2))
+            },USE.NAMES=FALSE) 
+df <- data.frame(chr, starts, ends, y)
+colnames(df) <- c("seqnames", "start", "end", "score")
+for(i in seq_len(nrow(df))) if(is.na(df[i,3])) df[i,3] <- df[i,2]
+absCov <- makeGRangesFromDataFrame(df, keep.extra.columns=TRUE)
+```
+
+## GVIZ
+```{r}
+library(Gviz)
+gen <- "hg19"
+chr <- "1"
+pstart <- 1
+#full
+pend <- 249250621
+
+col0n <- "steelblue"
+col1n <- "darkseagreen3"
+col3n <- "coral"
+col4n <- "indianred"
+colM <- "gray24"
+colB <- "gray94"
+
+ideoTrack <- IdeogramTrack(genome = gen, chromosome = chr)
+axisTrack <- GenomeAxisTrack(fontsize=15, littleTicks=F, from=start, to=end)
+
+covTrack <-   DataTrack(range=absCov, genome=gen, name="#Samples",  
+                        chromosome=chr, type="histogram", start=pstart, end=pend, 
+                        col = col0n,
+                        fill.histogram=col0n, 
+                        ylim=c(0,516), 
+                        cex.title=1, cex.axis=1, font.axis=2, 
+                        col.title=colM, col.axis=colM, background.title=colB)
+
+atracks <- sapply(1:100, function(i) 
+    AnnotationTrack(grlmatched[[i]], stacking="dense", overlapping=TRUE))
+
+plotTracks(c(ideoTrack, axisTrack, covTrack), from=pstart, to=pend, chromosome=chr)
+```
