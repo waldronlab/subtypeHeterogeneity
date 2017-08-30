@@ -32,7 +32,7 @@ ctypes <- getFirehoseDatasets()
 ## Read ABSOLUTE calls and transform to GRangesList
 
 ### if already processed
-grl <- readRDS("data/ABSOLUTE/ABSOLUTE_grangeslist.rds")
+absGRL <- readRDS("data/ABSOLUTE/ABSOLUTE_grangeslist.rds")
 grlOV <- readRDS("data/ABSOLUTE/ABSOLUTE_OV_grangeslist.rds")
 
 ### processing raw data
@@ -168,7 +168,7 @@ getBroadSubtypes <- function(ctype="OV", clust.alg=c("CNMF", "Consensus_Plus"))
 # subtys: a matrix with sample IDs as rownames and at least a column 'cluster'
 # absGRL: a GRangesList storing the per-sample ABSOLUTE calls
 # @returns: a RaggedExperiment storing the ABSOLUTE calls that 
-getMatchedAbsoluteCalls <- function(subtys, absGRL, save=FALSE, ctype="OV")
+getMatchedAbsoluteCalls <- function(absGRL, subtys, save=FALSE, ctype="OV")
 {
     subtys <- subtys[rownames(subtys) %in% names(absGRL), ]
     absGRLmatched <- absGRL[match(rownames(subtys), names(absGRL))]
@@ -192,11 +192,43 @@ testSubtypes <- function(gistic, subtys,
     subtys <- subtys[rownames(subtys) %in% colnames(gistic), ]
     gistic <- gistic[,match(rownames(subtys), colnames(gistic))]
     subtys <- subtys$cluster    
-    
-    pvals <- apply(assay(gistic), 1, function(x) chisq.test(x, subtys)$p.value)
-    qvals <- p.adjust(pvals, method=padj.method)       
-    return(qvals)
+    slot <- ifelse(test.type == "perm", "statistic", "p.value")   
+ 
+    res <- apply(assay(gistic), 1, 
+        function(x) chisq.test(x, subtys)[[slot]])
+    if(test.type == "chisq") res <- p.adjust(res, method=padj.method)       
+    return(res)
 }
 
 
+# two ways of summarizing calls:
+# 1:
+maxScore <- function(scores, ranges, qranges) max(scores, na.rm=TRUE)
+# 2:
+wmean <- function(scores, ranges, qranges)
+{
+    isects <- pintersect(ranges, qranges)
+    s <- sum(scores * width(isects)) / sum(width(isects))
+    return(round(s))
+}
+
+# @ra: RaggedExperiment
+# @query: GRanges
+querySubclonality <- function(ra, query, sum.method=c("any", "wmean"))
+{
+    sum.method <- match.arg(sum.method)
+    sum.method <- ifelse(sum.method == "wmean", wmean, maxScore)
+    qa <- RaggedExperiment::qreduceAssay(ra, query, 
+                simplifyReduce=sum.method, i="score", background=0)
+    return(qa)
+}
+
+perm.test <- function()
+replicate(1:1000,
+    { 
+        ind <- sample(nrow(ovsubs))
+        ovsubs.perm <- ovsubs[ind,]
+        rownames(ovsubs.perm) <- rownames(ovsubs)
+        stat
+    })
 

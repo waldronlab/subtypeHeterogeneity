@@ -1,0 +1,77 @@
+---
+title: "Analyzing subclonality of expression subtypes"
+author: Ludwig Geistlinger and Levi Waldron
+output: html_document
+---
+
+```{r cd, echo = FALSE, results = 'asis'}
+knitr::opts_knit$set(root.dir = "..")
+```
+
+## Setup
+```{r setup, results = 'asis'}
+source("R/setup_subtype_clonality.R")
+```
+
+## Cancer types
+```{r ctypes}
+ctypes
+```
+
+## ABSOLUTE
+```{r absolute}
+absGRL 
+```
+
+## GISTIC2
+```{r gistic}
+gisticOV <- gistic2RSE(ctype="OV", peak="wide")
+gisticOV
+rowRanges(gisticOV)
+assay(gisticOV)[1:5,1:5]
+```
+
+## Expression-based subtypes
+```{r subtys}
+ovsubs <- getBroadSubtypes(ctype="OV", clust.alg="CNMF")
+dim(ovsubs)
+head(ovsubs)
+```
+
+## Test: gistic-subtype association
+```{r subtyAssoc}
+adj.pvals <- testSubtypes(gisticOV, ovsubs, test.type="chisq", padj.method="BH")
+length(adj.pvals)
+head(adj.pvals)
+sum(adj.pvals < 0.1)
+```
+
+## Subclonality
+
+### Match subtyped samples and samples analyzed with ABSOLUTE
+```{r matchCalls}
+raOV <- getMatchedAbsoluteCalls(absGRL, ovsubs)
+raOV
+rowRanges(raOV)
+```
+
+### Summarize subclonality of ABSOLUTE calls falling on GISTIC regions 
+```{r querySubcl}
+subcl.gisticOV <- querySubclonality(raOV, query=rowRanges(gisticOV), sum.method="any")
+dim(subcl.gisticOV)
+subcl.gisticOV[1:5,1:5]
+```
+
+### Subclonality score: fraction of samples in which a mutation is subclonal
+```{r subclScore}
+subcl.score <- rowMeans(subcl.gisticOV)
+summary(subcl.score)
+```
+
+## Correlation between subtype-association score and subclonality score
+```{r cor}
+assoc.score <- testSubtypes(gisticOV, ovsubs, test.type="perm")
+cor(assoc.score, subcl.score, method="spearman")
+wilcox.test(assoc.score, subcl.score)
+```
+

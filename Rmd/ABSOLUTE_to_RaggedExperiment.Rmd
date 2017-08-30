@@ -167,7 +167,6 @@ qreduceAssay(ra, query = gistic, simplify = mean, i="score", background = 0)
 ```
 
 ```{r}
-# TODO: check with Marcel on simplify
 da <- disjoinAssay(ra, simplify=mean)
 chr <- sapply(rownames(da), function(n) unlist(strsplit(n, ":"))[1], USE.NAMES=FALSE)
 starts <- sapply(rownames(da), 
