@@ -3,12 +3,9 @@
 # author: Ludwig Geistlinger
 # date: 2017-08-22 17:34:32
 # 
-# descr: 
+# descr: analyzing subclonality of expression subtypes
 # 
 ############################################################
-
-## Create RaggedExperiment for OVC samples
-source("R/setup_subtype_clonality.R")
 
 # access RaggedExperiment: assay(ra[1:5,1:5], "score")
 
@@ -32,6 +29,33 @@ querySubclonality <- function(ra, query, sum.method=c("any", "wmean"))
                 simplifyReduce=sum.method, i="score", background=0)
     return(qa)
 }
+
+# @gistic: a RangedSummarizedExperiment
+# @subtys: a matrix with sample IDs as rownames and at least a column 'cluster'
+testSubtypes <- function(gistic, subtys, 
+    test.type=c("chisq", "perm"), padj.method="BH")
+{
+    test.type <- match.arg(test.type)
+    subtys <- subtys[rownames(subtys) %in% colnames(gistic), ]
+    gistic <- gistic[,match(rownames(subtys), colnames(gistic))]
+    subtys <- subtys$cluster    
+    slot <- ifelse(test.type == "perm", "statistic", "p.value")   
+ 
+    res <- apply(assay(gistic), 1, 
+        function(x) chisq.test(x, subtys)[[slot]])
+    if(test.type == "chisq") res <- p.adjust(res, method=padj.method)       
+    return(res)
+}
+
+
+perm.test <- function()
+replicate(1:1000,
+    { 
+        ind <- sample(nrow(ovsubs))
+        ovsubs.perm <- ovsubs[ind,]
+        rownames(ovsubs.perm) <- rownames(ovsubs)
+        stat
+    })
 
 # find gistic regions that are overlapped by more than one absolute call
 getAmbigiousCalls <- function(grl, query)
@@ -58,7 +82,3 @@ getAmbigiousCalls <- function(grl, query)
             return(res)
         }, simplify=FALSE)
 }
-
-
-## summarize individual absolute calls to population regions 
-# source("R/population_ranges.R")

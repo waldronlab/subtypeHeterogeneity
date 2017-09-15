@@ -1,6 +1,6 @@
 ############################################################
 # 
-# author: Ludwig Geistlinger
+# author: Ludwig Geistlinger, Herve Pages, Martin Morgan
 # date: 2017-08-12 22:31:59
 # 
 # descr: functionality for summarizing indivdual calls
@@ -8,8 +8,6 @@
 #   e.g. defining CNV regions from CNV calls
 # 
 ############################################################
-
-library(GenomicRanges)
 
 #
 # CNVRuler procedure that trims region margins based on regional density
@@ -61,7 +59,7 @@ populationRanges <- function(grl, density=0.1)
 
 # given a set individual calls, returns overlaps (hits) between them 
 # that satisfy the RO threshold
-getROHits <- function(calls, ro.thresh=0.5)
+.getROHits <- function(calls, ro.thresh=0.5)
 {
     # calculate pairwise ro
     hits <- findOverlaps(calls, drop.self=TRUE, drop.redundant=TRUE)
@@ -98,7 +96,7 @@ getROHits <- function(calls, ro.thresh=0.5)
 # decides whether a given hit can be merged to an already existing cluster
 # mergeability requires that all cluster members satisfy the pairwise RO 
 # threshold
-getMergeIndex <- function(hit, cluster, hits)
+.getMergeIndex <- function(hit, cluster, hits)
 {
     # (1) check whether query / subject of hit is part of cluster
     curr.qh <- queryHits(hit)
@@ -138,7 +136,7 @@ getMergeIndex <- function(hit, cluster, hits)
 # (in the most basic case a call A that has sufficient RO with a call B and 
 # a call C, but B and C do not have sufficient RO), this allows to optionally 
 # strip away such multi-assignments
-pruneMultiAssign <- function(clusters)
+.pruneMultiAssign <- function(clusters)
 {
     cid <- seq_along(clusters)
     times <- sapply(clusters, length)
@@ -155,9 +153,9 @@ pruneMultiAssign <- function(clusters)
 # the clustering itself then goes sequentially through the identified RO hits, 
 # touching each hit once, and checks whether this hit could be merged to 
 # already existing clusters
-clusterCalls <- function(calls, ro.thresh=0.5, multi.assign=FALSE)
+.clusterCalls <- function(calls, ro.thresh=0.5, multi.assign=FALSE)
 {
-    hits <- getROHits(calls, ro.thresh)        
+    hits <- .getROHits(calls, ro.thresh)        
     
     # exit here if not 2 or more hits
     if(length(hits) < 2) return(hits)       
@@ -181,7 +179,7 @@ clusterCalls <- function(calls, ro.thresh=0.5, multi.assign=FALSE)
             
             # if not, check it
             prev.cluster <- hits[cid == j]
-            mergeIndex <- getMergeIndex(curr.hit, prev.cluster, hits)
+            mergeIndex <- .getMergeIndex(curr.hit, prev.cluster, hits)
             
             if(!is.null(mergeIndex))
             {
@@ -200,7 +198,7 @@ clusterCalls <- function(calls, ro.thresh=0.5, multi.assign=FALSE)
         function(h) union(queryHits(h), subjectHits(h)))
     
     # can calls be assigned to more than one cluster?
-    if(!multi.assign) call.clusters <- pruneMultiAssign(call.clusters)
+    if(!multi.assign) call.clusters <- .pruneMultiAssign(call.clusters)
     
     return(call.clusters)
 }
@@ -223,7 +221,7 @@ populationRangesRO <- function(grl, ro.thresh=0.5, multi.assign=FALSE)
             message(which(init.clusters == ic))
             # get calls of cluster
             ccalls <- subsetByOverlaps(gr, ic)
-            clusters <- clusterCalls(ccalls, ro.thresh, multi.assign)
+            clusters <- .clusterCalls(ccalls, ro.thresh, multi.assign)
             clusters <- range(extractList(ccalls, clusters))
             clusters <- sort(unlist(clusters))  
     })
@@ -235,7 +233,7 @@ populationRangesRO <- function(grl, ro.thresh=0.5, multi.assign=FALSE)
 # Herve Pages
 #
 ## Extract clusters from Hits object.
-extractClustersFromSelfHits <- function(hits)
+.extractClustersFromSelfHits <- function(hits)
 {
     stopifnot(is(hits, "Hits"))
     stopifnot(queryLength(hits) == subjectLength(hits))
@@ -256,13 +254,13 @@ extractClustersFromSelfHits <- function(hits)
 
 ## Merge ranges that are "connected" (directly or indirectly)
 ## via a hit (or several hits) in 'hits'.
-mergeConnectedRanges <- function(x, hits)
+.mergeConnectedRanges <- function(x, hits)
 {
     stopifnot(is(x, "GenomicRanges"))
     stopifnot(is(hits, "Hits"))
     stopifnot(queryLength(hits) == subjectLength(hits))
     stopifnot(queryLength(hits) == length(x))
-    clusters <- extractClustersFromSelfHits(hits)
+    clusters <- .extractClustersFromSelfHits(hits)
     ans <- range(extractList(x, clusters))
     if (any(elementLengths(ans) != 1L))
         stop(wmsg("some connected ranges are not on the same ",

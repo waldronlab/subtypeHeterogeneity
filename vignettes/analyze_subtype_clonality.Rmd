@@ -9,18 +9,35 @@ knitr::opts_knit$set(root.dir = "..")
 ```
 
 ## Setup
-```{r setup, results = 'asis'}
-source("R/setup_subtype_clonality.R")
+```{r setup, echo=FALSE, results = 'asis'}
+if(!require(Biobase) || packageVersion("Biobase") < "2.37")
+  stop("Please install the development version of Bioconductor - this is cutting-edge stuff!")
+if(!require(RTCGAToolbox) || packageVersion("RTCGAToolbox") < "2.7.5")
+  BiocInstaller::biocLite("LiNk-NY/RTCGAToolbox")
+if(!require(TCGAutils) || packageVersion("TCGAutils") < "0.3.28")
+  BiocInstaller::biocLite("waldronlab/TCGAutils")
+
+suppressPackageStartupMessages({
+  library(GenomicRanges)
+  library(SummarizedExperiment)
+  library(RaggedExperiment)
+  library(dplyr)
+  library(TCGAutils)
+  library(readr)
+})
 ```
 
 ## Cancer types
 ```{r ctypes}
-ctypes
+RTCGAToolbox::getFirehoseDatasets()
 ```
 
 ## ABSOLUTE
 ```{r absolute}
-absGRL 
+absFile <- "ABSOLUTE_grangeslist.rds"
+absFile <- system.file(absFile, package="subtypeHeterogeneity") 
+absGRL <- readr::readRDS(absFile) 
+absGRL
 ```
 
 ## GISTIC2

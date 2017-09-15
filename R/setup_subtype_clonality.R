@@ -9,64 +9,43 @@
 
 ## SETUP
 
-if(!require(Biobase) || packageVersion("Biobase") < "2.37")
-  stop("Please install the development version of Bioconductor - this is cutting-edge stuff!")
-if(!require(RTCGAToolbox) || packageVersion("RTCGAToolbox") < "2.7.5")
-  BiocInstaller::biocLite("LiNk-NY/RTCGAToolbox")
-if(!require(TCGAutils) || packageVersion("TCGAutils") < "0.3.28")
-  BiocInstaller::biocLite("waldronlab/TCGAutils")
-
-suppressPackageStartupMessages({
-  library(GenomicRanges)
-  library(SummarizedExperiment)
-  library(RaggedExperiment)
-  library(MultiAssayExperiment)
-  library(dplyr)
-  library(TCGAutils)
-  library(readr)
-})
-
 ## cancer types
-ctypes <- getFirehoseDatasets() 
+ctypes <- RTCGAToolbox::getFirehoseDatasets() 
 
-## Read ABSOLUTE calls and transform to GRangesList
-
-### if already processed
-absGRL <- readRDS("data/ABSOLUTE/ABSOLUTE_grangeslist.rds")
-grlOV <- readRDS("data/ABSOLUTE/ABSOLUTE_OV_grangeslist.rds")
+.isSubClonal <- function(x) as.integer(x$Subclonal_HSCN_a1 | x$Subclonal_HSCN_a2)
+.totalCN <- function(x) x$Modal_HSCN_1 + Modal_HSCN_2
 
 ### processing raw data
-isSubClonal <- function(x) as.integer(x$Subclonal_HSCN_a1 | x$Subclonal_HSCN_a2)
-
-totalCN <- function(x) x$Modal_HSCN_1 + Modal_HSCN_2
-
 # @returns: a GRangesList with per-sample ABSOLUTE calls
-readAbsolute <- function(file="data/ABSOLUTE/TCGA_mastercalls.abs_segtabs.fixed.txt.bz2")
+# infile = TCGA_mastercalls.abs_segtabs.fixed.txt.bz2
+# outfile = ABSOLUTE_grangeslist.rds
+.readAbsolute <- function(infile, outfile)
 {
-    con <- bzfile(file)
+    con <- bzfile(infile)
     df <- readr::read_tsv(con, col_names = TRUE)
-    df <-  filter(df, !is.na(Chromosome))
-    df <-  filter(df, Chromosome != 23)
+    df <-  dplyr::filter(df, !is.na(Chromosome))
+    df <-  dplyr::filter(df, Chromosome != 23)
     df <- as.data.frame(df, stringsAsFactors=FALSE)
     df[,"Chromosome"] <- paste0("chr", df[,"Chromosome"])
 
     ind2n <- which(df[,"Modal_HSCN_1"] == 1 & df[,"Modal_HSCN_2"] == 1)
     df <- df[-ind2n,]
-    df$score <- isSubClonal(df)
+    df$score <- .isSubClonal(df)
 
     rel.cols <- c("Sample", "Chromosome", "Start", 
         "End", "Modal_HSCN_1", "Modal_HSCN_2", "score")
     df <- df[,rel.cols]
-    grl <- makeGRangesListFromDataFrame(df, split.field = "Sample", keep.extra.columns = TRUE) 
-    saveRDS(grl, file="data/ABSOLUTE/ABSOLUTE_grangeslist.rds")
+    grl <- makeGRangesListFromDataFrame(df, 
+        split.field="Sample", keep.extra.columns=TRUE) 
+    saveRDS(grl, file=outfile)
     return(grl)
 }
 
 ## GISTIC
 # @returns: a RangedSummarizedExperiment
-gistic2RSE <- function(ctype="OV", peak=c("wide", "narrow", "full"))
+gistic2RSE <- function(ctype=RTCGAToolbox::getFirehoseDatasets(), 
+                        peak=c("wide", "narrow", "full"))
 {
-
     BROAD.URL <- paste0("http://gdac.broadinstitute.org/",
                 "runs/analyses__2016_01_28/data/ctype/20160128")
  
@@ -74,6 +53,7 @@ gistic2RSE <- function(ctype="OV", peak=c("wide", "narrow", "full"))
                     "CopyNumber_Gistic2.Level_4.2016012800.0.0.tar.gz")
     
     # download the tar
+    ctype <- match.arg(ctype)
     url <- file.path(BROAD.URL, GISTIC.FILE)
     url <- gsub("ctype", ctype, url)
     if(ctype == "LAML") url <- sub("TP", "TB", url)
@@ -134,12 +114,14 @@ gistic2RSE <- function(ctype="OV", peak=c("wide", "narrow", "full"))
 
 ## Broad subtypes
 # @returns: a matrix with sample IDs as rownames and at least a column "cluster"
-getBroadSubtypes <- function(ctype="OV", clust.alg=c("CNMF", "Consensus_Plus"))
+getBroadSubtypes <- function(ctype=RTCGAToolbox::getFirehoseDatasets(), 
+                                clust.alg=c("CNMF", "Consensus_Plus"))
 {
     BROAD.URL <- paste0("http://gdac.broadinstitute.org/runs/analyses__latest",
         "/reports/cancer/ctype-TP/mRNA_Clustering_calg/ctype-TP.bestclus.txt")
 
     # insert selected cancer type
+    ctype <- match.arg(ctype)
     url <- gsub("ctype", ctype, BROAD.URL)
     if(ctype == "LAML") url <- sub("TP", "TB", url)
     else if(ctype == "SKCM") url <- sub("TP", "TM", url)
@@ -168,67 +150,12 @@ getBroadSubtypes <- function(ctype="OV", clust.alg=c("CNMF", "Consensus_Plus"))
 # subtys: a matrix with sample IDs as rownames and at least a column 'cluster'
 # absGRL: a GRangesList storing the per-sample ABSOLUTE calls
 # @returns: a RaggedExperiment storing the ABSOLUTE calls that 
-getMatchedAbsoluteCalls <- function(absGRL, subtys, save=FALSE, ctype="OV")
+getMatchedAbsoluteCalls <- function(absGRL, subtys)
 {
     subtys <- subtys[rownames(subtys) %in% names(absGRL), ]
     absGRLmatched <- absGRL[match(rownames(subtys), names(absGRL))]
-    ra <- RaggedExperiment(absGRLmatched, colData=subtys)
-
-    if(save) 
-    {
-        outf <- paste("ABSOLUTE", ctype, "RaggedExp.rds",  sep="_") 
-        outf <- file.path("data/ABSOLUTE/", outf)
-        saveRDS(ra, file=outf)
-    }
+    ra <- RaggedExperiment::RaggedExperiment(absGRLmatched, colData=subtys)
     return(ra)
 }
 
-# gistic: a RangedSummarizedExperiment
-# subtys: a matrix with sample IDs as rownames and at least a column 'cluster'
-testSubtypes <- function(gistic, subtys, 
-    test.type=c("chisq", "perm"), padj.method="BH")
-{
-    test.type <- match.arg(test.type)
-    subtys <- subtys[rownames(subtys) %in% colnames(gistic), ]
-    gistic <- gistic[,match(rownames(subtys), colnames(gistic))]
-    subtys <- subtys$cluster    
-    slot <- ifelse(test.type == "perm", "statistic", "p.value")   
- 
-    res <- apply(assay(gistic), 1, 
-        function(x) chisq.test(x, subtys)[[slot]])
-    if(test.type == "chisq") res <- p.adjust(res, method=padj.method)       
-    return(res)
-}
-
-
-# two ways of summarizing calls:
-# 1:
-maxScore <- function(scores, ranges, qranges) max(scores, na.rm=TRUE)
-# 2:
-wmean <- function(scores, ranges, qranges)
-{
-    isects <- pintersect(ranges, qranges)
-    s <- sum(scores * width(isects)) / sum(width(isects))
-    return(round(s))
-}
-
-# @ra: RaggedExperiment
-# @query: GRanges
-querySubclonality <- function(ra, query, sum.method=c("any", "wmean"))
-{
-    sum.method <- match.arg(sum.method)
-    sum.method <- ifelse(sum.method == "wmean", wmean, maxScore)
-    qa <- RaggedExperiment::qreduceAssay(ra, query, 
-                simplifyReduce=sum.method, i="score", background=0)
-    return(qa)
-}
-
-perm.test <- function()
-replicate(1:1000,
-    { 
-        ind <- sample(nrow(ovsubs))
-        ovsubs.perm <- ovsubs[ind,]
-        rownames(ovsubs.perm) <- rownames(ovsubs)
-        stat
-    })
 
