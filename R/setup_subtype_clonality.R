@@ -8,12 +8,11 @@
 ############################################################
 
 ## SETUP
+ctypes <- RTCGAToolbox::getFirehoseDatasets()
 
 ## cancer types
-ctypes <- RTCGAToolbox::getFirehoseDatasets() 
-
 .isSubClonal <- function(x) as.integer(x$Subclonal_HSCN_a1 | x$Subclonal_HSCN_a2)
-.totalCN <- function(x) x$Modal_HSCN_1 + Modal_HSCN_2
+.totalCN <- function(x) x$Modal_HSCN_1 + x$Modal_HSCN_2
 
 ### processing raw data
 # @returns: a GRangesList with per-sample ABSOLUTE calls
@@ -22,10 +21,9 @@ ctypes <- RTCGAToolbox::getFirehoseDatasets()
 .readAbsolute <- function(infile, outfile)
 {
     con <- bzfile(infile)
-    df <- readr::read_tsv(con, col_names = TRUE)
-    df <-  dplyr::filter(df, !is.na(Chromosome))
-    df <-  dplyr::filter(df, Chromosome != 23)
-    df <- as.data.frame(df, stringsAsFactors=FALSE)
+    df <-  read.delim(con, as.is=TRUE)
+    df <-  df[!is.na(df[,"Chromosome"]),]
+    df <-  df[df[,"Chromosome"] != 23,]
     df[,"Chromosome"] <- paste0("chr", df[,"Chromosome"])
 
     ind2n <- which(df[,"Modal_HSCN_1"] == 1 & df[,"Modal_HSCN_2"] == 1)
@@ -58,7 +56,10 @@ gistic2RSE <- function(ctype=RTCGAToolbox::getFirehoseDatasets(),
     url <- gsub("ctype", ctype, url)
     if(ctype == "LAML") url <- sub("TP", "TB", url)
     else if(ctype == "SKCM") url <- sub("TP", "TM", url)
-    dest.file <- paste0("data/GISTIC/", ctype, ".tar.gz")
+    
+    dest.file <- paste0(ctype, "_gistic2.tar.gz")
+    out.dir <- system.file("extdata", package="subtypeHeterogeneity")
+    dest.file <- file.path(out.dir, dest.file)
     download.file(url, dest.file)
     files <- untar(dest.file, list=TRUE)
     

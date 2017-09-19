@@ -5,15 +5,15 @@ Title: Tumor subclonality of expression-based cancer subtypes
 Author: Ludwig Geistlinger, Levi Waldron
 Maintainer: Ludwig Geistlinger <ludwig.geistlinger@sph.cuny.edu>
 Depends: R(>= 3.4.0), GenomicRanges, SummarizedExperiment
-Imports: RCurl, RTCGAToolbox (>= 2.7.5), RaggedExperiment (>= 1.1.10), 
-    TCGAutils(>= 0.3.28), dplyr, readr 
+Imports: GenomeInfoDb, IRanges, RCurl, RTCGAToolbox (>= 2.7.5), 
+    RaggedExperiment (>= 1.1.10), S4Vectors, TCGAutils(>= 0.3.28), methods 
 Suggests: BiocStyle, knitr, rmarkdown
 Description: Testing of the hypothesis that expression-based cancer subtypes 
     tend not to be shared between intratumor clones, implying that they 
     differentiate late in tumorigenesis. This hypothesis will be tested first
     by identifying subtype-associated DNA alterations (copy number and somatic 
-    mutations), then testing whether those alterations display greater intra-tumor
-    heterogeneity than other alterations. 
+    mutations), then testing whether those alterations display greater intra-
+    tumor heterogeneity than other alterations. 
 License: Artistic-2.0
 VignetteBuilder: knitr
 biocViews: CopyNumberVariation, DifferentialExpression, GeneExpression, 

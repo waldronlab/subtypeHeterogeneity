@@ -1,30 +1,25 @@
 ---
 title: "Analyzing subclonality of expression subtypes"
 author: Ludwig Geistlinger and Levi Waldron
-output: html_document
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
+vignette: >
+  % \VignetteIndexEntry{Functional enrichment analysis of high-throughput omics data}
+  % \VignetteEngine{knitr::rmarkdown}
 ---
 
-```{r cd, echo = FALSE, results = 'asis'}
-knitr::opts_knit$set(root.dir = "..")
+```{r style, echo = FALSE, results = 'asis'}
+options(width=100)
+knitr::opts_chunk$set(fig.align = "center")
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(cache=TRUE)
 ```
 
 ## Setup
 ```{r setup, echo=FALSE, results = 'asis'}
-if(!require(Biobase) || packageVersion("Biobase") < "2.37")
-  stop("Please install the development version of Bioconductor - this is cutting-edge stuff!")
-if(!require(RTCGAToolbox) || packageVersion("RTCGAToolbox") < "2.7.5")
-  BiocInstaller::biocLite("LiNk-NY/RTCGAToolbox")
-if(!require(TCGAutils) || packageVersion("TCGAutils") < "0.3.28")
-  BiocInstaller::biocLite("waldronlab/TCGAutils")
-
-suppressPackageStartupMessages({
-  library(GenomicRanges)
-  library(SummarizedExperiment)
-  library(RaggedExperiment)
-  library(dplyr)
-  library(TCGAutils)
-  library(readr)
-})
+suppressPackageStartupMessages( library(subtypeHeterogeneity) )
 ```
 
 ## Cancer types
@@ -34,9 +29,9 @@ RTCGAToolbox::getFirehoseDatasets()
 
 ## ABSOLUTE
 ```{r absolute}
-absFile <- "ABSOLUTE_grangeslist.rds"
+absFile <- "extdata/ABSOLUTE_grangeslist.rds"
 absFile <- system.file(absFile, package="subtypeHeterogeneity") 
-absGRL <- readr::readRDS(absFile) 
+absGRL <- readRDS(absFile) 
 absGRL
 ```
 
@@ -90,5 +85,6 @@ summary(subcl.score)
 assoc.score <- testSubtypes(gisticOV, ovsubs, test.type="perm")
 cor(assoc.score, subcl.score, method="spearman")
 wilcox.test(assoc.score, subcl.score)
+permTest(gisticOV, ovsubs, subcl.score)
 ```
 

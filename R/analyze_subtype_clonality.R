@@ -10,9 +10,9 @@
 # access RaggedExperiment: assay(ra[1:5,1:5], "score")
 
 ## summarize absolute calls in gistic regions
-maxScore <- function(scores, ranges, qranges) max(scores, na.rm=TRUE)
+.maxScore <- function(scores, ranges, qranges) max(scores, na.rm=TRUE)
 
-wmean <- function(scores, ranges, qranges)
+.wmean <- function(scores, ranges, qranges)
 {
     isects <- pintersect(ranges, qranges)
     s <- sum(scores * width(isects)) / sum(width(isects))
@@ -24,7 +24,7 @@ wmean <- function(scores, ranges, qranges)
 querySubclonality <- function(ra, query, sum.method=c("any", "wmean"))
 {
     sum.method <- match.arg(sum.method)
-    sum.method <- ifelse(sum.method == "wmean", wmean, maxScore)
+    sum.method <- ifelse(sum.method == "wmean", .wmean, .maxScore)
     qa <- RaggedExperiment::qreduceAssay(ra, query, 
                 simplifyReduce=sum.method, i="score", background=0)
     return(qa)
@@ -48,14 +48,26 @@ testSubtypes <- function(gistic, subtys,
 }
 
 
-perm.test <- function()
-replicate(1:1000,
+permTest <- function(gistic, subtys, subcl.score, nperm=1000)
+{
+    obs.stat <- testSubtypes(gistic, subtys, test.type="perm") 
+    obs.cor <- cor(obs.stat, subcl.score, method="spearman")    
+    times.greater <- 0
+
+    x <- replicate(nperm,
     { 
-        ind <- sample(nrow(ovsubs))
-        ovsubs.perm <- ovsubs[ind,]
-        rownames(ovsubs.perm) <- rownames(ovsubs)
-        stat
+        ind <- sample(nrow(subtys))
+        subs.perm <- subtys[ind,]
+        rownames(subs.perm) <- rownames(subtys)
+        perm.stat <- testSubtypes(gistic, subs.perm, test.type="perm")
+        perm.cor <- cor(perm.stat, subcl.score, method="spearman")
+        is.greater <- perm.cor >= obs.cor
+        times.greater <<- times.greater + is.greater
     })
+    p <- (times.greater + 1) / (nperm + 1)
+    return(p)
+}
+
 
 # find gistic regions that are overlapped by more than one absolute call
 getAmbigiousCalls <- function(grl, query)
