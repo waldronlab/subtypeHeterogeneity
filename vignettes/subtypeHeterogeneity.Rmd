@@ -1,5 +1,5 @@
 ---
-title: "Analyzing subclonality of expression subtypes"
+title: "Subclonality of expression subtypes"
 author: Ludwig Geistlinger and Levi Waldron
 output:
   BiocStyle::html_document:
@@ -10,17 +10,19 @@ vignette: >
   % \VignetteEngine{knitr::rmarkdown}
 ---
 
-```{r style, echo = FALSE, results = 'asis'}
-options(width=100)
+```{r style, echo = FALSE}
 knitr::opts_chunk$set(fig.align = "center")
 knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(cache=TRUE)
-```
-
-## Setup
-```{r setup, echo=FALSE, results = 'asis'}
 suppressPackageStartupMessages( library(subtypeHeterogeneity) )
 ```
+
+# Setup
+```{r setup}
+library(subtypeHeterogeneity)
+```
+
+# Data sources
 
 ## Cancer types
 ```{r ctypes}
@@ -29,8 +31,8 @@ RTCGAToolbox::getFirehoseDatasets()
 
 ## ABSOLUTE
 ```{r absolute}
-absFile <- "extdata/ABSOLUTE_grangeslist.rds"
-absFile <- system.file(absFile, package="subtypeHeterogeneity") 
+data.dir <- system.file("extdata", package="subtypeHeterogeneity") 
+absFile <- file.path(data.dir, "ABSOLUTE_grangeslist.rds")
 absGRL <- readRDS(absFile) 
 absGRL
 ```
@@ -50,7 +52,7 @@ dim(ovsubs)
 head(ovsubs)
 ```
 
-## Test: gistic-subtype association
+# Test: gistic-subtype association
 ```{r subtyAssoc}
 adj.pvals <- testSubtypes(gisticOV, ovsubs, test.type="chisq", padj.method="BH")
 length(adj.pvals)
@@ -58,33 +60,35 @@ head(adj.pvals)
 sum(adj.pvals < 0.1)
 ```
 
-## Subclonality
+# Subclonality
 
-### Match subtyped samples and samples analyzed with ABSOLUTE
+## Match subtyped samples and ABSOLUTE samples 
 ```{r matchCalls}
 raOV <- getMatchedAbsoluteCalls(absGRL, ovsubs)
 raOV
 rowRanges(raOV)
 ```
 
-### Summarize subclonality of ABSOLUTE calls falling on GISTIC regions 
+## Summarize subclonality of ABSOLUTE calls in GISTIC regions 
 ```{r querySubcl}
 subcl.gisticOV <- querySubclonality(raOV, query=rowRanges(gisticOV), sum.method="any")
 dim(subcl.gisticOV)
 subcl.gisticOV[1:5,1:5]
 ```
 
-### Subclonality score: fraction of samples in which a mutation is subclonal
+## Subclonality score
+Def: Fraction of samples in which a mutation is subclonal.
 ```{r subclScore}
 subcl.score <- rowMeans(subcl.gisticOV)
 summary(subcl.score)
 ```
 
-## Correlation between subtype-association score and subclonality score
+## Correlation: subtype-association score and subclonality score
 ```{r cor}
 assoc.score <- testSubtypes(gisticOV, ovsubs, test.type="perm")
 cor(assoc.score, subcl.score, method="spearman")
-wilcox.test(assoc.score, subcl.score)
+cor.test(assoc.score, subcl.score, 
+    method="spearman", alternative="greater", exact=FALSE)$p.value
 permTest(gisticOV, ovsubs, subcl.score)
 ```
 

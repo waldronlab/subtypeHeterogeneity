@@ -39,6 +39,8 @@ ctypes <- RTCGAToolbox::getFirehoseDatasets()
     return(grl)
 }
 
+
+
 ## GISTIC
 # @returns: a RangedSummarizedExperiment
 gistic2RSE <- function(ctype=RTCGAToolbox::getFirehoseDatasets(), 
