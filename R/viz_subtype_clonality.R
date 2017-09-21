@@ -7,6 +7,16 @@
 # 
 ############################################################
 
+#@subtys: a matrix with sample IDs as rownames and at least a column 'cluster'
+#@puri.ploi: a matrix with sample IDs as rownames and at least two columns
+#               named 'purity' and 'ploidy'
+#@returns:
+plotSubtypePurityPloidy <- function(subtys, puri.ploi)
+{
+    
+}
+
+
 # GVIZ
 #library(Gviz)
 #gen <- "hg19"

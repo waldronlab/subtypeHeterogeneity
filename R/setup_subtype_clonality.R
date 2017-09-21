@@ -40,6 +40,19 @@ ctypes <- RTCGAToolbox::getFirehoseDatasets()
 }
 
 
+# @returns: a matrix 
+#
+.readPurityPloidy <- function(infile, outfile)
+{
+    con <- bzfile(infile)
+    dat <- read.delim(infile, as.is=TRUE)
+    dat <- dat[,-c(2,3,7,10)]
+    rownames(dat) <- dat[,1]
+    dat <- dat[,-1]
+    saveRDS(dat, file=outfile)
+    return(dat)
+}
+
 
 ## GISTIC
 # @returns: a RangedSummarizedExperiment

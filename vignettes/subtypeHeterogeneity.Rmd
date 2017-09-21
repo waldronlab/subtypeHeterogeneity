@@ -89,6 +89,6 @@ assoc.score <- testSubtypes(gisticOV, ovsubs, test.type="perm")
 cor(assoc.score, subcl.score, method="spearman")
 cor.test(assoc.score, subcl.score, 
     method="spearman", alternative="greater", exact=FALSE)$p.value
-permTest(gisticOV, ovsubs, subcl.score)
+corPermTest(gisticOV, ovsubs, subcl.score)
 ```
 
