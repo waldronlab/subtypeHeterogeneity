@@ -10,7 +10,7 @@
 #@subtys: a matrix with sample IDs as rownames and at least a column 'cluster'
 #@puri.ploi: a matrix with sample IDs as rownames and at least two columns
 #               named 'purity' and 'ploidy'
-#@returns:
+#@returns: plots to a graphics device
 plotSubtypePurityPloidy <- function(subtys, puri.ploi)
 {
     cids <- intersect(rownames(subtys), rownames(puri.ploi)) 
