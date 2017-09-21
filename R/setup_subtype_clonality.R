@@ -40,13 +40,13 @@ ctypes <- RTCGAToolbox::getFirehoseDatasets()
 }
 
 
-# @returns: a matrix 
-#
+# @returns: a matrix with sample IDs as rownames and columns 'purity', 'ploidy',
+#           'Genome.doublings',  and 'Subclonal.genome.fraction'  
 .readPurityPloidy <- function(infile, outfile)
 {
     con <- bzfile(infile)
     dat <- read.delim(infile, as.is=TRUE)
-    dat <- dat[,-c(2,3,7,10)]
+    dat <- dat[,-c(2,3,7,8,10)]
     rownames(dat) <- dat[,1]
     dat <- dat[,-1]
     saveRDS(dat, file=outfile)

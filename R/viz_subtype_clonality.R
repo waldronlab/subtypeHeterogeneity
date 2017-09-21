@@ -13,9 +13,23 @@
 #@returns:
 plotSubtypePurityPloidy <- function(subtys, puri.ploi)
 {
-    
+    cids <- intersect(rownames(subtys), rownames(puri.ploi)) 
+    subtys <- subtys[cids,"cluster"] 
+    puri.ploi <- puri.ploi[cids,]
+    par(mfrow=c(2,2))
+    for(i in c(1:2,4,3))
+    {   
+        title <- colnames(puri.ploi)[i]
+        vlist <- split(puri.ploi[,i], subtys)
+        if(i != 3) suppressWarnings( boxplot(vlist, 
+                    ylab=title, varwidth=TRUE, notch=TRUE, main=title) )
+        else
+        {
+            tlist <- sapply(vlist,table)
+            barplot(tlist, ylab=title, main=title)
+        }
+    }
 }
-
 
 # GVIZ
 #library(Gviz)
