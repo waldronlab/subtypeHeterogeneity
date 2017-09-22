@@ -162,9 +162,10 @@ getBroadSubtypes <- function(ctype=RTCGAToolbox::getFirehoseDatasets(),
     return(subtys)
 }
 
-
-# subtys: a matrix with sample IDs as rownames and at least a column 'cluster'
-# absGRL: a GRangesList storing the per-sample ABSOLUTE calls
+# @args
+#  subtys: a matrix with sample IDs as rownames and at least a column 'cluster'
+#  absGRL: a GRangesList storing the per-sample ABSOLUTE calls
+#
 # @returns: a RaggedExperiment storing the ABSOLUTE calls that 
 getMatchedAbsoluteCalls <- function(absGRL, subtys)
 {
@@ -174,4 +175,26 @@ getMatchedAbsoluteCalls <- function(absGRL, subtys)
     return(ra)
 }
 
-
+# @args
+#  broad.subtys: a matrix with sample IDs as rownames and a column 'cluster'
+#  pooled.subtys: data.frame from consensusOV manuscript 
+#                   (OV subtypes from different studies)  
+#
+# @returns: a 4x4 contingeny table 
+#            (Broad: {1,2,3,4} vs Verhaak: {PRO, MES, DIF, IMR})
+mapOVSubtypes <- function(broad.subtys, pooled.subtys)
+{
+    ind <- pooled.subtys[,"data.source"] == "TCGA"
+    pooledTCGA <- pooled.subtys[ind, "Verhaak"]
+    ids <- rownames(pooled.subtys)[ind]
+    ids <- sub("^TCGA.TCGA_", "", ids)
+    ids <- gsub("\\.", "-", ids)
+    
+    broad.ids <- suppressWarnings( TCGAutils::TCGAbarcode(rownames(broad.subtys)) )
+    ind <- match(ids, broad.ids)   
+    broad.subtys <- broad.subtys[ind,"cluster"]
+       
+    spl <- split(pooledTCGA, broad.subtys)
+    tab <- sapply(spl, table)
+    return(tab)   
+}

@@ -11,9 +11,6 @@ vignette: >
 ---
 
 ```{r style, echo = FALSE}
-knitr::opts_chunk$set(fig.align = "center")
-knitr::opts_chunk$set(warning = FALSE)
-knitr::opts_chunk$set(cache=TRUE)
 suppressPackageStartupMessages( library(subtypeHeterogeneity) )
 ```
 
@@ -46,10 +43,37 @@ assay(gisticOV)[1:5,1:5]
 ```
 
 ## Expression-based subtypes
-```{r subtys}
+### Broad subtypes
+```{r broadSubtys}
 ovsubs <- getBroadSubtypes(ctype="OV", clust.alg="CNMF")
 dim(ovsubs)
 head(ovsubs)
+```
+
+### OV subtypes from different studies
+```{r pooledSubtys}
+pooled.file <- file.path(data.dir, "pooled_subtypes.rds")
+pooled.subs <- readRDS(pooled.file)
+table(pooled.subs[,"data.source"])
+table(pooled.subs[,"Verhaak"])  
+```
+
+### TCGA subtype consistency
+```{r subtyCons}
+tab <- mapOVSubtypes(ovsubs, pooled.subs)
+tab
+sort( apply(tab, 1, which.max) )
+```
+
+### Subtype purity & ploidy
+```{r subtyPP}
+pp.file <- file.path(data.dir, "Purity_Ploidy.rds")
+puri.ploi <- readRDS(pp.file)
+head(puri.ploi)
+```
+
+```{r plotPP, fig.width=8, fig.height=8}
+plotSubtypePurityPloidy(ovsubs, puri.ploi)
 ```
 
 # Test: gistic-subtype association

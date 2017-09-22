@@ -7,7 +7,7 @@ importMethodsFrom("GenomeInfoDb", seqlevels, "seqlevels<-", seqnames)
 importFrom("GenomeInfoDb", orderSeqlevels)
 
 importFrom("grDevices", "col2rgb", "dev.off", "png", "rgb")
-importFrom("graphics", "par", "segments", "symbols", "text")
+importFrom("graphics", "barplot", "boxplot", "par", "segments", "symbols", "text")
 importFrom("methods", "as", "is")
 importFrom("stats", "chisq.test", "formula", "mad", "median", "model.matrix",
     "p.adjust", "pchisq", "phyper", "pnorm", "qnorm","quantile", "rnorm", 
@@ -21,7 +21,9 @@ export(
     getBroadSubtypes,
     getMatchedAbsoluteCalls,
     gistic2RSE,
-    permTest,
+    mapOVSubtypes,
+    corPermTest,
+    plotSubtypePurityPloidy,
     populationRanges,
     populationRangesRO,
     querySubclonality,
