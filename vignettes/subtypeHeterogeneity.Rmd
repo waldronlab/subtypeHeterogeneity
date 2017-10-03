@@ -111,8 +111,28 @@ summary(subcl.score)
 ```{r cor}
 assoc.score <- testSubtypes(gisticOV, ovsubs, test.type="perm")
 cor(assoc.score, subcl.score, method="spearman")
-cor.test(assoc.score, subcl.score, 
-    method="spearman", alternative="greater", exact=FALSE)$p.value
+cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
 corPermTest(gisticOV, ovsubs, subcl.score)
 ```
 
+```{r plotCor, fig.width=6, fig.height=6}
+par(pch=20)
+plot(assoc.score, subcl.score, 
+    xlab="subtype association score", ylab="subclonality score")
+```
+
+### Only copy losses and single copy gains
+```{r corNoHighAmp}
+noHighAmp <- getMatchedAbsoluteCalls(absGRL, ovsubs, max.cn=3)
+subcl.noHighAmp <- querySubclonality(noHighAmp, query=rowRanges(gisticOV), sum.method="any")
+subcl.noHighAmp <- rowMeans(subcl.noHighAmp)
+cor(assoc.score, subcl.noHighAmp, method="spearman")
+cor.test(assoc.score, subcl.noHighAmp, method="spearman", exact=FALSE)$p.value
+corPermTest(gisticOV, ovsubs, subcl.noHighAmp)
+```
+
+```{r plotCorNHA, fig.width=6, fig.height=6}
+par(pch=20)
+plot(assoc.score, subcl.noHighAmp, 
+    xlab="subtype association score", ylab="subclonality score")
+```

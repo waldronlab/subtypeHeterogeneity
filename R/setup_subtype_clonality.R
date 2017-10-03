@@ -167,10 +167,15 @@ getBroadSubtypes <- function(ctype=RTCGAToolbox::getFirehoseDatasets(),
 #  absGRL: a GRangesList storing the per-sample ABSOLUTE calls
 #
 # @returns: a RaggedExperiment storing the ABSOLUTE calls that 
-getMatchedAbsoluteCalls <- function(absGRL, subtys)
+getMatchedAbsoluteCalls <- function(absGRL, subtys, max.cn=Inf)
 {
     subtys <- subtys[rownames(subtys) %in% names(absGRL), ]
     absGRLmatched <- absGRL[match(rownames(subtys), names(absGRL))]
+    
+    if(max.cn < Inf)
+        absGRLmatched <- endoapply(absGRLmatched, 
+            function(x) x[.totalCN(x) <= max.cn])
+
     ra <- RaggedExperiment::RaggedExperiment(absGRLmatched, colData=subtys)
     return(ra)
 }
