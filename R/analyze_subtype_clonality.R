@@ -73,6 +73,22 @@ querySubclonality <- function(ra, query, sum.method=c("any", "wmean"))
     return(qa)
 }
 
+stratifyByPurity <- function(subtys, puri.ploi, method=c("quintile", "equal.bin"))
+{
+    cids <- intersect(rownames(subtys), rownames(puri.ploi))
+    
+    method <- match.arg(method)
+    if(method == "quintile")
+        cps <- quantile(puri.ploi[cids,1], seq(0, 1, 0.2), na.rm=TRUE) 
+    else cps <- 5
+
+    n <- levels(cut(puri.ploi[cids,1], cps))
+    bins <- cut(puri.ploi[cids,1], cps, labels=FALSE) 
+    spl <- split(cids, bins)
+    names(spl) <- n
+    return(spl)
+}
+
 # find gistic regions that are overlapped by more than one absolute call
 getAmbigiousCalls <- function(grl, query)
 {

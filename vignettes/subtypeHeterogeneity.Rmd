@@ -76,6 +76,17 @@ head(puri.ploi)
 plotSubtypePurityPloidy(ovsubs, puri.ploi)
 ```
 
+```{r stratPur}
+sebin <- stratifyByPurity(ovsubs, puri.ploi, method="equal.bin")
+sapply(sebin, length)
+squint <- stratifyByPurity(ovsubs, puri.ploi, method="quintile")
+sapply(squint, length)
+```
+
+```{r plotPurStrat, fig.width=5, fig.height=5}
+plotPurityStrata(ovsubs, puri.ploi)
+```
+
 # Test: gistic-subtype association
 ```{r subtyAssoc}
 adj.pvals <- testSubtypes(gisticOV, ovsubs, test.type="chisq", padj.method="BH")
@@ -124,7 +135,7 @@ plot(assoc.score, subcl.score,
 ### Only copy losses and single copy gains
 ```{r corNoHighAmp}
 noHighAmp <- getMatchedAbsoluteCalls(absGRL, ovsubs, max.cn=3)
-subcl.noHighAmp <- querySubclonality(noHighAmp, query=rowRanges(gisticOV), sum.method="any")
+subcl.noHighAmp <- querySubclonality(noHighAmp, query=rowRanges(gisticOV))
 subcl.noHighAmp <- rowMeans(subcl.noHighAmp)
 cor(assoc.score, subcl.noHighAmp, method="spearman")
 cor.test(assoc.score, subcl.noHighAmp, method="spearman", exact=FALSE)$p.value

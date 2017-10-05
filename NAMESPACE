@@ -24,8 +24,10 @@ export(
     mapOVSubtypes,
     corPermTest,
     plotSubtypePurityPloidy,
+    plotPurityStrata,
     populationRanges,
     populationRangesRO,
     querySubclonality,
+    stratifyByPurity,
     testSubtypes     
 )

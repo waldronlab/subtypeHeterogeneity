@@ -7,6 +7,35 @@
 # 
 ############################################################
 
+.extractUpper <- function(x)
+{
+    spl <- unlist(strsplit(x, ","))[2]
+    spl <- substring(spl, 1, nchar(spl)-1)
+    spl <- as.numeric(spl)
+    return(spl)
+}
+
+plotPurityStrata <- function(subtys, puri.ploi)
+{
+    cids <- intersect(rownames(subtys), rownames(puri.ploi))    
+
+    par(pch=20)
+    plot(puri.ploi[cids,1], puri.ploi[cids,2], xlab="purity", ylab="ploidy")
+
+    sebin <- stratifyByPurity(ovsubs, puri.ploi, method="equal.bin")
+    sex <- sapply(names(sebin)[1:4], .extractUpper) 
+    abline(v=sex, col="green", lty=3)
+
+    squint <- stratifyByPurity(ovsubs, puri.ploi, method="quintile")
+    sqx <- sapply(names(squint)[1:4], .extractUpper)
+    abline(v=sqx, col="blue", lty=3)
+
+    #legend("topright", lty=3, 
+    #    legend=c("equal.bin", "quintile"), col=c("green", "blue"))
+}
+
+
+
 #@subtys: a matrix with sample IDs as rownames and at least a column 'cluster'
 #@puri.ploi: a matrix with sample IDs as rownames and at least two columns
 #               named 'purity' and 'ploidy'
