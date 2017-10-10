@@ -89,6 +89,22 @@ stratifyByPurity <- function(subtys, puri.ploi, method=c("quintile", "equal.bin"
     return(spl)
 }
 
+analyzeStrata <- function(ids, absGRL, gistic, subtys)
+{
+    sabs <- absGRL[intersect(ids, names(absGRL))]
+    sgis <- gistic[,intersect(ids, colnames(gistic))]
+    ssub <- subtys[intersect(ids, rownames(subtys)),]
+    
+    ra <- getMatchedAbsoluteCalls(sabs, ssub)
+    subcl <- querySubclonality(ra, query=rowRanges(sgis), sum.method="any")
+    subcl.score <- rowMeans(subcl)
+    assoc.score <- suppressWarnings(
+                        testSubtypes(sgis, ssub, test.type="perm"))
+    rho <- cor(assoc.score, subcl.score, method="spearman")
+    
+    return(rho) 
+}
+
 # find gistic regions that are overlapped by more than one absolute call
 getAmbigiousCalls <- function(grl, query)
 {

@@ -95,6 +95,12 @@ head(adj.pvals)
 sum(adj.pvals < 0.1)
 ```
 
+```{r plotAssoc, fig.width=5, fig.height=5}
+hist(adj.pvals, breaks=25, col="indianred",
+        xlab="Subtype association p-value", main="")
+```
+
+
 # Subclonality
 
 ## Match subtyped samples and ABSOLUTE samples 
@@ -130,6 +136,12 @@ corPermTest(gisticOV, ovsubs, subcl.score)
 par(pch=20)
 plot(assoc.score, subcl.score, 
     xlab="subtype association score", ylab="subclonality score")
+```
+
+### Purity-stratified analysis
+```{r purStrat}
+sapply(squint, function(ids) analyzeStrata(ids, absGRL, gisticOV, ovsubs))
+sapply(sebin[-1], function(ids) analyzeStrata(ids, absGRL, gisticOV, ovsubs))
 ```
 
 ### Only copy losses and single copy gains

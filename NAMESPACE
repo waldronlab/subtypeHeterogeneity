@@ -18,6 +18,7 @@ importFrom("utils", "available.packages", "browseURL", "capture.output",
 
 
 export( 
+    analyzeStrata,
     getBroadSubtypes,
     getMatchedAbsoluteCalls,
     gistic2RSE,
