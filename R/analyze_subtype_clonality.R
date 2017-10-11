@@ -9,18 +9,17 @@
 
 # @gistic: a RangedSummarizedExperiment
 # @subtys: a matrix with sample IDs as rownames and at least a column 'cluster'
-testSubtypes <- function(gistic, subtys, 
-    test.type=c("chisq", "perm"), padj.method="BH")
+testSubtypes <- function(gistic, subtys, stat.only=FALSE, padj.method="BH")
 {
     test.type <- match.arg(test.type)
     subtys <- subtys[rownames(subtys) %in% colnames(gistic), ]
     gistic <- gistic[,match(rownames(subtys), colnames(gistic))]
     subtys <- subtys$cluster    
-    slot <- ifelse(test.type == "perm", "statistic", "p.value")   
+    slot <- ifelse(stat.only, "statistic", "p.value")   
  
     res <- apply(assay(gistic), 1, 
         function(x) chisq.test(x, subtys)[[slot]])
-    if(test.type == "chisq") res <- p.adjust(res, method=padj.method)       
+    if(!stat.only) res <- p.adjust(res, method=padj.method)       
     return(res)
 }
 
@@ -33,7 +32,7 @@ testSubtypes <- function(gistic, subtys,
 # permutation test
 corPermTest <- function(gistic, subtys, subcl.score, nperm=1000)
 {
-    obs.stat <- testSubtypes(gistic, subtys, test.type="perm") 
+    obs.stat <- testSubtypes(gistic, subtys, stat.only=TRUE) 
     obs.cor <- abs(cor(obs.stat, subcl.score, method="spearman"))    
     times.greater <- 0
 
@@ -42,7 +41,7 @@ corPermTest <- function(gistic, subtys, subcl.score, nperm=1000)
         ind <- sample(nrow(subtys))
         subs.perm <- subtys[ind,]
         rownames(subs.perm) <- rownames(subtys)
-        perm.stat <- testSubtypes(gistic, subs.perm, test.type="perm")
+        perm.stat <- testSubtypes(gistic, subs.perm, stat.only=TRUE)
         perm.cor <- cor(perm.stat, subcl.score, method="spearman")
         is.greater <- abs(perm.cor) >= obs.cor
         times.greater <<- times.greater + is.greater
@@ -99,7 +98,7 @@ analyzeStrata <- function(ids, absGRL, gistic, subtys)
     subcl <- querySubclonality(ra, query=rowRanges(sgis), sum.method="any")
     subcl.score <- rowMeans(subcl)
     assoc.score <- suppressWarnings(
-                        testSubtypes(sgis, ssub, test.type="perm"))
+                        testSubtypes(sgis, ssub, stat.only=TRUE))
     rho <- cor(assoc.score, subcl.score, method="spearman")
     
     return(rho) 

@@ -48,6 +48,7 @@ assay(gisticOV)[1:5,1:5]
 ovsubs <- getBroadSubtypes(ctype="OV", clust.alg="CNMF")
 dim(ovsubs)
 head(ovsubs)
+table(ovsubs[,"cluster"])
 ```
 
 ### OV subtypes from different studies
@@ -89,7 +90,7 @@ plotPurityStrata(ovsubs, puri.ploi)
 
 # Test: gistic-subtype association
 ```{r subtyAssoc}
-adj.pvals <- testSubtypes(gisticOV, ovsubs, test.type="chisq", padj.method="BH")
+adj.pvals <- testSubtypes(gisticOV, ovsubs, padj.method="BH")
 length(adj.pvals)
 head(adj.pvals)
 sum(adj.pvals < 0.1)
@@ -126,7 +127,7 @@ summary(subcl.score)
 
 ## Correlation: subtype-association score and subclonality score
 ```{r cor}
-assoc.score <- testSubtypes(gisticOV, ovsubs, test.type="perm")
+assoc.score <- testSubtypes(gisticOV, ovsubs, stat.only=TRUE)
 cor(assoc.score, subcl.score, method="spearman")
 cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
 corPermTest(gisticOV, ovsubs, subcl.score)
