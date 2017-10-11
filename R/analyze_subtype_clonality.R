@@ -11,7 +11,6 @@
 # @subtys: a matrix with sample IDs as rownames and at least a column 'cluster'
 testSubtypes <- function(gistic, subtys, stat.only=FALSE, padj.method="BH")
 {
-    test.type <- match.arg(test.type)
     subtys <- subtys[rownames(subtys) %in% colnames(gistic), ]
     gistic <- gistic[,match(rownames(subtys), colnames(gistic))]
     subtys <- subtys$cluster    
@@ -68,7 +67,7 @@ querySubclonality <- function(ra, query, sum.method=c("any", "wmean"))
     sum.method <- match.arg(sum.method)
     sum.method <- ifelse(sum.method == "wmean", .wmean, .maxScore)
     qa <- RaggedExperiment::qreduceAssay(ra, query, 
-                simplifyReduce=sum.method, i="score", background=0)
+                simplifyReduce=sum.method, i="score", background=NA)
     return(qa)
 }
 
@@ -96,7 +95,7 @@ analyzeStrata <- function(ids, absGRL, gistic, subtys)
     
     ra <- getMatchedAbsoluteCalls(sabs, ssub)
     subcl <- querySubclonality(ra, query=rowRanges(sgis), sum.method="any")
-    subcl.score <- rowMeans(subcl)
+    subcl.score <- rowMeans(subcl, na.rm=TRUE)
     assoc.score <- suppressWarnings(
                         testSubtypes(sgis, ssub, stat.only=TRUE))
     rho <- cor(assoc.score, subcl.score, method="spearman")

@@ -90,14 +90,15 @@ plotPurityStrata(ovsubs, puri.ploi)
 
 # Test: gistic-subtype association
 ```{r subtyAssoc}
-adj.pvals <- testSubtypes(gisticOV, ovsubs, padj.method="BH")
+pvals <- testSubtypes(gisticOV, ovsubs, padj.method="none")
+adj.pvals <- p.adjust(pvals, method="BH")
 length(adj.pvals)
 head(adj.pvals)
 sum(adj.pvals < 0.1)
 ```
 
 ```{r plotAssoc, fig.width=5, fig.height=5}
-hist(adj.pvals, breaks=25, col="indianred",
+hist(pvals, breaks=25, col="indianred",
         xlab="Subtype association p-value", main="")
 ```
 
@@ -121,7 +122,7 @@ subcl.gisticOV[1:5,1:5]
 ## Subclonality score
 Def: Fraction of samples in which a mutation is subclonal.
 ```{r subclScore}
-subcl.score <- rowMeans(subcl.gisticOV)
+subcl.score <- rowMeans(subcl.gisticOV, na.rm=TRUE)
 summary(subcl.score)
 ```
 
@@ -149,7 +150,7 @@ sapply(sebin[-1], function(ids) analyzeStrata(ids, absGRL, gisticOV, ovsubs))
 ```{r corNoHighAmp}
 noHighAmp <- getMatchedAbsoluteCalls(absGRL, ovsubs, max.cn=3)
 subcl.noHighAmp <- querySubclonality(noHighAmp, query=rowRanges(gisticOV))
-subcl.noHighAmp <- rowMeans(subcl.noHighAmp)
+subcl.noHighAmp <- rowMeans(subcl.noHighAmp, na.rm=TRUE)
 cor(assoc.score, subcl.noHighAmp, method="spearman")
 cor.test(assoc.score, subcl.noHighAmp, method="spearman", exact=FALSE)$p.value
 corPermTest(gisticOV, ovsubs, subcl.noHighAmp)
