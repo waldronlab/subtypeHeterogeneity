@@ -79,9 +79,9 @@ plotSubtypePurityPloidy(ovsubs, puri.ploi)
 
 ```{r stratPur}
 sebin <- stratifyByPurity(ovsubs, puri.ploi, method="equal.bin")
-sapply(sebin, length)
+lengths(sebin)
 squint <- stratifyByPurity(ovsubs, puri.ploi, method="quintile")
-sapply(squint, length)
+lengths(squint)
 ```
 
 ```{r plotPurStrat, fig.width=5, fig.height=5}
@@ -98,7 +98,7 @@ sum(adj.pvals < 0.1)
 ```
 
 ```{r plotAssoc, fig.width=5, fig.height=5}
-hist(pvals, breaks=25, col="indianred",
+hist(pvals, breaks=25, col="firebrick",
         xlab="Subtype association p-value", main="")
 ```
 
