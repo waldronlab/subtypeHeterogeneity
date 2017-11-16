@@ -139,8 +139,8 @@ getBroadSubtypes <- function(ctype=RTCGAToolbox::getFirehoseDatasets(),
     # insert selected cancer type
     ctype <- match.arg(ctype)
     url <- gsub("ctype", ctype, BROAD.URL)
-    if(ctype == "LAML") url <- sub("TP", "TB", url)
-    else if(ctype == "SKCM") url <- sub("TP", "TM", url)
+    if(ctype == "LAML") url <- gsub("TP", "TB", url)
+    else if(ctype == "SKCM") url <- gsub("TP", "TM", url)
 
     # insert selected cluster algorithm
     clust.alg <- match.arg(clust.alg)

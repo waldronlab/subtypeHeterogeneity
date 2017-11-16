@@ -161,3 +161,59 @@ par(pch=20)
 plot(assoc.score, subcl.noHighAmp, 
     xlab="subtype association score", ylab="subclonality score")
 ```
+
+# Other cancer types
+```{r brca}
+brca <- analyzeCancerType("BRCA", absGRL)
+names(brca)
+brca[1:2]
+```
+
+```{r gbm}
+gbm <- analyzeCancerType("GBM", absGRL)
+gbm[1:2]
+```
+
+```{r allCTypes}
+allFile <- file.path(data.dir, "all_cancer_types.rds")
+allCT <- readRDS(allFile)
+```
+
+```{r plotNrSamples, fig.width=12, fig.height=6}
+st <- sapply(allCT, function(ct) nrow(ct$subtypes))
+gs <- sapply(allCT, function(ct) ncol(ct$gistic))
+as <- sapply(allCT, function(ct) sum(rownames(ct$subtypes) %in% names(absGRL)))
+
+dat <- rbind(gs, st, as)
+dat <- dat[,order(st)]
+par(las=2)
+barplot(dat, beside=TRUE, ylab="#samples")
+legend("topleft", lwd=3, 
+    legend=c("gistic", "subtype", "absolute"),  
+    col=c("black", "darkgrey", "lightgrey"))
+```
+
+```{r descrStats, fig.width=6, fig.height=6}
+nr.sts <- sapply(allCT, function(ct) length(unique(ct$subtypes[,1])))
+nr.gregs <- sapply(allCT, function(ct) nrow(ct$gistic))
+par(las=1)
+plot(nr.sts, nr.gregs, col="white", xlab="#subtypes", ylab="#GISTIC.regions")
+text(nr.sts, nr.gregs, names(nr.sts), cex=0.8)
+```
+
+```{r subclDistrs, fig.width=12, fig.height=6}
+subcl.scores <- lapply(allCT, function(ct) ct$subcl.score)
+meds <- sapply(subcl.scores, median)
+ind <- order(meds)
+subcl.scores <- subcl.scores[ind]
+par(las=2)
+boxplot(subcl.scores, ylab="subclonality score")
+```
+
+```{r corVolcano, fig.width=9, fig.height=6}
+rho <- sapply(allCT, function(ct) ct$rho)
+p <- sapply(allCT, function(ct) ct$p)
+plot(rho, -log(p, base=10), ylab="-log10(p)", xlab="Spearman correlation", col="white")
+text(rho, -log(p, base=10), names(allCT), cex=0.8)
+```
+

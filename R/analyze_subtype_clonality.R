@@ -94,13 +94,34 @@ analyzeStrata <- function(ids, absGRL, gistic, subtys)
     ssub <- subtys[intersect(ids, rownames(subtys)),]
     
     ra <- getMatchedAbsoluteCalls(sabs, ssub)
-    subcl <- querySubclonality(ra, query=rowRanges(sgis), sum.method="any")
+    subcl <- querySubclonality(ra, query=rowRanges(sgis))
     subcl.score <- rowMeans(subcl, na.rm=TRUE)
     assoc.score <- suppressWarnings(
                         testSubtypes(sgis, ssub, stat.only=TRUE))
     rho <- cor(assoc.score, subcl.score, method="spearman")
     
     return(rho) 
+}
+
+analyzeCancerType <- function(ctype, absGRL)
+{
+    suppressWarnings({
+    gistic <- gistic2RSE(ctype)
+    subs <- getBroadSubtypes(ctype)
+    ra <- getMatchedAbsoluteCalls(absGRL, subs)
+    subcl <- querySubclonality(ra, query=rowRanges(gistic))
+    subcl.score <- rowMeans(subcl, na.rm=TRUE)
+    assoc.score <- testSubtypes(gistic, subs, stat.only=TRUE)
+    rho <- cor(assoc.score, subcl.score, method="spearman")
+    p <- cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
+    return(list(
+        rho=rho, p=p, 
+        assoc.score=assoc.score, 
+        subcl.score=subcl.score,
+        gistic=gistic, subtypes=subs
+        ))
+    
+    })
 }
 
 # find gistic regions that are overlapped by more than one absolute call
