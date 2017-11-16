@@ -163,22 +163,26 @@ plot(assoc.score, subcl.noHighAmp,
 ```
 
 # Other cancer types
-```{r brca}
-brca <- analyzeCancerType("BRCA", absGRL)
-names(brca)
-brca[1:2]
-```
-
-```{r gbm}
-gbm <- analyzeCancerType("GBM", absGRL)
-gbm[1:2]
-```
 
 ```{r allCTypes}
 allFile <- file.path(data.dir, "all_cancer_types.rds")
 allCT <- readRDS(allFile)
 ```
 
+## Intrinsic subtypes: breast cancer
+```{r brca}
+brca <- allCT$BRCA
+names(brca)
+brca[1:2]
+```
+
+## Late subtypes: glioblastoma
+```{r gbm}
+gbm <- allCT$GBM
+gbm[1:2]
+```
+
+## Number of samples
 ```{r plotNrSamples, fig.width=12, fig.height=6}
 st <- sapply(allCT, function(ct) nrow(ct$subtypes))
 gs <- sapply(allCT, function(ct) ncol(ct$gistic))
@@ -193,6 +197,7 @@ legend("topleft", lwd=3,
     col=c("black", "darkgrey", "lightgrey"))
 ```
 
+## Number of subtypes & GISTIC regions
 ```{r descrStats, fig.width=6, fig.height=6}
 nr.sts <- sapply(allCT, function(ct) length(unique(ct$subtypes[,1])))
 nr.gregs <- sapply(allCT, function(ct) nrow(ct$gistic))
@@ -201,6 +206,7 @@ plot(nr.sts, nr.gregs, col="white", xlab="#subtypes", ylab="#GISTIC.regions")
 text(nr.sts, nr.gregs, names(nr.sts), cex=0.8)
 ```
 
+## Subclonality
 ```{r subclDistrs, fig.width=12, fig.height=6}
 subcl.scores <- lapply(allCT, function(ct) ct$subcl.score)
 meds <- sapply(subcl.scores, median)
@@ -210,6 +216,7 @@ par(las=2)
 boxplot(subcl.scores, ylab="subclonality score")
 ```
 
+## Correlation: subtype association & subclonality
 ```{r corVolcano, fig.width=9, fig.height=6}
 rho <- sapply(allCT, function(ct) ct$rho)
 p <- sapply(allCT, function(ct) ct$p)
