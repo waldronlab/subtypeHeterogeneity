@@ -7,6 +7,81 @@
 # 
 ############################################################
 
+# @args: gistic ... RangedSummarizedExperiment
+circosSubtypeAssociation <- function(gistic)
+{
+    gistic <- as.data.frame(rowRanges(gistic))
+    gistic$alterationTypeColor <- ifelse(gistic$type=="Deletion", "blue", "red")
+    circlize::circos.initializeWithIdeogram(species="hg19", chr=paste0("chr",1:22), plotType=NULL)
+    df <- circlize::read.chromInfo(species="hg19")
+    circlize::circos.genomicInitialize(df$df[df$df[,1] %in% paste0("chr",1:22),], plotType=NULL)
+    circlize::circos.trackPlotRegion(ylim=c(0, 1), 
+        panel.fun =
+            function(x, y)
+            {   
+                chr <- circlize::get.cell.meta.data("sector.index")
+                xlim <- circlize::get.cell.meta.data("xlim")
+                ylim <- circlize::get.cell.meta.data("ylim")
+                circlize::circos.rect(xlim[1], 0, xlim[2], 0.5, col="white")
+                circlize::circos.text(mean(xlim), 0.9, chr, 
+                    cex=0.5, facing="clockwise", niceFacing=TRUE)       
+            
+                # add cnvrs
+                ccnvrs <- gistic[gistic[,1]==chr,]
+                if(nrow(ccnvrs))
+                    for(i in seq_len(nrow(ccnvrs)))
+                        circlize::circos.rect(ccnvrs[i,2], 0, 
+                            ccnvrs[i,3], 0.5, 
+                            col=ccnvrs[i,"alterationTypeColor"], 
+                            border=ccnvrs[i,"alterationTypeColor"])
+            }, bg.border = NA)
+    circlize::circos.clear()
+}
+
+volcanoCorrelation <- function(rho, p)
+{
+    plot(x=rho, y=-log(p, base=10), 
+        ylab="-log10(p)", xlab="Spearman correlation", col="white")
+    text(x=rho, y=-log(p, base=10), names(allCT), cex=0.8)
+}
+
+plotSubclonalityDistributions <- function(subcl.scores)
+{
+    meds <- sapply(subcl.scores, median)
+    ind <- order(meds)
+    subcl.scores <- subcl.scores[ind]
+    par(las=2)
+    boxplot(subcl.scores, ylab="subclonality score")
+}
+
+plotNrSubtypesVsNrGisticRegions <- function(nr.sts, nr.gregs)
+{
+    plot(nr.sts, nr.gregs, col="white", xlab="#subtypes", ylab="#GISTIC.regions")
+    text(nr.sts, nr.gregs, names(nr.sts), cex=0.8)
+}
+
+# plot nr of samples available for each cancer type
+plotNrSamples <- function(gistic, subtypes, absolute)
+{
+    dat <- rbind(gistic, subtypes, absolute) 
+    dat <- dat[,order(subtypes)]
+
+    par(las=2)
+    barplot(dat, beside=TRUE, ylab="#samples")
+    legend("topleft", lwd=3, 
+        legend=c("gistic", "subtype", "absolute"),  
+        col=c("black", "darkgrey", "lightgrey"))
+}
+
+# scatterplot correlation between 
+#   (1) subtype association score, and 
+#   (2) subclonality score
+plotCorrelation <- function(assoc.score, subcl.score)
+{
+    par(pch=20)
+    plot(assoc.score, subcl.score, 
+        xlab="subtype association score", ylab="subclonality score")
+}
 .extractUpper <- function(x)
 {
     spl <- unlist(strsplit(x, ","))[2]

@@ -6,7 +6,8 @@ Author: Ludwig Geistlinger, Levi Waldron
 Maintainer: Ludwig Geistlinger <ludwig.geistlinger@sph.cuny.edu>
 Depends: R(>= 3.4.0), GenomicRanges, SummarizedExperiment
 Imports: GenomeInfoDb, IRanges, RCurl, RTCGAToolbox (>= 2.7.5), 
-    RaggedExperiment (>= 1.1.10), S4Vectors, TCGAutils(>= 0.3.28), methods 
+    RaggedExperiment (>= 1.1.10), S4Vectors, TCGAutils(>= 0.3.28), 
+    circlize, methods 
 Suggests: BiocStyle, knitr, rmarkdown
 Description: Testing of the hypothesis that expression-based cancer subtypes 
     tend not to be shared between intratumor clones, implying that they 
