@@ -102,6 +102,12 @@ hist(pvals, breaks=25, col="firebrick",
         xlab="Subtype association p-value", main="")
 ```
 
+## Genomic distribution of subtype-associated CNAs 
+```{r circosSubAssoc, fig.width=10, fig.height=10}
+mcols(gisticOV)$subtype <- testSubtypes(gisticOV, ovsubs, what="subtype")
+mcols(gisticOV)$significance <- ifelse(adj.pvals < 0.1, "*", "")
+circosSubtypeAssociation(gisticOV)
+```
 
 # Subclonality
 
@@ -128,7 +134,7 @@ summary(subcl.score)
 
 ## Correlation: subtype-association score and subclonality score
 ```{r cor}
-assoc.score <- testSubtypes(gisticOV, ovsubs, stat.only=TRUE)
+assoc.score <- testSubtypes(gisticOV, ovsubs, what="statistic")
 cor(assoc.score, subcl.score, method="spearman")
 cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
 corPermTest(gisticOV, ovsubs, subcl.score)
@@ -197,7 +203,7 @@ plotNrSubtypesVsNrGisticRegions(nr.sts, nr.gregs)
 ## Subclonality
 ```{r subclDistrs, fig.width=12, fig.height=6}
 subcl.scores <- lapply(allCT, function(ct) ct$subcl.score)
-plotSubclonalityDistributions(subscl.scores)
+plotSubclonalityDistributions(subcl.scores)
 ```
 
 ## Correlation: subtype association & subclonality

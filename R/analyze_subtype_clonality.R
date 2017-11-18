@@ -9,16 +9,32 @@
 
 # @gistic: a RangedSummarizedExperiment
 # @subtys: a matrix with sample IDs as rownames and at least a column 'cluster'
-testSubtypes <- function(gistic, subtys, stat.only=FALSE, padj.method="BH")
+testSubtypes <- function(gistic, subtys, 
+    what=c("p.value", "statistic", "subtype"), padj.method="BH")
 {
     subtys <- subtys[rownames(subtys) %in% colnames(gistic), ]
     gistic <- gistic[,match(rownames(subtys), colnames(gistic))]
-    subtys <- subtys$cluster    
-    slot <- ifelse(stat.only, "statistic", "p.value")   
- 
-    res <- apply(assay(gistic), 1, 
-        function(x) chisq.test(x, subtys)[[slot]])
-    if(!stat.only) res <- p.adjust(res, method=padj.method)       
+    subtys <- subtys$cluster  
+    
+    what <- match.arg(what)  
+    res <- apply(assay(gistic), 1, function(x) chisq.test(x, subtys))
+
+    if(what == "subtype")
+    {
+        res <- sapply(res,
+            function(x)
+            {
+                diff <- x$observed - x$expected
+                sdiff <- diff[2,]
+                if(nrow(diff) == 3) sdiff <- sdiff + 2 * diff[3,] 
+                return(which.max(sdiff))
+            }, USE.NAMES=FALSE)
+    }
+    else 
+    {
+        res <- sapply(res, function(x) x[[what]])
+        if(what == "p.value") res <- p.adjust(res, method=padj.method)
+    } 
     return(res)
 }
 
@@ -31,7 +47,7 @@ testSubtypes <- function(gistic, subtys, stat.only=FALSE, padj.method="BH")
 # permutation test
 corPermTest <- function(gistic, subtys, subcl.score, nperm=1000)
 {
-    obs.stat <- testSubtypes(gistic, subtys, stat.only=TRUE) 
+    obs.stat <- testSubtypes(gistic, subtys, what="statistic") 
     obs.cor <- abs(cor(obs.stat, subcl.score, method="spearman"))    
     times.greater <- 0
 
@@ -40,7 +56,7 @@ corPermTest <- function(gistic, subtys, subcl.score, nperm=1000)
         ind <- sample(nrow(subtys))
         subs.perm <- subtys[ind,]
         rownames(subs.perm) <- rownames(subtys)
-        perm.stat <- testSubtypes(gistic, subs.perm, stat.only=TRUE)
+        perm.stat <- testSubtypes(gistic, subs.perm, what="statistic")
         perm.cor <- cor(perm.stat, subcl.score, method="spearman")
         is.greater <- abs(perm.cor) >= obs.cor
         times.greater <<- times.greater + is.greater
@@ -97,7 +113,7 @@ analyzeStrata <- function(ids, absGRL, gistic, subtys)
     subcl <- querySubclonality(ra, query=rowRanges(sgis))
     subcl.score <- rowMeans(subcl, na.rm=TRUE)
     assoc.score <- suppressWarnings(
-                        testSubtypes(sgis, ssub, stat.only=TRUE))
+                        testSubtypes(sgis, ssub, what="statistic"))
     rho <- cor(assoc.score, subcl.score, method="spearman")
     
     return(rho) 
@@ -111,7 +127,7 @@ analyzeCancerType <- function(ctype, absGRL)
     ra <- getMatchedAbsoluteCalls(absGRL, subs)
     subcl <- querySubclonality(ra, query=rowRanges(gistic))
     subcl.score <- rowMeans(subcl, na.rm=TRUE)
-    assoc.score <- testSubtypes(gistic, subs, stat.only=TRUE)
+    assoc.score <- testSubtypes(gistic, subs, what="statistic")
     rho <- cor(assoc.score, subcl.score, method="spearman")
     p <- cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
     return(list(

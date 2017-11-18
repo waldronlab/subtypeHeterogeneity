@@ -10,11 +10,15 @@
 # @args: gistic ... RangedSummarizedExperiment
 circosSubtypeAssociation <- function(gistic)
 {
+    stcols <- c("steelblue", "darkseagreen3", "coral", "firebrick")
     gistic <- as.data.frame(rowRanges(gistic))
     gistic$alterationTypeColor <- ifelse(gistic$type=="Deletion", "blue", "red")
+    gistic$subtypeColor <- stcols[gistic$subtype]
     circlize::circos.initializeWithIdeogram(species="hg19", chr=paste0("chr",1:22), plotType=NULL)
     df <- circlize::read.chromInfo(species="hg19")
     circlize::circos.genomicInitialize(df$df[df$df[,1] %in% paste0("chr",1:22),], plotType=NULL)
+
+    # outer circle: GISTIC alteration type (amplification / deletion)
     circlize::circos.trackPlotRegion(ylim=c(0, 1), 
         panel.fun =
             function(x, y)
@@ -35,7 +39,38 @@ circosSubtypeAssociation <- function(gistic)
                             col=ccnvrs[i,"alterationTypeColor"], 
                             border=ccnvrs[i,"alterationTypeColor"])
             }, bg.border = NA)
+
+    # inner circle: subtype association
+    circlize::circos.trackPlotRegion(ylim=c(0,1),
+        panel.fun=
+            function(x, y)
+            {
+                # add cnvrs
+                chr <- circlize::get.cell.meta.data("sector.index")
+                xlim <- circlize::get.cell.meta.data("xlim")
+                ylim <- circlize::get.cell.meta.data("ylim")
+                circlize::circos.rect(xlim[1], 0, xlim[2], 0.5, col="white")
+                ccnvrs <- gistic[gistic[,1]==chr,]
+                if(nrow(ccnvrs))
+                    for(i in seq_len(nrow(ccnvrs)))
+                    {
+                        circlize::circos.rect(ccnvrs[i,2], 0,  
+                            ccnvrs[i,3], 0.5, 
+                            col=ccnvrs[i,"subtypeColor"], 
+                            border=ccnvrs[i,"subtypeColor"])
+                        
+                        circlize::circos.text(mean(unlist(ccnvrs[i,2:3])), 0.6, 
+                            ccnvrs[i,"significance"], cex=0.7)
+                            #, facing="clockwise", niceFacing=TRUE)
+                    }
+            }, bg.border=NA)
     circlize::circos.clear()
+
+    legend("bottomleft", legend=c("deletion", "amplification"), 
+        col=c("blue", "red"), lwd=2, cex=0.6, title="Outer circle")
+
+    legend("bottomright", legend=c("PRO", "MES", "DIF", "IMR"), 
+        col=stcols, lwd=2, cex=0.6, title="Inner circle")
 }
 
 volcanoCorrelation <- function(rho, p)

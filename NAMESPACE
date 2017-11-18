@@ -20,6 +20,7 @@ importFrom("utils", "available.packages", "browseURL", "capture.output",
 export( 
     analyzeCancerType,
     analyzeStrata,
+    circosSubtypeAssociation,
     corPermTest,
     getBroadSubtypes,
     getMatchedAbsoluteCalls,
