@@ -1,6 +1,6 @@
 ---
 title: "Subclonality of expression subtypes"
-author: Ludwig Geistlinger and Levi Waldron
+author: Ludwig Geistlinger, Markus Riester, and Levi Waldron
 output:
   BiocStyle::html_document:
     toc: true
@@ -63,7 +63,12 @@ table(pooled.subs[,"Verhaak"])
 ```{r subtyCons}
 tab <- mapOVSubtypes(ovsubs, pooled.subs)
 tab
-sort( apply(tab, 1, which.max) )
+(ind <- sort( apply(tab, 1, which.max) ))
+```
+
+```{r mapSubs}
+sts <- names(ind)[ovsubs[,"cluster"]]
+ovsubs <- data.frame(ovsubs, subtype=sts, stringsAsFactors=FALSE)
 ```
 
 ### Subtype purity & ploidy
@@ -103,10 +108,19 @@ hist(pvals, breaks=25, col="firebrick",
 ```
 
 ## Genomic distribution of subtype-associated CNAs 
+
+```{r tcgaOvCnvGenes}
+cnv.genes <- getCnvGenesFromTCGA()
+```
+
 ```{r circosSubAssoc, fig.width=10, fig.height=10}
 mcols(gisticOV)$subtype <- testSubtypes(gisticOV, ovsubs, what="subtype")
 mcols(gisticOV)$significance <- ifelse(adj.pvals < 0.1, "*", "")
-circosSubtypeAssociation(gisticOV)
+circosSubtypeAssociation(gisticOV, cnv.genes)
+```
+
+```{r cnaPerSubtype, fig.width=5, fig.height=5}
+plotNrCNAsPerSubtype(mcols(gisticOV)$type, mcols(gisticOV)$subtype)
 ```
 
 # Subclonality
@@ -164,6 +178,16 @@ corPermTest(gisticOV, ovsubs, subcl.noHighAmp)
 plotCorrelation(assoc.score, subcl.noHighAmp)
 ```
 
+### Extend peaks by 500 kb up- and downstream 
+```{r cor5kb}
+subcl.gisticOV.5kb <- querySubclonality(raOV, query=rowRanges(gisticOV), ext=500000)
+subcl.score <- rowMeans(subcl.gisticOV.5kb, na.rm=TRUE)
+summary(subcl.score)
+cor(assoc.score, subcl.score, method="spearman")
+cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
+plotCorrelation(assoc.score, subcl.score)
+```
+
 # Other cancer types
 
 ```{r allCTypes}
@@ -172,6 +196,18 @@ allCT <- readRDS(allFile)
 ```
 
 ## Intrinsic subtypes: breast cancer
+Subtypes: luminal A, luminal B, basal-like, and HER2-enriched
+```{r brcaSubtyAssoc}
+gisticBRCA <- gistic2RSE(ctype="BRCA", peak="wide")
+brcasubs <- getBroadSubtypes(ctype="BRCA", clust.alg="CNMF")
+table(brcasubs$cluster)
+pvals <- testSubtypes(gisticBRCA, brcasubs, padj.method="none")
+length(pvals)
+adj.pvals <- p.adjust(pvals, method="BH")
+sum(adj.pvals < 0.1)
+hist(pvals, breaks=25, col="firebrick",xlab="Subtype association p-value", main="")
+```
+
 ```{r brca}
 brca <- allCT$BRCA
 names(brca)
@@ -179,6 +215,18 @@ brca[1:2]
 ```
 
 ## Late subtypes: glioblastoma
+Subtypes: mesenchymal, proneural, neural, and classical
+```{r gbmSubtyAssoc}
+gisticGBM <- gistic2RSE(ctype="GBM", peak="wide")
+gbmsubs <- getBroadSubtypes(ctype="GBM", clust.alg="CNMF")
+table(gbmsubs$cluster)
+pvals <- testSubtypes(gisticGBM, gbmsubs, padj.method="none")
+length(pvals)
+adj.pvals <- p.adjust(pvals, method="BH")
+sum(adj.pvals < 0.1)
+hist(pvals, breaks=25, col="firebrick",xlab="Subtype association p-value", main="")
+```
+
 ```{r gbm}
 gbm <- allCT$GBM
 gbm[1:2]

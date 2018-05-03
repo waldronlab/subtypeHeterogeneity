@@ -57,16 +57,26 @@ ctypes <- RTCGAToolbox::getFirehoseDatasets()
 ## GISTIC
 # @returns: a RangedSummarizedExperiment
 gistic2RSE <- function(ctype=RTCGAToolbox::getFirehoseDatasets(), 
-                        peak=c("wide", "narrow", "full"))
+    peak=c("wide", "narrow", "full"), cache=TRUE)
 {
+    ctype <- match.arg(ctype)
+    peak <- match.arg(peak)
+    rname <- paste("gistic", ctype, peak, sep="_")
+    
+    if(cache)
+    {
+        gisticSE <- GSEABenchmarkeR:::.getResourceFromCache(
+            rname, update.value=NA, ucdir="subtypeHeterogeneity")
+        if(!is.null(gisticSE)) return(gisticSE)
+    }
+    
+    # download the tar
     BROAD.URL <- paste0("http://gdac.broadinstitute.org/",
                 "runs/analyses__2016_01_28/data/ctype/20160128")
  
     GISTIC.FILE <- paste0("gdac.broadinstitute.org_ctype-TP.",
                     "CopyNumber_Gistic2.Level_4.2016012800.0.0.tar.gz")
-    
-    # download the tar
-    ctype <- match.arg(ctype)
+
     url <- file.path(BROAD.URL, GISTIC.FILE)
     url <- gsub("ctype", ctype, url)
     if(ctype == "LAML") url <- sub("TP", "TB", url)
@@ -93,7 +103,6 @@ gistic2RSE <- function(ctype=RTCGAToolbox::getFirehoseDatasets(),
     gistic <- gistic[rel.rows,]
 
     # (a) get the ranges from chosen peaks
-    peak <- match.arg(peak)
     peak.col <- grep(peak, c("wide", "narrow", "full")) + 2
     ranges <- gistic[rel.rows,peak.col]
     ranges <- sub("\\(probes [0-9]+:[0-9]+\\) *$", "", ranges)   
@@ -124,6 +133,8 @@ gistic2RSE <- function(ctype=RTCGAToolbox::getFirehoseDatasets(),
     colnames(gisticSE) <- TCGAutils::TCGAbarcode(colnames(gisticSE), sample=TRUE)
     colnames(gisticSE)<- sub("A$", "", colnames(gisticSE))
 
+    GSEABenchmarkeR::cacheResource(gisticSE, rname, ucdir="subtypeHeterogeneity")
+
     return(gisticSE)
 }
 
@@ -131,19 +142,27 @@ gistic2RSE <- function(ctype=RTCGAToolbox::getFirehoseDatasets(),
 ## Broad subtypes
 # @returns: a matrix with sample IDs as rownames and at least a column "cluster"
 getBroadSubtypes <- function(ctype=RTCGAToolbox::getFirehoseDatasets(), 
-                                clust.alg=c("CNMF", "Consensus_Plus"))
+    clust.alg=c("CNMF", "Consensus_Plus"), cache=TRUE)
 {
+    ctype <- match.arg(ctype)
+    clust.alg <- match.arg(clust.alg)
+    rname <- paste("subtypes", ctype, clust.alg, sep="_")
+    if(cache)
+    {
+        subtys <- GSEABenchmarkeR:::.getResourceFromCache(
+            rname, update.value=NA, ucdir="subtypeHeterogeneity")
+        if(!is.null(subtys)) return(subtys)
+    }
+
     BROAD.URL <- paste0("http://gdac.broadinstitute.org/runs/analyses__latest",
         "/reports/cancer/ctype-TP/mRNA_Clustering_calg/ctype-TP.bestclus.txt")
 
     # insert selected cancer type
-    ctype <- match.arg(ctype)
     url <- gsub("ctype", ctype, BROAD.URL)
     if(ctype == "LAML") url <- gsub("TP", "TB", url)
     else if(ctype == "SKCM") url <- gsub("TP", "TM", url)
 
     # insert selected cluster algorithm
-    clust.alg <- match.arg(clust.alg)
     url <- sub("calg", clust.alg, url)
     
     # is mRNA cLustering available?
@@ -159,6 +178,8 @@ getBroadSubtypes <- function(ctype=RTCGAToolbox::getFirehoseDatasets(),
     subtys[,1] <- sub("A$", "", subtys[,1])
     rownames(subtys) <- subtys[,1]
     subtys <- subtys[,-1] 
+    
+    GSEABenchmarkeR::cacheResource(subtys, rname, ucdir="subtypeHeterogeneity")
     return(subtys)
 }
 

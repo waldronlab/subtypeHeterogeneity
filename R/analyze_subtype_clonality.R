@@ -25,9 +25,8 @@ testSubtypes <- function(gistic, subtys,
             function(x)
             {
                 diff <- x$observed - x$expected
-                sdiff <- diff[2,]
-                if(nrow(diff) == 3) sdiff <- sdiff + 2 * diff[3,] 
-                return(which.max(sdiff))
+                csums <- colSums(diff^2 / x$expected)
+                return(which.max(csums))
             }, USE.NAMES=FALSE)
     }
     else 
@@ -78,10 +77,19 @@ corPermTest <- function(gistic, subtys, subcl.score, nperm=1000)
 
 # @ra: RaggedExperiment
 # @query: GRanges
-querySubclonality <- function(ra, query, sum.method=c("any", "wmean"))
+querySubclonality <- function(ra, query, 
+    sum.method=c("any", "wmean"), ext.range=0)
 {
     sum.method <- match.arg(sum.method)
     sum.method <- ifelse(sum.method == "wmean", .wmean, .maxScore)
+
+    if(ext.range)
+    {
+        start(query) <- sapply(start(query),
+            function(s) ifelse(s < ext.range, 1, s-ext.range))
+        end(query) <- sapply(end(query), function(s) s + ext.range)
+    }
+
     qa <- RaggedExperiment::qreduceAssay(ra, query, 
                 simplifyReduce=sum.method, i="score", background=NA)
     return(qa)
