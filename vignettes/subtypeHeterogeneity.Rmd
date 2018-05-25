@@ -1,6 +1,6 @@
 ---
 title: "Subclonality of expression subtypes"
-author: Ludwig Geistlinger, Markus Riester, and Levi Waldron
+author: Ludwig Geistlinger, Sehyun Oh, Markus Riester, and Levi Waldron
 output:
   BiocStyle::html_document:
     toc: true
@@ -11,12 +11,16 @@ vignette: >
 ---
 
 ```{r style, echo = FALSE}
-suppressPackageStartupMessages( library(subtypeHeterogeneity) )
+suppressPackageStartupMessages({ 
+    library(subtypeHeterogeneity) 
+    library(consensusOV)
+})
 ```
 
 # Setup
 ```{r setup}
 library(subtypeHeterogeneity)
+library(consensusOV)
 ```
 
 # Data sources
@@ -73,7 +77,7 @@ ovsubs <- data.frame(ovsubs, subtype=sts, stringsAsFactors=FALSE)
 
 ### Subtype purity & ploidy
 ```{r subtyPP}
-pp.file <- file.path(data.dir, "Purity_Ploidy.rds")
+pp.file <- file.path(data.dir, "ABSOLUTE_Purity_Ploidy.rds")
 puri.ploi <- readRDS(pp.file)
 head(puri.ploi)
 ```
@@ -151,7 +155,7 @@ summary(subcl.score)
 assoc.score <- testSubtypes(gisticOV, ovsubs, what="statistic")
 cor(assoc.score, subcl.score, method="spearman")
 cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
-corPermTest(gisticOV, ovsubs, subcl.score)
+#corPermTest(gisticOV, ovsubs, subcl.score)
 ```
 
 ```{r plotCor, fig.width=6, fig.height=6}
@@ -171,7 +175,7 @@ subcl.noHighAmp <- querySubclonality(noHighAmp, query=rowRanges(gisticOV))
 subcl.noHighAmp <- rowMeans(subcl.noHighAmp, na.rm=TRUE)
 cor(assoc.score, subcl.noHighAmp, method="spearman")
 cor.test(assoc.score, subcl.noHighAmp, method="spearman", exact=FALSE)$p.value
-corPermTest(gisticOV, ovsubs, subcl.noHighAmp)
+#corPermTest(gisticOV, ovsubs, subcl.noHighAmp)
 ```
 
 ```{r plotCorNHA, fig.width=6, fig.height=6}
@@ -188,6 +192,49 @@ cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
 plotCorrelation(assoc.score, subcl.score)
 ```
 
+TODO: color by subtype
+
+## Assessing subclonality calls with PureCN
+
+### Read and order
+```{r pureCN.pp}
+ppp.file <- file.path(data.dir, "PureCN_Purity_Ploidy.txt")
+puriploi.pcn <- read.table(ppp.file) 
+puriploi.pcn <- puriploi.pcn[!duplicated(puriploi.pcn[,1]),]
+rownames(puriploi.pcn) <- puriploi.pcn[,"Sampleid"]
+puriploi.pcn <- puriploi.pcn[,-1]
+puriploi.pcn <- as.matrix(puriploi.pcn)
+absdiff <- abs(puriploi.pcn[,c("purity", "ploidy")] - 
+                puriploi.pcn[,c("Purity_wes", "Ploidy_wes")])
+ind <- do.call(order, as.data.frame(absdiff))
+puriploi.pcn <- puriploi.pcn[ind,]
+head(puriploi.pcn)
+cor(puriploi.pcn[,"purity"], puriploi.pcn[,"Purity_wes"], use="complete.obs")
+cor(puriploi.pcn[,"Purity_wes"], puriploi.pcn[,"Purity_snp6"], use="complete.obs")
+```
+
+### Select large losses called subclonal by ABSOLUTE 
+```{r selectAbsCalls}
+selectAbsCalls <- function(sample, min.size=3000000)
+{
+    gr <- absGRL[[sample]]
+    gr.3MB <- width(gr) > min.size
+    is.loss <- (gr$Modal_HSCN_1 + gr$Modal_HSCN_2) < 2 
+    is.subcl <- gr$score == 1
+
+    ind <- gr.3MB & is.loss & is.subcl
+    return(gr[ind])
+}
+selectAbsCalls(rownames(puriploi.pcn)[1])
+```
+
+### liftOver ABSOLUTE calls from hg19 to hg38
+
+
+### Select GISTIC regions of high subtype association and subclonality
+
+
+
 # Other cancer types
 
 ```{r allCTypes}
@@ -195,6 +242,59 @@ allFile <- file.path(data.dir, "all_cancer_types.rds")
 allCT <- readRDS(allFile)
 ```
 
+## Number of samples
+```{r plotNrSamples, fig.width=12, fig.height=6}
+st <- sapply(allCT, function(ct) nrow(ct$subtypes))
+gs <- sapply(allCT, function(ct) ncol(ct$gistic))
+as <- sapply(allCT, function(ct) sum(rownames(ct$subtypes) %in% names(absGRL)))
+
+plotNrSamples(gs, st, as) 
+```
+
+## Number of subtypes & GISTIC regions
+```{r descrStats, fig.width=6, fig.height=6}
+nr.sts <- sapply(allCT, function(ct) length(unique(ct$subtypes[,1])))
+nr.gregs <- sapply(allCT, function(ct) nrow(ct$gistic))
+plotNrSubtypesVsNrGisticRegions(nr.sts, nr.gregs)
+```
+
+## Subclonality
+```{r subclDistrs, fig.width=12, fig.height=6}
+subcl.scores <- lapply(allCT, function(ct) ct$subcl.score)
+plotSubclonalityDistributions(subcl.scores)
+```
+
+## Correlation: subtype association & subclonality
+```{r corVolcano, fig.width=9, fig.height=6}
+rho <- sapply(allCT, function(ct) ct$rho)
+p <- sapply(allCT, function(ct) ct$p)
+volcanoCorrelation(rho, p)
+```
+
+## Intrinsic subtypes: sarcoma
+```{r sarcSubtyAssoc}
+gisticSARC <- gistic2RSE(ctype="SARC", peak="wide")
+sarcsubs <- getBroadSubtypes(ctype="SARC", clust.alg="CNMF")
+table(sarcsubs$cluster)
+pvals <- testSubtypes(gisticSARC, sarcsubs, padj.method="none")
+length(pvals)
+adj.pvals <- p.adjust(pvals, method="BH")
+sum(adj.pvals < 0.1)
+hist(pvals, breaks=25, col="firebrick",xlab="Subtype association p-value", main="")
+```
+
+```{r sarc}
+assoc.score <- testSubtypes(gisticSARC, sarcsubs, what="statistic")
+raSARC <- getMatchedAbsoluteCalls(absGRL, sarcsubs)
+subcl.gisticSARC <- querySubclonality(raSARC, query=rowRanges(gisticSARC), sum.method="any")
+subcl.score <- rowMeans(subcl.gisticSARC, na.rm=TRUE)
+summary(subcl.score)
+cor(assoc.score, subcl.score, method="spearman")
+cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
+plotCorrelation(assoc.score, subcl.score) 
+```
+
+<!--
 ## Intrinsic subtypes: breast cancer
 Subtypes: luminal A, luminal B, basal-like, and HER2-enriched
 ```{r brcaSubtyAssoc}
@@ -231,33 +331,31 @@ hist(pvals, breaks=25, col="firebrick",xlab="Subtype association p-value", main=
 gbm <- allCT$GBM
 gbm[1:2]
 ```
+-->
 
-## Number of samples
-```{r plotNrSamples, fig.width=12, fig.height=6}
-st <- sapply(allCT, function(ct) nrow(ct$subtypes))
-gs <- sapply(allCT, function(ct) ncol(ct$gistic))
-as <- sapply(allCT, function(ct) sum(rownames(ct$subtypes) %in% names(absGRL)))
+# Subtype classification in single-cell RNA-seq data 
 
-plotNrSamples(gs, st, as) 
+```{r scRNAseq}
+sc.file <- file.path(data.dir, "scRNAseq_logTPM.rds")
+sc <- readRDS(sc.file)
+sc[1:5, 1:5]
 ```
 
-## Number of subtypes & GISTIC regions
-```{r descrStats, fig.width=6, fig.height=6}
-nr.sts <- sapply(allCT, function(ct) length(unique(ct$subtypes[,1])))
-nr.gregs <- sapply(allCT, function(ct) nrow(ct$gistic))
-plotNrSubtypesVsNrGisticRegions(nr.sts, nr.gregs)
+```{r explore.scRNAseq}
+library(MASS)
+data(GSE14764.eset)
+boxplot(exprs(GSE14764.eset))
+boxplot(sc)
+ma.vals <- as.vector(exprs(GSE14764.eset))
+sc.vals <- as.vector(sc)
+truehist(ma.vals, nbins=50) 
+truehist(sc.vals, nbins=50)
 ```
 
-## Subclonality
-```{r subclDistrs, fig.width=12, fig.height=6}
-subcl.scores <- lapply(allCT, function(ct) ct$subcl.score)
-plotSubclonalityDistributions(subcl.scores)
-```
+```{r exploreZeroInflat}
+sc0 <- sc
+for(i in seq_len(nrow(sc)))
+    for(j in seq_len(ncol(sc)))
+        if(is.na(sc[i,j])) sc0[i,j] <- 0
 
-## Correlation: subtype association & subclonality
-```{r corVolcano, fig.width=9, fig.height=6}
-rho <- sapply(allCT, function(ct) ct$rho)
-p <- sapply(allCT, function(ct) ct$p)
-volcanoCorrelation(rho, p)
 ```
-
