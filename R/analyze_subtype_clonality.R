@@ -10,7 +10,7 @@
 # @gistic: a RangedSummarizedExperiment
 # @subtys: a matrix with sample IDs as rownames and at least a column 'cluster'
 testSubtypes <- function(gistic, subtys, 
-    what=c("p.value", "statistic", "subtype"), padj.method="BH")
+    what=c("p.value", "statistic", "subtype", "full"), padj.method="BH")
 {
     subtys <- subtys[rownames(subtys) %in% colnames(gistic), ]
     gistic <- gistic[,match(rownames(subtys), colnames(gistic))]
@@ -18,6 +18,7 @@ testSubtypes <- function(gistic, subtys,
     
     what <- match.arg(what)  
     res <- apply(assay(gistic), 1, function(x) chisq.test(x, subtys))
+    if(what == "full") return(res)
 
     if(what == "subtype")
     {

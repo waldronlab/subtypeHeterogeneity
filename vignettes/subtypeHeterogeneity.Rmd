@@ -23,6 +23,11 @@ library(subtypeHeterogeneity)
 library(consensusOV)
 ```
 
+```{r cols}
+stcols <- c("steelblue", "darkseagreen3", "coral", "firebrick")
+names(stcols) <- c("PRO", "MES", "DIF", "IMR")
+```
+
 # Data sources
 
 ## Cancer types
@@ -183,16 +188,15 @@ plotCorrelation(assoc.score, subcl.noHighAmp)
 ```
 
 ### Extend peaks by 500 kb up- and downstream 
-```{r cor5kb}
+```{r cor5kb, fig.width=6, fig.height=6}
 subcl.gisticOV.5kb <- querySubclonality(raOV, query=rowRanges(gisticOV), ext=500000)
 subcl.score <- rowMeans(subcl.gisticOV.5kb, na.rm=TRUE)
 summary(subcl.score)
 cor(assoc.score, subcl.score, method="spearman")
 cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
-plotCorrelation(assoc.score, subcl.score)
+plotCorrelation(assoc.score, subcl.score, 
+    subtypes=mcols(gisticOV)$subtype, stcols=stcols)
 ```
-
-TODO: color by subtype
 
 ## Assessing subclonality calls with PureCN
 
@@ -225,15 +229,65 @@ selectAbsCalls <- function(sample, min.size=3000000)
     ind <- gr.3MB & is.loss & is.subcl
     return(gr[ind])
 }
-selectAbsCalls(rownames(puriploi.pcn)[1])
+(abs.calls <- selectAbsCalls(rownames(puriploi.pcn)[1]))
 ```
 
-### liftOver ABSOLUTE calls from hg19 to hg38
+### liftOver hg19-based ABSOLUTE calls to compare with hg38-based PureCN calls 
+- UCSC online liftOver (https://genome.ucsc.edu/cgi-bin/hgLiftOver)
+- does smoothing and filtering on top of the chain mappings
+- `rtracklayer::liftOver` only provides chain mappings
 
+```{r liftOver}
+chain.file <- file.path(data.dir, "hg19ToHg38.over.chain")
+ch <- rtracklayer::import.chain(chain.file)
+(hg19.call <- absGRL[[1]][1])
+(blocks <- rtracklayer::liftOver(hg19.call, ch))
+```
+
+```{r liftOverFilterSmooth}
+blocks <- unlist(blocks)
+# harmonize chromosome by majority vote
+tab <- table(as.character(seqnames(blocks))) 
+nmax <- names(tab)[which.max(tab)]
+# collapse blocks
+blocks <- blocks[seqnames(blocks) == nmax]
+(hg38.call <- range(reduce(blocks)))
+```
 
 ### Select GISTIC regions of high subtype association and subclonality
+```{r selecttopTables}
+tests <- testSubtypes(gisticOV, ovsubs, what="full")
+```
 
+```{r selecttop}
+# highest subtype association
+ind <- order(assoc.score, decreasing=TRUE)
+rowRanges(gisticOV)[ind[1:2]]
+x <- tests[[ind[1]]]
+x$observed
+x$expected
+diff <- x$observed - x$expected
+(csums <- colSums(diff^2 / x$expected))
+x <- tests[[ind[2]]]
+x$observed
+x$expected
+diff <- x$observed - x$expected
+(csums <- colSums(diff^2 / x$expected))
 
+# highest subclonality
+ind <- order(subcl.score, decreasing=TRUE)
+rowRanges(gisticOV)[ind[1:2]]
+x <- tests[[ind[1]]]
+x$observed
+x$expected
+diff <- x$observed - x$expected
+(csums <- colSums(diff^2 / x$expected))
+x <- tests[[ind[2]]]
+x$observed
+x$expected
+diff <- x$observed - x$expected
+(csums <- colSums(diff^2 / x$expected))
+```
 
 # Other cancer types
 
@@ -283,6 +337,18 @@ sum(adj.pvals < 0.1)
 hist(pvals, breaks=25, col="firebrick",xlab="Subtype association p-value", main="")
 ```
 
+
+```{r sarcClinical}
+sarc.clin <- RTCGAToolbox::getFirehoseData(dataset="SARC", runDate="20160128")
+sarc.clin <- RTCGAToolbox::getData(sarc.clin, "clinical")
+ids <- rownames(sarcsubs)
+ids <- tolower(ids)
+ids <- gsub("-", ".", ids)
+ids <- substring(ids, 1, 12)
+sarcsubs$histType <- sarc.clin[ids,"histological_type"] 
+lapply(1:3, function(cl) table(sarcsubs[sarcsubs$cluster == cl,"histType"]))
+```
+
 ```{r sarc}
 assoc.score <- testSubtypes(gisticSARC, sarcsubs, what="statistic")
 raSARC <- getMatchedAbsoluteCalls(absGRL, sarcsubs)
@@ -291,7 +357,14 @@ subcl.score <- rowMeans(subcl.gisticSARC, na.rm=TRUE)
 summary(subcl.score)
 cor(assoc.score, subcl.score, method="spearman")
 cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
-plotCorrelation(assoc.score, subcl.score) 
+```
+
+```{r sarcPlot, fig.width=6, fig.height=6}
+sarc.cols <- stcols[c(1,3,2)]
+names(sarc.cols) <- c("MFS/UPS", "LMS", "DDLPS")
+sts <- testSubtypes(gisticSARC, sarcsubs, what="subtype")
+sts <- names(sarc.cols)[sts]
+plotCorrelation(assoc.score, subcl.score, subtypes=sts, stcols=sarc.cols)
 ```
 
 <!--
@@ -357,5 +430,7 @@ sc0 <- sc
 for(i in seq_len(nrow(sc)))
     for(j in seq_len(ncol(sc)))
         if(is.na(sc[i,j])) sc0[i,j] <- 0
-
+MASS::truehist(as.vector(sc0), nbins=50)
+perc0 <- apply(sc0, 2, function(x) mean(x==0) * 100)
+barplot(perc0,ylab="%genes with log2TPM = 0")
 ```

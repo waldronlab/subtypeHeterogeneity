@@ -166,10 +166,12 @@ plotNrSamples <- function(gistic, subtypes, absolute)
 # scatterplot correlation between 
 #   (1) subtype association score, and 
 #   (2) subclonality score
-plotCorrelation <- function(assoc.score, subcl.score)
+plotCorrelation <- function(assoc.score, subcl.score, subtypes=NULL, stcols=NULL)
 {
     par(pch=20)
-    plot(assoc.score, subcl.score, col="firebrick",
+    if(is.null(subtypes)) col <- "firebrick"
+    else col <- stcols[subtypes]
+    plot(assoc.score, subcl.score, col=col,
         xlab=expression(paste("Subtype association score ", italic(S[A]))), 
         ylab=expression(paste("Subclonality score ", italic(S[C]))))
     
@@ -181,6 +183,10 @@ plotCorrelation <- function(assoc.score, subcl.score)
     p <- paste("   p", round(p, digits=3), sep=" = ")
     
     legend("topright", legend=c(rho, p))
+    if(!is.null(subtypes))
+        legend("bottomright", legend=names(stcols), col=stcols, lwd=2)
+
+    abline(lm(subcl.score ~ assoc.score), lty=2, col="grey")
 }
 
 # barplot summarizing associated CNAs per subtype
