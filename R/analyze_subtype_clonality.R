@@ -119,7 +119,7 @@ analyzeStrata <- function(ids, absGRL, gistic, subtys)
     ssub <- subtys[intersect(ids, rownames(subtys)),]
     
     ra <- getMatchedAbsoluteCalls(sabs, ssub)
-    subcl <- querySubclonality(ra, query=rowRanges(sgis))
+    subcl <- querySubclonality(ra, query=rowRanges(sgis), ext=500000)
     subcl.score <- rowMeans(subcl, na.rm=TRUE)
     assoc.score <- suppressWarnings(
                         testSubtypes(sgis, ssub, what="statistic"))

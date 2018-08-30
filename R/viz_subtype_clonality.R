@@ -18,8 +18,17 @@ bang_wong_colors <-
         "#E69F00",
         "#000000"
     )
+cb.pink <- "#CC79A7"
+cb.red <- "#D55E00"
+cb.blue <- "#0072B2"
+cb.yellow <- "#F0E442"
+cb.green <- "#009E73"
+cb.lightblue <- "#56B4E9"
+cb.orange <- "#E69F00"
 
-stcols <- c("steelblue", "darkseagreen3", "coral", "firebrick")
+
+#stcols <- c("steelblue", "darkseagreen3", "coral", "firebrick")
+stcols <- c(cb.lightblue, cb.green, cb.orange, cb.pink) 
 names(stcols) <- c("PRO", "MES", "DIF", "IMR")
 
 # as from Figure 1b in TCGA OVC paper, Nature 2011
@@ -49,9 +58,8 @@ getCnvGenesFromTCGA <- function()
 # @args: gistic ... RangedSummarizedExperiment
 circosSubtypeAssociation <- function(gistic, cnv.genes)
 {
-    stcols <- c("steelblue", "darkseagreen3", "coral", "firebrick")
     gistic <- as.data.frame(rowRanges(gistic))
-    gistic$alterationTypeColor <- ifelse(gistic$type=="Deletion", "blue", "red")
+    gistic$alterationTypeColor <- ifelse(gistic$type=="Deletion", cb.blue, cb.red)
     gistic$subtypeColor <- stcols[gistic$subtype]
     circlize::circos.initializeWithIdeogram(species="hg19", chr=paste0("chr",1:22), plotType=NULL)
     df <- circlize::read.chromInfo(species="hg19")
@@ -122,7 +130,7 @@ circosSubtypeAssociation <- function(gistic, cnv.genes)
     circlize::circos.clear()
 
     legend("bottomleft", legend=c("deletion", "amplification"), 
-        col=c("blue", "red"), lwd=2, cex=0.6, title="Outer circle")
+        col=c(cb.blue, cb.red), lwd=2, cex=0.6, title="Outer circle")
 
     legend("bottomright", legend=c("PRO", "MES", "DIF", "IMR"), 
         col=stcols, lwd=2, cex=0.6, title="Inner circle")
@@ -169,7 +177,7 @@ plotNrSamples <- function(gistic, subtypes, absolute)
 plotCorrelation <- function(assoc.score, subcl.score, subtypes=NULL, stcols=NULL)
 {
     par(pch=20)
-    if(is.null(subtypes)) col <- "firebrick"
+    if(is.null(subtypes)) col <- cb.red
     else col <- stcols[subtypes]
     plot(assoc.score, subcl.score, col=col,
         xlab=expression(paste("Subtype association score ", italic(S[A]))), 
@@ -193,12 +201,21 @@ plotCorrelation <- function(assoc.score, subcl.score, subtypes=NULL, stcols=NULL
 plotNrCNAsPerSubtype <- function(type, subtype)
 {
     spl <- split(type, subtype)
-    m <- vapply(spl, table, integer(2))
+    .countType <- 
+        function(s)
+        {
+            nr.amp <- sum(s == "Amplification")
+            nr.del <- length(s) - nr.amp
+            res <- c(nr.amp, nr.del)
+            names(res) <- c("Amplification", "Deletion")
+            return(res)
+        }
+    m <- vapply(spl, .countType, integer(2))
     m <- m[2:1,]     
     colnames(m) <- names(stcols)
     m <- m[,order(colSums(m))]
 
-    bp <- barplot(m, col=c("blue", "red"), border=NA, ylab="#CNAs")
+    bp <- barplot(m, col=c(cb.blue, cb.red), border=NA, ylab="#CNAs")
     for(i in 1:4) 
         rect( xleft=bp[i]-0.5, ybottom=0, 
                 xright=bp[i]+0.5, ytop=sum(m[,i]), 
@@ -215,18 +232,26 @@ plotNrCNAsPerSubtype <- function(type, subtype)
 
 plotPurityStrata <- function(subtys, puri.ploi)
 {
+    puri.ploi <- puri.ploi[!is.na(puri.ploi[,1]),]
     cids <- intersect(rownames(subtys), rownames(puri.ploi))    
 
-    par(pch=20)
-    plot(puri.ploi[cids,1], puri.ploi[cids,2], xlab="purity", ylab="ploidy")
-
     sebin <- stratifyByPurity(ovsubs, puri.ploi, method="equal.bin")
-    sex <- sapply(names(sebin)[1:4], .extractUpper) 
-    abline(v=sex, col="green", lty=3)
+    sex <- sapply(names(sebin), .extractUpper) 
 
-    squint <- stratifyByPurity(ovsubs, puri.ploi, method="quintile")
-    sqx <- sapply(names(squint)[1:4], .extractUpper)
-    abline(v=sqx, col="blue", lty=3)
+    par(pch=20)
+    hcols <- rev(heat.colors(5))
+    col.ind <- vapply(puri.ploi[cids,1], 
+                    function(p) min(which(p <= sex)), integer(1)) 
+    plot(puri.ploi[cids,1], puri.ploi[cids,2], 
+            col=hcols[col.ind], xlab="purity", ylab="ploidy")
+    
+    abline(v=sex[1:4], col=hcols[2:5], lty=3)
+    xm <- c(0.447, 0.605, 0.763, 0.921)
+    text(x=xm, y=8, labels=c(0.23, 0.17, 0.25, 0.38), col=hcols[2:5], font=2)
+
+    #squint <- stratifyByPurity(ovsubs, puri.ploi, method="quintile")
+    #sqx <- sapply(names(squint)[1:4], .extractUpper)
+    #abline(v=sqx, col="blue", lty=3)
 
     #legend("topright", lty=3, 
     #    legend=c("equal.bin", "quintile"), col=c("green", "blue"))
@@ -257,9 +282,9 @@ plotSubtypePurityPloidy <- function(subtys, puri.ploi)
                     ylab=title, varwidth=TRUE, notch=TRUE, main="") )
         else
         {
-            cols <- c("plum3", "mistyrose2", "moccasin")
+            cols <- c("mistyrose2", "moccasin", "plum3")
             tlist <- sapply(vlist, table)
-            barplot(tlist, ylab=title, ylim=c(0,170), main="", col=cols)
+            barplot(tlist, ylab="#tumors", ylim=c(0,170), main="", col=cols)
             legend("topleft", legend=0:2, lwd=4, col=cols, horiz=TRUE)
             
         }

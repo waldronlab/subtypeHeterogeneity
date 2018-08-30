@@ -24,7 +24,15 @@ library(consensusOV)
 ```
 
 ```{r cols}
-stcols <- c("steelblue", "darkseagreen3", "coral", "firebrick")
+cb.pink <- "#CC79A7"
+cb.red <- "#D55E00"
+cb.blue <- "#0072B2"
+cb.yellow <- "#F0E442"
+cb.green <- "#009E73"
+cb.lightblue <- "#56B4E9"
+cb.orange <- "#E69F00"
+
+stcols <- c(cb.lightblue, cb.green, cb.orange, cb.pink) 
 names(stcols) <- c("PRO", "MES", "DIF", "IMR")
 ```
 
