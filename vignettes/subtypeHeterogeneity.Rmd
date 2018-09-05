@@ -14,6 +14,7 @@ vignette: >
 suppressPackageStartupMessages({ 
     library(subtypeHeterogeneity) 
     library(consensusOV)
+    library(RaggedExperiment)
 })
 ```
 
@@ -21,6 +22,7 @@ suppressPackageStartupMessages({
 ```{r setup}
 library(subtypeHeterogeneity)
 library(consensusOV)
+library(RaggedExperiment)
 ```
 
 ```{r cols}
@@ -131,13 +133,14 @@ cnv.genes <- getCnvGenesFromTCGA()
 ```
 
 ```{r circosSubAssoc, fig.width=10, fig.height=10}
+sig.ind <- adj.pvals < 0.1
 mcols(gisticOV)$subtype <- testSubtypes(gisticOV, ovsubs, what="subtype")
-mcols(gisticOV)$significance <- ifelse(adj.pvals < 0.1, "*", "")
+mcols(gisticOV)$significance <- ifelse(sig.ind, "*", "")
 circosSubtypeAssociation(gisticOV, cnv.genes)
 ```
 
 ```{r cnaPerSubtype, fig.width=5, fig.height=5}
-plotNrCNAsPerSubtype(mcols(gisticOV)$type, mcols(gisticOV)$subtype)
+plotNrCNAsPerSubtype(mcols(gisticOV)$type[sig.ind], mcols(gisticOV)$subtype[sig.ind])
 ```
 
 # Subclonality
@@ -225,6 +228,123 @@ cor(puriploi.pcn[,"purity"], puriploi.pcn[,"Purity_wes"], use="complete.obs")
 cor(puriploi.pcn[,"Purity_wes"], puriploi.pcn[,"Purity_snp6"], use="complete.obs")
 ```
 
+### CN concordance with ABSOLUTE
+PureCN calls for S0293689 capture kit: 
+```{r pureCN.calls}
+pcn.call.file <- file.path(data.dir, "PureCN_OV_S0293689_grangeslist.rds")
+pcn.calls <- readRDS(pcn.call.file)
+pcn.calls
+# select samples that intersect with ABSOLUTE data
+isect.samples <- intersect(names(pcn.calls), names(absGRL))
+pcn.calls <- pcn.calls[isect.samples]
+pcn.calls.ra <- RaggedExperiment(pcn.calls) 
+pcn.calls.ra
+```
+
+Get corresponding ABSOLUTE calls:
+```{r isect.abs.calls}
+abs.calls <- absGRL[isect.samples]
+abs.calls <- as.data.frame(abs.calls)[,c(2:5,8:10)]
+totalCN <- abs.calls[,"Modal_HSCN_1"] + abs.calls[,"Modal_HSCN_2"]
+abs.calls <- data.frame(abs.calls[,1:4], CN=totalCN, score=abs.calls[,"score"])
+abs.calls <- makeGRangesListFromDataFrame(abs.calls, 
+    split.field="group_name", keep.extra.columns=TRUE)
+abs.calls
+abs.calls.ra <- RaggedExperiment(abs.calls)
+abs.calls.ra <- abs.calls.ra[,colnames(pcn.calls.ra)]
+```
+
+OVC GISTIC2 regions on hg19 (ABSOLUTE) and hg38 (PureCN)
+```{r gisticHG38}
+gisticOV.ranges.hg19 <- file.path(data.dir, "gisticOV_ranges_hg19.txt") 
+gisticOV.ranges.hg19 <- scan(gisticOV.ranges.hg19, what="character")
+gisticOV.ranges.hg19 <- GRanges(gisticOV.ranges.hg19) 
+gisticOV.ranges.hg19 
+gisticOV.ranges.hg38 <- file.path(data.dir, "gisticOV_ranges_hg38.txt") 
+gisticOV.ranges.hg38 <- scan(gisticOV.ranges.hg38, what="character")
+gisticOV.ranges.hg38 <- GRanges(gisticOV.ranges.hg38) 
+gisticOV.ranges.hg38
+```
+
+Summarize calls in GISTIC regions using either 
+- the largest call overlapping a GISTIC region
+- a weighted mean of calls overlapping a GISTIC region 
+```{r qred}
+.largest <- function(score, range, qrange) 
+{
+    return.type <- class(score[[1]])
+    default.value <- do.call(return.type, list(1))
+    ind <- which.max(width(range))
+    res <- vapply(seq_along(score), 
+           function(i) score[[i]][ind[i]], default.value)
+    return(res)
+}
+pcn.rassay <- qreduceAssay(pcn.calls.ra, query=gisticOV.ranges.hg38, 
+                    simplifyReduce=.largest, background=2)
+abs.rassay <- qreduceAssay(abs.calls.ra, query=gisticOV.ranges.hg19,
+                    simplifyReduce=.largest, background=2)
+
+
+.weightedmean <- function(score, range, qrange)
+{
+    w <- width(range)
+    s <- sum(score * w) / sum(w)
+    return(round(s))
+}
+
+pcn.rassay2 <- qreduceAssay(pcn.calls.ra, query=gisticOV.ranges.hg38,
+                    simplifyReduce=.weightedmean, background=2)
+abs.rassay2 <- qreduceAssay(abs.calls.ra, query=gisticOV.ranges.hg19,
+                    simplifyReduce=.weightedmean, background=2)
+```
+
+Evaluate per-sample concordance:
+- fraction of GISTIC regions with equal copy number
+- fraction of GISTIC regions agreeing in alteration type (amplification / deletion)
+- fraction of GISTIC regions that deviate by max. 1 copy
+```{r evalConcord}
+# largest
+fract.equal <- vapply(seq_along(isect.samples), 
+        function(i) mean(pcn.rassay[,i] == abs.rassay[,i]), 
+        numeric(1))
+fract.type <- vapply(seq_along(isect.samples), 
+        function(i) mean(((pcn.rassay[,i] < 2) & (abs.rassay[,i] < 2)) |
+                          ((pcn.rassay[,i] > 2) & (abs.rassay[,i] > 2)) |  
+                          ((pcn.rassay[,i] == 2) & (abs.rassay[,i] == 2))), 
+        numeric(1))
+fract.diff1 <- vapply(seq_along(isect.samples), 
+        function(i) mean((pcn.rassay[,i] == abs.rassay[,i]) | 
+                            (pcn.rassay[,i] == abs.rassay[,i] + 1) |
+                            (pcn.rassay[,i] == abs.rassay[,i] - 1)), 
+        numeric(1))
+
+# weighted mean
+fract.equal2 <- vapply(seq_along(isect.samples), 
+        function(i) mean(pcn.rassay2[,i] == abs.rassay2[,i]), 
+        numeric(1))
+fract.type2 <- vapply(seq_along(isect.samples), 
+        function(i) mean(((pcn.rassay2[,i] < 2) & (abs.rassay2[,i] < 2)) |
+                          ((pcn.rassay2[,i] > 2) & (abs.rassay2[,i] > 2)) |  
+                          ((pcn.rassay2[,i] == 2) & (abs.rassay2[,i] == 2))), 
+        numeric(1))
+fract.diff12 <- vapply(seq_along(isect.samples), 
+        function(i) mean((pcn.rassay2[,i] == abs.rassay2[,i]) | 
+                            (pcn.rassay2[,i] == abs.rassay2[,i] + 1) |
+                            (pcn.rassay2[,i] == abs.rassay2[,i] - 1)), 
+        numeric(1))
+```
+
+Plot concordance:
+```{r plotConcord}
+par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
+boxplot(fract.equal, fract.equal2, 
+        fract.type, fract.type2,
+        fract.diff1, fract.diff12, col=rep(c(cb.blue, cb.red), 3),
+        names=rep(c("equal", "type", "diff1"), each=2),
+        ylab="Fraction of concordant GISTIC2 regions")
+legend("topright", inset=c(-0.3,0), legend=c("largest", "wmean"),
+        col=c(cb.blue, cb.red), lwd=2)
+```
 ### Select large losses called subclonal by ABSOLUTE 
 ```{r selectAbsCalls}
 selectAbsCalls <- function(sample, min.size=3000000)
