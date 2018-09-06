@@ -266,8 +266,9 @@ gisticOV.ranges.hg38 <- GRanges(gisticOV.ranges.hg38)
 gisticOV.ranges.hg38
 ```
 
-Summarize calls in GISTIC regions using either 
-- the largest call overlapping a GISTIC region
+Summarize calls in GISTIC regions using either  
+ 
+- the largest call overlapping a GISTIC region  
 - a weighted mean of calls overlapping a GISTIC region 
 ```{r qred}
 .largest <- function(score, range, qrange) 
@@ -299,9 +300,11 @@ abs.rassay2 <- qreduceAssay(abs.calls.ra, query=gisticOV.ranges.hg19,
 ```
 
 Evaluate per-sample concordance:
-- fraction of GISTIC regions with equal copy number
-- fraction of GISTIC regions agreeing in alteration type (amplification / deletion)
+
+- fraction of GISTIC regions with equal copy number  
+- fraction of GISTIC regions agreeing in alteration type (amplification / deletion)  
 - fraction of GISTIC regions that deviate by max. 1 copy
+
 ```{r evalConcord}
 # largest
 fract.equal <- vapply(seq_along(isect.samples), 
@@ -345,6 +348,39 @@ boxplot(fract.equal, fract.equal2,
 legend("topright", inset=c(-0.3,0), legend=c("largest", "wmean"),
         col=c(cb.blue, cb.red), lwd=2)
 ```
+
+
+### Subclonality concordance with ABSOLUTE 
+
+Summarize subclonality of GISTIC2 regions
+
+```{r subclConcord}
+# PureCN
+maxScore <- function(score, range, qrange) max(score, na.rm=TRUE)
+pcn.rassay.sc <- RaggedExperiment::qreduceAssay(pcn.calls.ra, 
+                query=gisticOV.ranges.hg38, 
+                simplifyReduce=maxScore, i="score", background=NA)
+pcn.subcl <- rowMeans(pcn.rassay.sc, na.rm=TRUE)
+summary(pcn.subcl)
+
+#ABSOLUTE
+abs.rassay.sc <- RaggedExperiment::qreduceAssay(abs.calls.ra, 
+                query=gisticOV.ranges.hg19, 
+                simplifyReduce=maxScore, i="score", background=NA)
+abs.subcl <- rowMeans(abs.rassay.sc, na.rm=TRUE)
+summary(abs.subcl)
+```
+
+Correlation 
+```{r corConcord}
+cor.test(pcn.subcl, abs.subcl, method="spearman")
+```
+
+
+```{r selRegions}
+sort(abs.subcl[pcn.subcl > 0.4], decreasing=TRUE)
+```
+
 ### Select large losses called subclonal by ABSOLUTE 
 ```{r selectAbsCalls}
 selectAbsCalls <- function(sample, min.size=3000000)
