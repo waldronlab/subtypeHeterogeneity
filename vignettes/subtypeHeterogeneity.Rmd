@@ -15,6 +15,8 @@ suppressPackageStartupMessages({
     library(subtypeHeterogeneity) 
     library(consensusOV)
     library(RaggedExperiment)
+    library(ComplexHeatmap)
+    library(plotly)
 })
 ```
 
@@ -23,6 +25,8 @@ suppressPackageStartupMessages({
 library(subtypeHeterogeneity)
 library(consensusOV)
 library(RaggedExperiment)
+library(ComplexHeatmap)
+library(plotly)
 ```
 
 ```{r cols}
@@ -572,6 +576,7 @@ gbm[1:2]
 
 # Subtype classification in single-cell RNA-seq data 
 
+## Exploratory analysis
 ```{r scRNAseq}
 sc.file <- file.path(data.dir, "scRNAseq_logTPM.rds")
 sc <- readRDS(sc.file)
@@ -597,4 +602,129 @@ for(i in seq_len(nrow(sc)))
 MASS::truehist(as.vector(sc0), nbins=50)
 perc0 <- apply(sc0, 2, function(x) mean(x==0) * 100)
 barplot(perc0,ylab="%genes with log2TPM = 0")
+```
+
+## Subtype classification
+
+Genes considered by the `consensusOV` classifier:
+```{r consensusGenes}
+library(consensusOV)
+fnames <- lapply(
+    consensusOV:::esets.rescaled.classified.filteredgenes, 
+    Biobase::featureNames)
+clgenes <- sort(unique(unlist(fnames)))
+clgenes <- sub("^geneid.", "", clgenes)
+clgenes
+```
+
+Single cell data restricted to classifier genes:
+```{r scRestricted}
+sc.file <- file.path(data.dir, "scRNAseq_consensusOV_genes.txt")
+sc.expr <- as.matrix(read.delim(sc.file, row.names=1L))
+dim(sc.expr)
+sc.expr[1:5,1:5]
+# exclude all zero 
+ind <- apply(sc.expr, 1, function(x) all(x == 0))
+sc.expr <- sc.expr[!ind,]
+dim(sc.expr)
+```
+
+Get consensus subtypes:
+```{r consensusSubtypes}
+consensus.subtypes <- get.consensus.subtypes(sc.expr, rownames(sc.expr))
+    # remove.using.cutoff = TRUE, percentage.dataset.removed = 0.75
+```
+
+Cell type annotation:
+```{r cellAnnotation}
+c2t.file <- file.path(data.dir, "scRNAseq_celltypes.txt")
+c2t <- read.delim(c2t.file, as.is=TRUE)
+n <- paste0("X", c2t[,1])
+c2t <- c2t[,2]
+names(c2t) <- n
+head(c2t) 
+table(c2t)
+```
+
+Expression heatmap incl. subtype and cell type annotation:
+```{r scHeatmap}
+library(ComplexHeatmap)
+sind <- 2:ncol(sc.expr)
+
+# subtype
+st <- sub("_consensus$", "", consensus.subtypes$consensusOV.subtypes[sind])
+st <- as.factor(st)
+
+# cell type
+ccol <- c("#B62A84", "#2AB68C")
+names(ccol) <- unique(unname(c2t))
+ct <- as.factor(c2t[colnames(sc.expr)[sind]])
+
+scol <- list(Subtype=stcols, CellType=ccol)
+df <- data.frame(Subtype = st, CellType=ct)
+ha <- HeatmapAnnotation(df = df, col=scol)
+
+expr <- log(sc.expr[,sind] + 1, base=2)
+
+Heatmap(expr, name="log2TPM", top_annotation = ha,
+    show_row_names=FALSE, show_column_names=FALSE,
+    column_title="Cells", row_title="Genes")
+```
+
+Subtype by cell type:
+```{r stByCT}
+ept <- table(st[ct=="Epithelial"])
+ept <- round(ept / sum(ept), digits=3)
+ept
+stro <- table(st[ct=="Stromal"])
+stro <- round(stro / sum(stro), digits=3)
+stro
+```
+
+Pie chart of subtype classification:
+```{r plotlyPie, eval=FALSE}
+ept <- ept[ept > 0]
+cind <- match(names(ept), names(stcols))
+plotlyPie(labels=names(ept), values=ept, colors=stcols[cind])
+```
+
+Display classification probabilites:
+```{r rfprobHeatmap}
+dat <- consensus.subtypes$rf.probs[sind,]
+colnames(dat) <- sub("_consensus$", "", colnames(dat))
+Heatmap(dat, show_row_names=FALSE, row_title="Cells", name="Prob")
+```
+
+Consider only top50% confident classifications: 
+```{r top50}
+subtr <- apply(consensus.subtypes$rf.probs[sind,], 1, function(row) sort(row)[3])
+my.predictions.margins <- rowMax(consensus.subtypes$rf.probs[sind,]) - subtr
+ecdf.evaluated <- ecdf(my.predictions.margins)(my.predictions.margins)
+na.ind <- ecdf.evaluated < 0.5
+my.predictions.margins[na.ind] <- NA
+top50 <- !is.na(my.predictions.margins)
+```
+
+Max prob (subtype call) and margin score (diff to second highest prob) distribution:
+```{r marginDist}
+maxp <- rowMax(consensus.subtypes$rf.probs[sind,])[top50]
+marg <- my.predictions.margins[top50]
+boxplot(maxp, marg, names=c("max", "margin"), ylab="class.prob")
+```
+
+```{r stByCT-top50}
+ept <- table(st[top50][ct[top50]=="Epithelial"])
+ept <- round(ept / sum(ept), digits=3)
+ept
+stro <- table(st[top50][ct[top50]=="Stroma"])
+stro <- round(stro / sum(stro), digits=3)
+stro
+```
+
+Repeat analysis for logTPM > 3 (UofW single-cell threshold)
+```{r exclLowExpr, eval=FALSE}
+ind <- rowSums(expr) > 3
+consensus.subtypes <- get.consensus.subtypes(
+    sc.expr[ind,], 
+    rownames(sc.expr)[ind])
 ```

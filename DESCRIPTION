@@ -5,7 +5,7 @@ Title: Tumor subclonality of expression-based cancer subtypes
 Author: Ludwig Geistlinger, Lucas Schiffer, Marcel Ramos, Levi Waldron
 Maintainer: Ludwig Geistlinger <ludwig.geistlinger@sph.cuny.edu>
 Depends: 
-    R(>= 3.4.0), 
+    R(>= 3.5.0), 
     GenomicRanges, 
     SummarizedExperiment
 Imports: 
@@ -15,12 +15,14 @@ Imports:
     GenomeInfoDb, 
     IRanges, 
     RCurl, 
-    RTCGAToolbox (>= 2.7.5), 
-    RaggedExperiment (>= 1.1.10), 
+    RTCGAToolbox, 
+    RaggedExperiment, 
     S4Vectors, 
-    TCGAutils(>= 0.3.28), 
-    circlize, 
-    methods 
+    TCGAutils, 
+    circlize,
+    dplyr, 
+    methods,
+    plotly 
 Suggests: 
     BiocStyle, 
     knitr, 

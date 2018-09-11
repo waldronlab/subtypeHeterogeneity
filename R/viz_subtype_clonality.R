@@ -136,6 +136,35 @@ circosSubtypeAssociation <- function(gistic, cnv.genes)
         col=stcols, lwd=2, cex=0.6, title="Inner circle")
 }
 
+plotlyPie <- function(labels, values, colors, out.file=NULL)
+{
+    require(dplyr)
+    p <- plotly::plot_ly(
+        labels = labels, 
+        values = values, 
+        type = 'pie',
+        textposition = 'inside',
+        textinfo = 'label+percent',
+        insidetextfont = list(color = '#FFFFFF', size=30),
+        pull = 0.01,
+        hole = 0.01, 
+        marker = list(colors = colors,
+                     line = list(color = '#FFFFFF', width = 1)),
+       showlegend = FALSE) %>% 
+ 
+    plotly::layout(
+        xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+        yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+
+    if(!is.null(out.file))
+    {
+        Sys.setenv('MAPBOX_TOKEN' = "pk.eyJ1IjoibHVkd2lnZyIsImEiOiJjamx3cXFwMm8xOGJ3M2tvZGV5amozNG5rIn0.-EpukkiU2QxcbUvFtq1QOw")
+        plotly::orca(p, "pie-plot.pdf")
+    }
+    return(p)
+}
+
+
 volcanoCorrelation <- function(rho, p)
 {
     plot(x=rho, y=-log(p, base=10), 
