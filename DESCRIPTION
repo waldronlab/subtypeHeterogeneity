@@ -13,6 +13,7 @@ Imports:
     EnsDb.Hsapiens.v75,
     GenomicFeatures,
     GenomeInfoDb, 
+    Gviz,
     IRanges, 
     RCurl, 
     RTCGAToolbox, 

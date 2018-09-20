@@ -213,6 +213,11 @@ plotCorrelation(assoc.score, subcl.score,
     subtypes=mcols(gisticOV)$subtype, stcols=stcols)
 ```
 
+```{r annoOVranges}
+rowRanges(gisticOV)$adj.pval <- adj.pvals
+rowRanges(gisticOV)$subcl <- subcl.score 
+```
+
 ## Assessing subclonality calls with PureCN
 
 ### Read and order
@@ -457,6 +462,26 @@ diff <- x$observed - x$expected
 (csums <- colSums(diff^2 / x$expected))
 ```
 
+Plot regions:
+```{r intersectSamplesABSOLUTEandSubtype}
+isamples <- intersect(rownames(ovsubs), names(absGRL))
+absov <- absGRL[isamples]
+```
+
+```{r plotHighSubcl, fig.width=6, fig.height=6}
+# myc
+r <- GRanges("chr8:128694547-129309687")
+g <- GRanges(c("chr8:128747680-128753674", "chr8:128806779-129113499"))
+names(g) <- c("MYC", "PVT1")
+genome(g) <- genome(r) <- "hg19" 
+
+ov.olaps <- subsetByOverlaps(unlist(absov), r)
+#as a GRangesList: splitAsList(olaps, names(olaps))
+ov.olaps$State <- ovsubs[names(ov.olaps), "cluster"]
+gvizRegion(r, g, ov.olaps)
+```
+
+
 # Other cancer types
 
 ```{r allCTypes}
@@ -534,6 +559,30 @@ sts <- testSubtypes(gisticSARC, sarcsubs, what="subtype")
 sts <- names(sarc.cols)[sts]
 plotCorrelation(assoc.score, subcl.score, subtypes=sts, stcols=sarc.cols)
 ```
+
+### Overlapping SCNAs between OV and SARC
+```{r ovsarcranges}
+sarcranges <- rowRanges(gisticSARC)
+sarcranges$adj.pval <- adj.pvals
+sarcranges$subcl <- subcl.score
+ovranges <- rowRanges(gisticOV)
+plotCommonSCNAs(ovranges, sarcranges)
+```
+
+Plot regions:
+```{r intersectSamplesABSOLUTEandSubtypeSARC}
+isamples <- intersect(rownames(sarcsubs), names(absGRL))
+abssarc <- absGRL[isamples]
+```
+
+```{r plotHighSubclSarc}
+# myc
+sarc.olaps <- subsetByOverlaps(unlist(abssarc), r)
+#as a GRangesList: splitAsList(olaps, names(olaps))
+sarc.olaps$State <- sarcsubs[names(sarc.olaps), "cluster"]
+gvizRegion(r, g, ov.olaps, sarc.olaps)
+```
+
 
 <!--
 ## Intrinsic subtypes: breast cancer

@@ -136,6 +136,130 @@ circosSubtypeAssociation <- function(gistic, cnv.genes)
         col=stcols, lwd=2, cex=0.6, title="Inner circle")
 }
 
+gvizRegion <- function(r, g, ov.abscalls, sarc.abscalls=NULL, pcn.calls=NULL)
+{
+    colM <- "gray24"
+    colB <- "gray94"
+
+    genome <- GenomeInfoDb::genome(r)
+    chr <- as.character(GenomicRanges::seqnames(r))
+    pstart <- GenomicRanges::start(r) - 30000
+    pend <- GenomicRanges::end(r) + 30000
+
+    # Ideogram & Genome axis
+    ideoTrack <- Gviz::IdeogramTrack(genome=genome, chromosome=chr, fontsize=15)
+    axisTrack <- Gviz::GenomeAxisTrack(fontsize=15, littleTicks=FALSE, 
+                                        from=pstart, 
+                                        to=pend)
+    # CNV region
+    cnvrTrack <- Gviz::AnnotationTrack(r, name="GISTIC2", fill=cb.red, 
+        col.title=colM, col.axis=colM, background.title=colB, cex.title=0.8)
+
+    # Genes contained in the CNV region
+    geneTrack <- Gviz::AnnotationTrack(g, name="", group=names(g), just.group="right",
+            col.title=colM, col.axis=colM, background.title=colB, cex.title=0.7)
+        
+
+    # OV: Coverage of calls in the CNV region
+    cl.olaps <- ov.abscalls[ov.abscalls$score == 0]
+    subcl.olaps <- ov.abscalls[ov.abscalls$score == 1]
+    cl.covTrack <- .constrCovTrack(r, cl.olaps, title="#tumors", trans=TRUE)
+    subcl.covTrack <- .constrCovTrack(r, subcl.olaps, title="#tumors", trans=TRUE)
+    tracks <- c(ideoTrack, axisTrack, cnvrTrack, geneTrack, cl.covTrack, subcl.covTrack) 
+
+    # SARC: Coverage of calls in the CNV region
+    if(!is.null(sarc.abscalls))
+    {
+        cl.olaps <- sarc.abscalls[sarc.abscalls$score == 0]
+        subcl.olaps <- sarc.abscalls[sarc.abscalls$score == 1]
+        scl.covTrack <- .constrCovTrack(r, cl.olaps, title="#tumors", trans=TRUE)
+        ssubcl.covTrack <- .constrCovTrack(r, subcl.olaps, title="#tumors", trans=TRUE)
+        tracks <- c(tracks, scl.covTrack, ssubcl.covTrack)
+    } 
+    # Put it all together and plot it
+    Gviz::plotTracks(tracks, from=pstart, to=pend,
+            groupAnnotation="group", chromosome=chr, littleTicks=TRUE)
+    
+}
+
+.constrCovTrack <- function(r, calls, type="histogram",
+    delimit=FALSE, trans=FALSE, minCov=5, stateOrder=NULL, title="#samples")
+{
+    colM <- "gray24"
+    colB <- "gray94"
+
+    gen <- GenomeInfoDb::genome(r)
+    chr <- as.character(GenomicRanges::seqnames(r))
+    gstart <- GenomicRanges::start(r)
+    gend <- GenomicRanges::end(r)
+    pstart <- gstart - 30000
+    pend <- gend + 30000
+
+    rcalls <- IRanges::subsetByOverlaps(calls, r)
+
+    .getFreq <- function(gcalls, state)
+    {   
+        scalls <- subset(gcalls, State == state)
+        x <- GenomicRanges::coverage(scalls)[[chr]]
+        cs <- cumsum(S4Vectors::runLength(x))
+        len <- length(cs)
+        grid <- seq_len(len-1)
+        starts <-  cs[grid] + 1
+        ends <- cs[grid + 1]
+        cov <- S4Vectors::runValue(x)[grid + 1]
+        df <- data.frame(seqnames=chr, start=starts, end=ends)
+        gr <- GenomicRanges::makeGRangesFromDataFrame(df)
+        gr$freq <- as.integer(cov)
+        gr <- gr[gr$freq >= minCov]
+        if(delimit) gr <- GenomicRanges::restrict(gr,
+                            start=GenomicRanges::restrictstart(r), 
+                            end=GenomicRanges::end(r))
+        return(gr)
+    }
+
+    ustates <- sort(unique(rcalls$State))
+    if(!is.null(stateOrder)) ustates <- ustates[stateOrder]
+    freqs <- lapply(ustates, function(s) .getFreq(rcalls, s))
+    ind <- lengths(freqs) > 0
+    ustates <- ustates[ind]
+    freqs <- freqs[ind]
+    maxSamples <- vapply(freqs, function(f) max(f$freq), integer(1))
+    maxSamples <- max(maxSamples)
+
+    covTracks <- list()
+    covTracks[[1]] <-   Gviz::DataTrack(range=freqs[[1]], genome=gen, name=title,
+                        chromosome=chr, type=type, start=pstart, end=pend, 
+                        col=stcols[1],
+                        fill.histogram=stcols[1],
+                        ylim=c(0, maxSamples),
+                        cex.title=1, cex.axis=1, font.axis=2,
+                        col.title=colM, col.axis=colM, background.title=colB)
+
+    if(length(ustates) > 1)
+    {
+        grid <- seq_len(length(ustates) - 1) + 1
+        for(i in grid)
+        {
+            covTracks[[i]] <- Gviz::DataTrack(range=freqs[[i]], genome=gen,
+                        chromosome=chr, start=pstart, end=pend, 
+                        type=type, 
+                        col=stcols[i],
+                        fill.histogram=stcols[i],
+                        ylim=c(0, maxSamples),
+                        col.title=colM, col.axis=colM, background.title=colB)
+        }
+    }
+
+    if(trans) 
+        for(i in seq_along(ustates)) 
+            Gviz::displayPars(covTracks[[i]]) <- list(alpha = 0.75)
+    
+    covTrack <- Gviz::OverlayTrack(covTracks, background.title=colB)
+    return(covTrack)
+}
+
+
+
 plotlyPie <- function(labels, values, colors, out.file=NULL)
 {
     require(dplyr)
@@ -164,6 +288,43 @@ plotlyPie <- function(labels, values, colors, out.file=NULL)
     return(p)
 }
 
+
+plotCommonSCNAs <- function(ovranges, sarcranges)
+{
+    # restrict to significant subtye assocation
+    ovsig <- ovranges[ovranges$adj.pval < 0.1]
+    sarcsig <- sarcranges[sarcranges$adj.pval < 0.1]
+    
+    hits <- GenomicRanges::findOverlaps(ovsig, sarcsig)
+    qh <- S4Vectors::queryHits(hits)
+    sh <- S4Vectors::subjectHits(hits)
+    ovsig <- ovsig[qh]
+    sarcsig <- sarcsig[sh]
+    
+    is.type <- ovsig$type == sarcsig$type
+    len <- length(hits)
+    col <- rep("grey", len)
+    for(i in seq_len(len)) 
+        if(is.type[i]) col[i] <- ifelse(ovsig$type[i] == "Deletion", cb.blue, cb.red)
+
+    par(pch=20)
+    par(cex=1.1)
+    plot(ovsig$subcl, sarcsig$subcl, 
+            xlab="OV subclonality", ylab="SARC subclonality", col=col)
+    text(x=0.3, y=0.249, "chr13:q14.2 (RB1)", pos=4)
+    text(x=0.56, y=0.625, "chr20:q13.33 (EEF1A2)", pos=2)
+    text(x=0.6, y=0.678, "chr8:q24.21 (MYC)", pos=2)
+    text(x=0.463, y=0.351, "chr3:q13.31 (TUSC7)", pos=4)
+    text(x=0.483, y=0.455, "chr2:q37.3 (ING5)", pos=4) 
+    text(x=0.483, y=0.512, "chr2:q37.3 (TWIST2)", pos=4) 
+    text(x=0.305, y=0.625, "chr8:p23.2 (CSMD1)", pos=4)
+    text(x=0.265, y=0.58, "chr15:q15.1 (MGA)", pos=4)
+    text(x=0.29, y=0.564, "chr15:q11.2 (Prader-Willi)", pos=4)
+    text(x=0.47, y=0.5, "chr1:q42.3 (ARID4B)", pos=2)
+    text(x=0.477, y=0.53, "chr6:p22.3 (RNF144B)", pos=4)
+
+    legend("bottomright", lwd=2, col=c(cb.blue, cb.red, "grey"), legend=c("deletion", "amplification", "amp-OV/del-SARC"))
+}
 
 volcanoCorrelation <- function(rho, p)
 {
