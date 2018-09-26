@@ -19,12 +19,18 @@ bang_wong_colors <-
         "#000000"
     )
 cb.pink <- "#CC79A7"
+cb.darkred <- "#B42F32"
 cb.red <- "#D55E00"
+cb.lightred <- "#DF6747"
 cb.blue <- "#0072B2"
 cb.yellow <- "#F0E442"
 cb.green <- "#009E73"
 cb.lightblue <- "#56B4E9"
+cb.lightorange <- "#FAAC77"
 cb.orange <- "#E69F00"
+cb.darkorange <- "#F6893D"
+cb.lightgrey <- "#C9C9BD"
+cb.darkgrey <- "#878D92"
 
 
 #stcols <- c("steelblue", "darkseagreen3", "coral", "firebrick")
@@ -136,7 +142,8 @@ circosSubtypeAssociation <- function(gistic, cnv.genes)
         col=stcols, lwd=2, cex=0.6, title="Inner circle")
 }
 
-gvizRegion <- function(r, g, ov.abscalls, sarc.abscalls=NULL, pcn.calls=NULL)
+gvizRegion <- function(r, g, ov.abscalls, sarc.abscalls=NULL, 
+    ov.rel=NULL, sarc.rel=NULL, type=c("+", "-"), pcn.calls=NULL, weight=FALSE)
 {
     colM <- "gray24"
     colB <- "gray94"
@@ -161,10 +168,17 @@ gvizRegion <- function(r, g, ov.abscalls, sarc.abscalls=NULL, pcn.calls=NULL)
         
 
     # OV: Coverage of calls in the CNV region
+    rel <- table(ovsubs$cluster)
+    type <- match.arg(type)
+    totCN <- ov.abscalls$Modal_HSCN_1 + ov.abscalls$Modal_HSCN_2
+    ind <- if(type == "+") totCN > 2 else totCN < 2
+    ov.abscalls <- ov.abscalls[ind]
     cl.olaps <- ov.abscalls[ov.abscalls$score == 0]
     subcl.olaps <- ov.abscalls[ov.abscalls$score == 1]
-    cl.covTrack <- .constrCovTrack(r, cl.olaps, title="#tumors", trans=TRUE)
-    subcl.covTrack <- .constrCovTrack(r, subcl.olaps, title="#tumors", trans=TRUE)
+    cl.covTrack <- .constrCovTrack(r, cl.olaps, 
+        trans=TRUE, weight=weight, relative=ov.rel, title="OV clonal")
+    subcl.covTrack <- .constrCovTrack(r, subcl.olaps, 
+        trans=TRUE, weight=weight, relative=ov.rel, title="OV subclonal")
     tracks <- c(ideoTrack, axisTrack, cnvrTrack, geneTrack, cl.covTrack, subcl.covTrack) 
 
     # SARC: Coverage of calls in the CNV region
@@ -172,8 +186,10 @@ gvizRegion <- function(r, g, ov.abscalls, sarc.abscalls=NULL, pcn.calls=NULL)
     {
         cl.olaps <- sarc.abscalls[sarc.abscalls$score == 0]
         subcl.olaps <- sarc.abscalls[sarc.abscalls$score == 1]
-        scl.covTrack <- .constrCovTrack(r, cl.olaps, title="#tumors", trans=TRUE)
-        ssubcl.covTrack <- .constrCovTrack(r, subcl.olaps, title="#tumors", trans=TRUE)
+        scl.covTrack <- .constrCovTrack(r, cl.olaps, 
+            trans=TRUE, weight=weight, relative=sarc.rel, title="SARC clonal")
+        ssubcl.covTrack <- .constrCovTrack(r, subcl.olaps, 
+            trans=TRUE, weight=weight, relative=sarc.rel, title="SARC subclonal")
         tracks <- c(tracks, scl.covTrack, ssubcl.covTrack)
     } 
     # Put it all together and plot it
@@ -182,8 +198,8 @@ gvizRegion <- function(r, g, ov.abscalls, sarc.abscalls=NULL, pcn.calls=NULL)
     
 }
 
-.constrCovTrack <- function(r, calls, type="histogram",
-    delimit=FALSE, trans=FALSE, minCov=5, stateOrder=NULL, title="#samples")
+.constrCovTrack <- function(r, calls, type="l", weight=FALSE, relative=NULL,
+    delimit=TRUE, trans=FALSE, minCov=0, stateOrder=NULL, title="#samples")
 {
     colM <- "gray24"
     colB <- "gray94"
@@ -195,12 +211,12 @@ gvizRegion <- function(r, g, ov.abscalls, sarc.abscalls=NULL, pcn.calls=NULL)
     pstart <- gstart - 30000
     pend <- gend + 30000
 
-    rcalls <- IRanges::subsetByOverlaps(calls, r)
-
     .getFreq <- function(gcalls, state)
     {   
         scalls <- subset(gcalls, State == state)
-        x <- GenomicRanges::coverage(scalls)[[chr]]
+        w <- 1L
+        if(weight) w <- scalls$Modal_HSCN_1 + scalls$Modal_HSCN_2
+        x <- GenomicRanges::coverage(scalls, weight=w)[[chr]]
         cs <- cumsum(S4Vectors::runLength(x))
         len <- length(cs)
         grid <- seq_len(len-1)
@@ -210,20 +226,22 @@ gvizRegion <- function(r, g, ov.abscalls, sarc.abscalls=NULL, pcn.calls=NULL)
         df <- data.frame(seqnames=chr, start=starts, end=ends)
         gr <- GenomicRanges::makeGRangesFromDataFrame(df)
         gr$freq <- as.integer(cov)
+        if(!is.null(relative)) 
+            gr$freq <- round(gr$freq / relative[state] * 100, digits=2)
         gr <- gr[gr$freq >= minCov]
         if(delimit) gr <- GenomicRanges::restrict(gr,
-                            start=GenomicRanges::restrictstart(r), 
+                            start=GenomicRanges::start(r), 
                             end=GenomicRanges::end(r))
         return(gr)
     }
 
-    ustates <- sort(unique(rcalls$State))
+    ustates <- sort(unique(calls$State))
     if(!is.null(stateOrder)) ustates <- ustates[stateOrder]
-    freqs <- lapply(ustates, function(s) .getFreq(rcalls, s))
+    freqs <- lapply(ustates, function(s) .getFreq(calls, s))
     ind <- lengths(freqs) > 0
     ustates <- ustates[ind]
     freqs <- freqs[ind]
-    maxSamples <- vapply(freqs, function(f) max(f$freq), integer(1))
+    maxSamples <- vapply(freqs, function(f) max(f$freq), numeric(1))
     maxSamples <- max(maxSamples)
 
     covTracks <- list()
@@ -258,7 +276,46 @@ gvizRegion <- function(r, g, ov.abscalls, sarc.abscalls=NULL, pcn.calls=NULL)
     return(covTrack)
 }
 
+bpSubtypeStrata <- function(x, type=c("gain", "loss"))
+{
+    type <- match.arg(type)
+    
+    # color
+    if(type == "gain")
+    {
+        n1.col <- cb.orange
+        n2.col <- cb.red
+    }
+    else
+    {
+        n1.col <- cb.green
+        n2.col <- cb.blue
+    }
+    col <- c("lightgrey", rep(n1.col, 2), rep(n2.col, 2))
 
+    # legend text
+    ltext <- c("normal", 
+                paste0("1-copy xxxx (", c("", "sub"), "clonal)"),
+                paste0("2-copy xxxx (", c("", "sub"), "clonal)"))
+    ltext <- sub("xxxx", type, ltext)
+
+    # density
+    dens <- c(-1,-1, 40, -1, 40)
+
+    if(nrow(x) < 5)
+    {
+        col <- col[1:3]
+        ltext <- ltext[1:3]
+        dens <- dens[1:3]
+    }
+
+    barplot(x, ylab="#tumors",
+        col=col, 
+        legend.text=ltext, 
+        args.legend=c(x="top"), 
+        density=dens, 
+        border=NA)
+}
 
 plotlyPie <- function(labels, values, colors, out.file=NULL)
 {

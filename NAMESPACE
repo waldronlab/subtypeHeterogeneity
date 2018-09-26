@@ -19,7 +19,10 @@ importFrom("utils", "available.packages", "browseURL", "capture.output",
 
 export( 
     analyzeCancerType,
+    analyzeCooccurence,
     analyzeStrata,
+    annotateCytoBands,
+    bpSubtypeStrata,
     circosSubtypeAssociation,
     corPermTest,
     getBroadSubtypes,
@@ -41,6 +44,7 @@ export(
     populationRangesRO,
     querySubclonality,
     stratifyByPurity,
+    stratifySubclonality,
     testSubtypes,
     volcanoCorrelation     
 )

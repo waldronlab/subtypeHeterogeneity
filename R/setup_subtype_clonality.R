@@ -224,3 +224,17 @@ mapOVSubtypes <- function(broad.subtys, pooled.subtys)
     tab <- sapply(spl, table)
     return(tab)   
 }
+
+# requires a column named 'band' in cbands
+annotateCytoBands <- function(gistic, cbands)
+{
+    olaps <- GenomicRanges::findOverlaps(rowRanges(gistic), cbands)
+    sh <- S4Vectors::subjectHits(olaps)
+    qh <- S4Vectors::queryHits(olaps)
+    olist <- GRangesList(splitAsList(cbands[sh], qh))
+    isects <- GenomicRanges::pintersect(olist, rowRanges(gistic))
+    ind <- IntegerList(lapply(width(isects), which.max)) 
+    bands <- unlist(isects[ind])$band
+    mcols(gistic)$band <- bands
+    return(gistic)
+} 

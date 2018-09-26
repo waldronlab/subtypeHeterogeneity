@@ -128,6 +128,65 @@ analyzeStrata <- function(ids, absGRL, gistic, subtys)
     return(rho) 
 }
 
+analyzeCooccurence <- function(gistic)
+{
+    coocc <- matrix(0, nrow=nrow(gistic), ncol=nrow(gistic))
+    for(i in seq_len(nrow(gistic)))
+    {
+        curri <- assay(gistic)[i,]
+        for(j in seq_len(nrow(gistic)))
+        {
+            currj <- assay(gistic)[j,]
+            coocc[i,j] <- sum((curri > 0) & (currj > 0))
+        }
+    }
+    return(coocc)
+}
+
+stratifySubclonality <- function(gistic, subcl, subtys, tests=NULL, 
+    st.names=names(stcols))
+{
+    isamples <- intersect(colnames(subcl), colnames(gistic))
+    gistic <- gistic[,isamples]
+    subcl <- subcl[,isamples]
+    subtys <- subtys[colnames(subcl), "cluster"]
+    .subclFract <- function(i)
+    {
+        # split by subtype
+        subclspl <- split(subcl[i,], subtys)
+        gisticspl <- split(assay(gistic)[i,], subtys)
+        
+        # split by copy number
+        .subclFractCN <- function(j)
+        { 
+            spl <- split(subclspl[[j]], gisticspl[[j]])
+            f2c <- vapply(spl, mean, numeric(1), na.rm=TRUE)
+            return(f2c)
+        }
+
+        # subcl fraction per subtype
+        f2s <- lapply(1:4, .subclFractCN)
+        f2s <- do.call(cbind, f2s)
+        return(f2s)
+    }
+    stratL <- lapply(seq_len(nrow(subcl)), .subclFract)
+    if(is.null(tests)) return(stratL)
+
+    # extrapolate?
+    .extrapolateSubcl <- function(i)
+    {
+        ot <- tests[[i]]$observed
+        rt <- round(ot * stratL[[i]])
+        fl <- rbind(ot[2,] - rt[2,], rt[2,])
+        if(nrow(ot) > 2) fl <- rbind(fl, ot[3,] - rt[3,], rt[3,])
+        ot <- rbind(ot[1,], fl)
+        colnames(ot) <- st.names
+        return(ot)
+    }
+    extraL <- lapply(seq_len(nrow(subcl)), .extrapolateSubcl)
+    return(extraL)
+}
+
 analyzeCancerType <- function(ctype, absGRL)
 {
     suppressWarnings({

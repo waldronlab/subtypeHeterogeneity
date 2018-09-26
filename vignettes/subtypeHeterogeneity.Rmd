@@ -147,6 +147,29 @@ circosSubtypeAssociation(gisticOV, cnv.genes)
 plotNrCNAsPerSubtype(mcols(gisticOV)$type[sig.ind], mcols(gisticOV)$subtype[sig.ind])
 ```
 
+Annotate cytogenetic bands:
+
+```{r tcgaOvCnvBands}
+bands.file <- file.path(data.dir, "cytoBand_hg19.txt")
+cbands <- read.delim(bands.file, header=FALSE)
+cbands <- cbands[,-5]
+colnames(cbands) <- c("seqnames", "start", "end", "band")
+cbands[,4] <- paste0(sub("^chr", "", cbands[,1]), cbands[,4])
+cbands <- makeGRangesFromDataFrame(cbands, keep.extra.columns=TRUE)
+genome(cbands) <- "hg19"
+cbands
+gisticOV <- annotateCytoBands(gisticOV, cbands)
+mcols(gisticOV)
+```
+
+```{r coocc, fig.width=7, fig.height=7}
+coocc <- analyzeCooccurence(gisticOV) 
+rownames(coocc) <- mcols(gisticOV)$band
+ComplexHeatmap::Heatmap(coocc, show_row_names=TRUE, show_column_names=FALSE, 
+    column_title="SCNAs", row_title="SCNAs", name="Co-occurrence", 
+    row_names_gp = gpar(fontsize = 8))
+```
+
 # Subclonality
 
 ## Match subtyped samples and ABSOLUTE samples 
@@ -430,19 +453,25 @@ blocks <- blocks[seqnames(blocks) == nmax]
 ### Select GISTIC regions of high subtype association and subclonality
 ```{r selecttopTables}
 tests <- testSubtypes(gisticOV, ovsubs, what="full")
+extraL <- stratifySubclonality(gisticOV, subcl.gisticOV.5kb, ovsubs, tests)
 ```
 
-```{r selecttop}
+```{r selecttop, fig.width=6, fig.height=6}
 # highest subtype association
 ind <- order(assoc.score, decreasing=TRUE)
 rowRanges(gisticOV)[ind[1:2]]
+# 20q11.21 (ID1)
 x <- tests[[ind[1]]]
-x$observed
+(ot <- x$observed)
+colnames(ot) <- names(stcols)
+bpSubtypeStrata(extraL[[ind[1]]], type="gain")
 x$expected
 diff <- x$observed - x$expected
 (csums <- colSums(diff^2 / x$expected))
 x <- tests[[ind[2]]]
-x$observed
+(ot <- x$observed)
+colnames(ot) <- names(stcols)
+bpSubtypeStrata(extraL[[ind[2]]], type="gain")
 x$expected
 diff <- x$observed - x$expected
 (csums <- colSums(diff^2 / x$expected))
@@ -450,13 +479,17 @@ diff <- x$observed - x$expected
 # highest subclonality
 ind <- order(subcl.score, decreasing=TRUE)
 rowRanges(gisticOV)[ind[1:2]]
+# 8q24.21 (MYC)
 x <- tests[[ind[1]]]
-x$observed
+(ot <- x$observed)
+bpSubtypeStrata(extraL[[ind[1]]], type="gain")
 x$expected
 diff <- x$observed - x$expected
 (csums <- colSums(diff^2 / x$expected))
+# 20q13.33 (EEF1A2)
 x <- tests[[ind[2]]]
-x$observed
+(ot <- x$observed)
+bpSubtypeStrata(extraL[[ind[2]]], type="gain")
 x$expected
 diff <- x$observed - x$expected
 (csums <- colSums(diff^2 / x$expected))
@@ -466,6 +499,7 @@ Plot regions:
 ```{r intersectSamplesABSOLUTEandSubtype}
 isamples <- intersect(rownames(ovsubs), names(absGRL))
 absov <- absGRL[isamples]
+(ov.rel <- table(ovsubs[names(absov),"cluster"]))
 ```
 
 ```{r plotHighSubcl, fig.width=6, fig.height=6}
@@ -475,10 +509,12 @@ g <- GRanges(c("chr8:128747680-128753674", "chr8:128806779-129113499"))
 names(g) <- c("MYC", "PVT1")
 genome(g) <- genome(r) <- "hg19" 
 
+rb <- GRanges("chr13:48875329-49064807")
+
 ov.olaps <- subsetByOverlaps(unlist(absov), r)
 #as a GRangesList: splitAsList(olaps, names(olaps))
 ov.olaps$State <- ovsubs[names(ov.olaps), "cluster"]
-gvizRegion(r, g, ov.olaps)
+gvizRegion(r, g, ov.olaps, ov.rel=ov.rel, type="+")
 ```
 
 
