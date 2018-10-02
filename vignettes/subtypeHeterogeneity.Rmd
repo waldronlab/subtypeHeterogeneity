@@ -234,6 +234,8 @@ cor(assoc.score, subcl.score, method="spearman")
 cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
 plotCorrelation(assoc.score, subcl.score, 
     subtypes=mcols(gisticOV)$subtype, stcols=stcols)
+text(x=56.885, y=0.548, "1p36.32\n(TP73)", pos=2)
+
 ```
 
 ```{r annoOVranges}
@@ -463,14 +465,13 @@ rowRanges(gisticOV)[ind[1:2]]
 # 20q11.21 (ID1)
 x <- tests[[ind[1]]]
 (ot <- x$observed)
-colnames(ot) <- names(stcols)
 bpSubtypeStrata(extraL[[ind[1]]], type="gain")
 x$expected
 diff <- x$observed - x$expected
 (csums <- colSums(diff^2 / x$expected))
+# 19p13.12 (BRD4)
 x <- tests[[ind[2]]]
 (ot <- x$observed)
-colnames(ot) <- names(stcols)
 bpSubtypeStrata(extraL[[ind[2]]], type="gain")
 x$expected
 diff <- x$observed - x$expected
@@ -594,6 +595,75 @@ names(sarc.cols) <- c("MFS/UPS", "LMS", "DDLPS")
 sts <- testSubtypes(gisticSARC, sarcsubs, what="subtype")
 sts <- names(sarc.cols)[sts]
 plotCorrelation(assoc.score, subcl.score, subtypes=sts, stcols=sarc.cols)
+# top assoc
+text(x=56.885, y=0.548, "1p36.32\n(TP73)", pos=2)
+text(x=36.908, y=0.336, "6q25.1\n(UST)", pos=4)
+text(x=33.943, y=0.275, "10q23.31 (PTEN)", pos=2)
+text(x=30.257, y=0.249, "13q14.2 (RB1)", pos=2)
+text(x=27.44, y=0.435, "10q26.3 (SPRN)", pos=4)
+text(x=25.501, y=0.362, "1p32.1\n(JUN)", pos=4)
+# top subcl
+text(x=10.116, y=0.679, "8q", pos=4)
+text(x=6.37, y=0.678, "9q34", pos=2)
+text(x=8.586, y=0.662, "17q", pos=4)
+text(x=7.658, y=0.65, "5p15.33\n(TERT)", pos=2)
+text(x=19.497, y=0.625, "8p23.2 (CSMD1)", pos=4)
+text(x=17.4, y=0.625, "20q13.3", pos=2)
+```
+
+```{r annoSARCranges}
+gisticSARC <- annotateCytoBands(gisticSARC, cbands)
+rowRanges(gisticSARC)$assoc.score <- assoc.score
+rowRanges(gisticSARC)$subcl <- subcl.score 
+rowRanges(gisticSARC)$subtype <- sts 
+ind.assoc <- order(assoc.score, decreasing=TRUE)
+ind.subcl <- order(subcl.score, decreasing=TRUE)
+rowRanges(gisticSARC)[ind.assoc]
+rowRanges(gisticSARC)[ind.subcl]
+```
+
+```{r selecttopSARC}
+tests <- testSubtypes(gisticSARC, sarcsubs, what="full")
+extraL <- stratifySubclonality(gisticSARC, subcl.gisticSARC, 
+    sarcsubs, tests, st.names=names(sarc.cols))
+```
+
+```{r selecttopplot, fig.width=6, fig.height=6}
+# highest subtype association
+ind <- ind.assoc
+sarc.genes <- c("TP73", "MDM2", "UST", "PTEN", "RB1", "SPRN", "JUN", "", "NF1") 
+for(i in 1:9)
+{
+    x <- ind[i]
+    type <- rowRanges(gisticSARC)$type[x]
+    type <- ifelse(type == "Deletion", "loss", "gain") 
+    bpSubtypeStrata(extraL[[x]], type=type)
+    title(main=paste0(rowRanges(gisticSARC)$band[x], " (", sarc.genes[i], ")"))
+}
+```
+
+```{r histcluster}
+histcl <- rep(4, nrow(sarcsubs))
+ind <- grep("myxofibrosarcoma", sarcsubs$histType)
+histcl[ind] <- 1
+ind <- grep("undifferentiated pleomorphic sarcoma", sarcsubs$histType)
+histcl[ind] <- 1
+ind <- grep("leiomyosarcoma", sarcsubs$histType)
+histcl[ind] <- 2
+ind <- grep("dedifferentiated liposarcoma", sarcsubs$histType)
+histcl[ind] <- 3
+histsubs <- sarcsubs[histcl != 4,]
+histsubs$cluster <- histcl[histcl !=4]  
+```
+
+```{r testHistSubs}
+assoc.score <- testSubtypes(gisticSARC, histsubs, what="statistic")
+raSARC <- getMatchedAbsoluteCalls(absGRL, histsubs)
+subcl.gisticSARC <- querySubclonality(raSARC, query=rowRanges(gisticSARC), sum.method="any")
+subcl.score <- rowMeans(subcl.gisticSARC, na.rm=TRUE)
+summary(subcl.score)
+cor(assoc.score, subcl.score, method="spearman")
+cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
 ```
 
 ### Overlapping SCNAs between OV and SARC
@@ -812,4 +882,17 @@ ind <- rowSums(expr) > 3
 consensus.subtypes <- get.consensus.subtypes(
     sc.expr[ind,], 
     rownames(sc.expr)[ind])
+```
+
+Margin scores in comparison to TCGA bulk: 
+```{r marginCompTCGA}
+m99 <- c(0.0000,  0.0570,  0.1100,  0.1128,  0.1490,  0.5280)
+m92 <- c(0.00000, 0.02250, 0.03600, 0.05909, 0.06200, 0.52800)
+tcga.rseq <- c(0.0040,  0.1600,  0.3040,  0.3332,  0.4760,  0.8760)
+tcga.ma <- c(0.0000,  0.1325,  0.2870,  0.3199,  0.4870,  0.8520)
+names(m99) <-c("Min.", "1st Qu.",  "Median", "Mean", "3rd Qu.",    "Max.") 
+names(m92) <- names(tcga.rseq) <- names(tcga.rseq) <- names(m99)    
+boxplot(m92, m99, tcga.rseq, tcga.ma, ylab="margin score", 
+    names=c("scRNAseq92", "scRNAseq99","tcgaRNAseq", "tcgaMarray"), 
+    col=c(rep(cb.red,2), rep(cb.blue,2)))
 ```

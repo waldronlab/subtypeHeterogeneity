@@ -280,11 +280,20 @@ bpSubtypeStrata <- function(x, type=c("gain", "loss"))
 {
     type <- match.arg(type)
     
+    # legend text
+    ltext <- c("normal", 
+                paste0("1-copy xxxx (", c("", "sub"), "clonal)"),
+                paste0("2-copy xxxx (", c("", "sub"), "clonal)"))
+    ltext <- sub("xxxx", type, ltext)
+
     # color
     if(type == "gain")
     {
         n1.col <- cb.orange
         n2.col <- cb.red
+        #ltext[4] <- substitute(pre>=suff, list(pre="", suff=ltext[4]))
+        #ltext[5] <- substitute(pre>=suff, list(pre="", suff=ltext[5])) 
+        ltext[4:5] <- paste0(">=", ltext[4:5])
     }
     else
     {
@@ -293,12 +302,7 @@ bpSubtypeStrata <- function(x, type=c("gain", "loss"))
     }
     col <- c("lightgrey", rep(n1.col, 2), rep(n2.col, 2))
 
-    # legend text
-    ltext <- c("normal", 
-                paste0("1-copy xxxx (", c("", "sub"), "clonal)"),
-                paste0("2-copy xxxx (", c("", "sub"), "clonal)"))
-    ltext <- sub("xxxx", type, ltext)
-
+    
     # density
     dens <- c(-1,-1, 40, -1, 40)
 
@@ -312,7 +316,7 @@ bpSubtypeStrata <- function(x, type=c("gain", "loss"))
     barplot(x, ylab="#tumors",
         col=col, 
         legend.text=ltext, 
-        args.legend=c(x="top"), 
+        args.legend=c(x=ifelse(ncol(x) == 3, "topright", "top")), 
         density=dens, 
         border=NA)
 }

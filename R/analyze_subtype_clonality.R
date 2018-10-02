@@ -165,7 +165,31 @@ stratifySubclonality <- function(gistic, subcl, subtys, tests=NULL,
         }
 
         # subcl fraction per subtype
-        f2s <- lapply(1:4, .subclFractCN)
+        f2s <- lapply(seq_along(st.names), .subclFractCN)
+        
+        # check length (sometimes one CN state is not present for one subtype)
+        ls <- lengths(f2s)
+        uls <- unique(ls)
+        if(length(uls) > 1)
+        {
+            m <- which.max(ls)
+            n <- names(f2s[[m]])
+            for(k in seq_along(st.names))
+            { 
+                fk <- f2s[[k]]
+                lfk <- length(fk)
+                if(lfk < ls[m]) 
+                {
+                    ind <- setdiff(n, names(fk))  
+                    f2s[[k]] <- c(fk, rep(0,length(ind)))
+                    fk <- f2s[[k]]
+                    lfk <- length(fk)
+                    names(f2s[[k]])[(lfk-length(ind)+1):lfk] <- ind
+                    f2s[[k]] <- f2s[[k]][n]
+                }
+            }
+        } 
+        
         f2s <- do.call(cbind, f2s)
         return(f2s)
     }
