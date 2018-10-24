@@ -89,3 +89,4 @@ p <- plot_ly(labels = names(stcols)[3:4], values = c(0.263, 0.737), type = 'pie'
 Sys.setenv('MAPBOX_TOKEN' = "pk.eyJ1IjoibHVkd2lnZyIsImEiOiJjamx3cXFwMm8xOGJ3M2tvZGV5amozNG5rIn0.-EpukkiU2QxcbUvFtq1QOw")
 orca(p, "pie-plot.pdf")
 
+

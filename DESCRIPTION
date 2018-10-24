@@ -21,9 +21,11 @@ Imports:
     S4Vectors, 
     TCGAutils, 
     circlize,
-    dplyr, 
+    dplyr,
+    ggplot2, 
     methods,
-    plotly 
+    plotly,
+    reshape2 
 Suggests: 
     BiocStyle, 
     knitr, 

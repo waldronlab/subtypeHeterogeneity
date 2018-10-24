@@ -28,6 +28,7 @@ export(
     getBroadSubtypes,
     getCnvGenesFromTCGA,    
     getMatchedAbsoluteCalls,
+    getExtendedVerhaakSignature,
     gistic2RSE,
     gvizRegion,
     mapOVSubtypes,

@@ -234,8 +234,16 @@ cor(assoc.score, subcl.score, method="spearman")
 cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
 plotCorrelation(assoc.score, subcl.score, 
     subtypes=mcols(gisticOV)$subtype, stcols=stcols)
-text(x=56.885, y=0.548, "1p36.32\n(TP73)", pos=2)
-
+text(x=52.8, y=0.46, "20q11.21\n(BCL2L1)", pos=2)
+text(x=50, y=0.52, "19p13.12\n(BRD4)", pos=2)
+text(x=39.489, y=0.332, "12q15\n(FRS2)", pos=4)
+text(x=32.232, y=0.492, "3q26.2\n(MECOM)", pos=3)
+text(x=28.883, y=0.6, "8q24.21 (MYC)", pos=2)
+text(x=29.801, y=0.563, "20q13.33", pos=2)
+text(x=25.693, y=0.408, "2q31.2 (PDE11A)", pos=4)
+text(x=26.991, y=0.353, "3p26.3", pos=4) 
+text(x=17.59, y=0.272, "15q15.1 (MGA)", pos=4) 
+text(x=12.389, y=0.22, "8p21.2 (PPP2R2A)", pos=4)
 ```
 
 ```{r annoOVranges}
@@ -462,17 +470,15 @@ extraL <- stratifySubclonality(gisticOV, subcl.gisticOV.5kb, ovsubs, tests)
 # highest subtype association
 ind <- order(assoc.score, decreasing=TRUE)
 rowRanges(gisticOV)[ind[1:2]]
-# 20q11.21 (ID1)
+# 20q11.21 (BCL2L1)
 x <- tests[[ind[1]]]
 (ot <- x$observed)
-bpSubtypeStrata(extraL[[ind[1]]], type="gain")
 x$expected
 diff <- x$observed - x$expected
 (csums <- colSums(diff^2 / x$expected))
 # 19p13.12 (BRD4)
 x <- tests[[ind[2]]]
 (ot <- x$observed)
-bpSubtypeStrata(extraL[[ind[2]]], type="gain")
 x$expected
 diff <- x$observed - x$expected
 (csums <- colSums(diff^2 / x$expected))
@@ -480,21 +486,22 @@ diff <- x$observed - x$expected
 # highest subclonality
 ind <- order(subcl.score, decreasing=TRUE)
 rowRanges(gisticOV)[ind[1:2]]
-# 8q24.21 (MYC)
-x <- tests[[ind[1]]]
-(ot <- x$observed)
-bpSubtypeStrata(extraL[[ind[1]]], type="gain")
-x$expected
-diff <- x$observed - x$expected
-(csums <- colSums(diff^2 / x$expected))
-# 20q13.33 (EEF1A2)
-x <- tests[[ind[2]]]
-(ot <- x$observed)
-bpSubtypeStrata(extraL[[ind[2]]], type="gain")
-x$expected
-diff <- x$observed - x$expected
-(csums <- colSums(diff^2 / x$expected))
 ```
+
+```{r selecttopplotOV, fig.width=6, fig.height=6}
+# highest subtype association
+ind <- order(assoc.score, decreasing=TRUE)
+top.genes <- c("BCL2L1", "BRD4", "FRS2", "MECOM", "ID4", "", "", "MYC", "", "") 
+for(i in 1:10)
+{
+    x <- ind[i]
+    type <- rowRanges(gisticOV)$type[x]
+    type <- ifelse(type == "Deletion", "loss", "gain") 
+    bpSubtypeStrata(extraL[[x]], type=type)
+    title(main=paste0(rowRanges(gisticOV)$band[x], " (", top.genes[i], ")"))
+}
+```
+
 
 Plot regions:
 ```{r intersectSamplesABSOLUTEandSubtype}
@@ -594,13 +601,13 @@ sarc.cols <- stcols[c(1,3,2)]
 names(sarc.cols) <- c("MFS/UPS", "LMS", "DDLPS")
 sts <- testSubtypes(gisticSARC, sarcsubs, what="subtype")
 sts <- names(sarc.cols)[sts]
-plotCorrelation(assoc.score, subcl.score, subtypes=sts, stcols=sarc.cols)
+plotCorrelation(assoc.score, subcl.score, subtypes=sts, stcols=sarc.cols, lpos="right")
 # top assoc
 text(x=56.885, y=0.548, "1p36.32\n(TP73)", pos=2)
 text(x=36.908, y=0.336, "6q25.1\n(UST)", pos=4)
 text(x=33.943, y=0.275, "10q23.31 (PTEN)", pos=2)
 text(x=30.257, y=0.249, "13q14.2 (RB1)", pos=2)
-text(x=27.44, y=0.435, "10q26.3 (SPRN)", pos=4)
+text(x=27.44, y=0.435, "10q26.3\n(SPRN)", pos=4)
 text(x=25.501, y=0.362, "1p32.1\n(JUN)", pos=4)
 # top subcl
 text(x=10.116, y=0.679, "8q", pos=4)
@@ -608,7 +615,8 @@ text(x=6.37, y=0.678, "9q34", pos=2)
 text(x=8.586, y=0.662, "17q", pos=4)
 text(x=7.658, y=0.65, "5p15.33\n(TERT)", pos=2)
 text(x=19.497, y=0.625, "8p23.2 (CSMD1)", pos=4)
-text(x=17.4, y=0.625, "20q13.3", pos=2)
+text(x=17.4, y=0.625, "20q13.33", pos=2)
+text(x=55.915, y=0.262, "12q15 (MDM2)", pos=2)
 ```
 
 ```{r annoSARCranges}
@@ -896,3 +904,56 @@ boxplot(m92, m99, tcga.rseq, tcga.ma, ylab="margin score",
     names=c("scRNAseq92", "scRNAseq99","tcgaRNAseq", "tcgaMarray"), 
     col=c(rep(cb.red,2), rep(cb.blue,2)))
 ```
+
+## Extension of consensus classifier
+
+```{r getExtVerhaakSig}
+# Supplementary Table S8A from Verhaak et al, JCI, 2013
+verhaak.file <- file.path(data.dir, "Verhaak_supplementT8A.txt")
+verhaak800 <- getExtendedVerhaakSignature(verhaak.file, nr.genes.per.subtype=200)
+length(verhaak800)
+head(verhaak800)
+```
+
+```{r geVerhaakSig}
+# Supplementary Table S7 from Verhaak et al, JCI, 2013
+verhaak100.file <- file.path(data.dir, "Verhaak_100genes.txt")
+verhaak100 <- read.delim(verhaak100.file, as.is=TRUE)
+verhaak100 <- verhaak100[2:101,1]
+```
+
+Interesting:
+```{r ovlpVerhaak100-800}
+table(verhaak100 %in% verhaak800)
+```
+
+Also interesting:
+```{r ovlpVerhaakSigConsensusSig}
+consensus.sig <- fData(consensusOV:::consensus.training.dataset.full)$gene
+table(consensus.sig %in% verhaak100)
+```
+
+Merge:
+```{r mergeVerhaak100-800}
+verhaak800 <- sort(unique(c(verhaak100, verhaak800)))
+```
+
+```{r buildExtTraining}
+#load("~/Documents/PostDoc/NewYork/ovc/esets.not.rescaled.classified.RData")
+selectGenes <- function(eset)
+{
+    ind <- fData(eset)$gene %in% verhaak800
+    return(eset[ind,]) 
+}
+#esets <- lapply(esets.not.rescaled.classified, selectGenes)
+eset.file <- file.path(data.dir, "esets.not.rescaled.classified.filtered.RData")
+esets <- get(load(eset.file))
+esets.merged <- consensusOV:::dataset.merging(esets, method = "intersect", standardization = "none")
+# sanity check
+fnames <- featureNames(consensusOV:::consensus.training.dataset.full)[2:3]
+snames <- sampleNames(consensusOV:::consensus.training.dataset.full)[1:5]
+exprs(esets.merged)[fnames, snames]
+exprs(consensusOV:::consensus.training.dataset.full)[2:3,1:5]
+```
+
+

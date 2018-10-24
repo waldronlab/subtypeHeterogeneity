@@ -280,30 +280,8 @@ bpSubtypeStrata <- function(x, type=c("gain", "loss"))
 {
     type <- match.arg(type)
     
-    # legend text
-    ltext <- c("normal", 
-                paste0("1-copy xxxx (", c("", "sub"), "clonal)"),
-                paste0("2-copy xxxx (", c("", "sub"), "clonal)"))
-    ltext <- sub("xxxx", type, ltext)
-
-    # color
-    if(type == "gain")
-    {
-        n1.col <- cb.orange
-        n2.col <- cb.red
-        #ltext[4] <- substitute(pre>=suff, list(pre="", suff=ltext[4]))
-        #ltext[5] <- substitute(pre>=suff, list(pre="", suff=ltext[5])) 
-        ltext[4:5] <- paste0(">=", ltext[4:5])
-    }
-    else
-    {
-        n1.col <- cb.green
-        n2.col <- cb.blue
-    }
-    col <- c("lightgrey", rep(n1.col, 2), rep(n2.col, 2))
-
-    
-    # density
+    col <- .getStateColors(type) 
+    ltext <- .getStateLegend(type)
     dens <- c(-1,-1, 40, -1, 40)
 
     if(nrow(x) < 5)
@@ -320,6 +298,104 @@ bpSubtypeStrata <- function(x, type=c("gain", "loss"))
         density=dens, 
         border=NA)
 }
+
+## OV
+#x <- extraL[order(subcl.score, decreasing=TRUE)[c(1,2,7)]]
+#names(x) <- c("8q24.21 (MYC)", c("20q13.33"), c("19p13.12 (BRD4)"))
+#x <- c(x, extraL[order(subcl.score)[c(1,7,9)]])
+#names(x)[4:6] <- c("8p21.2 (PPP2R2A)", "15q15.1 (MGA)", "15q11.2 (SNRPN)")
+#ggplotSubtypeStrata(x[c(4:6,1:3)], rep(c("loss","gain"), each=3))
+#
+#
+### SARC
+#x <- extraL[order(subcl.score)[c(1,2,4)]]
+## loss, gain, loss
+#names(x) <- c("13q14.2 (RB1)", "12q15 (MDM2)", "10q23.31 (PTEN)")
+#sarc.hscl <- extraL[rowRanges(gisticSARC)$band %in% c("1p36.32", "8p23.3", "5p15.33")]
+#x <- c(x, sarc.hscl[c(1,4,2)])
+## loss, loss, loss
+#names(x)[4:6] <- c("1p36.32 (TP73)", "8p23.2 (CSMD1)", "5p15.33 (TERT)")
+#ggplotSubtypeStrata(x, c("loss","gain", rep("loss", 4)))
+
+ggplotSubtypeStrata <- function(x, type=c("gain", "loss"))
+{
+    .single <- function(y, ty=type)
+    {
+        ty <- match.arg(ty)
+        col <- .getStateColors(ty) 
+        ltext <- .getStateLegend(ty)
+        alpha <- c(1,1,0.5,1,0.5)   
+ 
+        if(nrow(y) < 5)
+        {
+            col <- col[1:3]
+            ltext <- ltext[1:3]
+            alpha <- alpha[1:3]
+        }
+
+        df <- reshape2::melt(y)
+        colnames(df) <- c("state", "subtype", "tumors")
+        df$state <- factor(ltext[df$state], levels=rev(ltext))
+        df$subtype <- factor(as.vector(df$subtype), levels=sort(levels(df$subtype)))
+        df$color <- rev(col)[df$state]
+        df$alpha <- ifelse(grepl("subclonal", df$state), 0.5, 1)
+
+        return(df)
+    }
+    
+    if(is.list(x))
+    {
+        genes <- names(x)
+        df <- lapply(seq_along(x), function(i) .single(x[[i]], type[i]))
+        nr <- vapply(df, nrow, integer(1))
+        df <- do.call(rbind, df)
+        df$state <- factor(as.vector(df$state), levels=sort(levels(df$state))[c(2,1,4,3,6,5,7)])
+        df$gene <- factor(rep(genes, times=nr), levels=genes)
+    }
+    else df <- .single(x, type)
+
+    p <- ggplot2::ggplot(data=df, ggplot2::aes(x=subtype, y=tumors, fill=state, alpha=state)) + 
+                ggplot2::geom_col() + 
+                ggplot2::scale_fill_manual(values=rev(df$color[!duplicated(df$state)])) + 
+                ggplot2::scale_alpha_manual(values=rev(df$alpha[!duplicated(df$state)])) 
+
+    if(is.list(x)) p + facet_wrap( ~ gene, ncol = length(x) / 2)
+    else p
+}
+
+.getStateColors <- function(type=c("gain", "loss"))
+{
+    type <- match.arg(type)
+    if(type == "gain")
+    {
+        n1.col <- cb.orange
+        n2.col <- cb.red
+    }
+    else
+    {
+        n1.col <- cb.green
+        n2.col <- cb.blue
+    }
+    col <- c("grey", rep(n1.col, 2), rep(n2.col, 2))
+    return(col)
+}
+
+.getStateLegend <- function(type=c("gain", "loss"))
+{
+    type <- match.arg(type)
+    ltext <- c("normal", 
+                paste0("1-copy xxxx (", c("", "sub"), "clonal)"),
+                paste0("2-copy xxxx (", c("", "sub"), "clonal)"))
+    ltext <- sub("xxxx", type, ltext)
+    if(type == "gain")
+    {
+        #ltext[4] <- substitute(pre>=suff, list(pre="", suff=ltext[4]))
+        #ltext[5] <- substitute(pre>=suff, list(pre="", suff=ltext[5])) 
+        ltext[4:5] <- paste0(">=", ltext[4:5])
+    }
+    return(ltext)
+}
+
 
 plotlyPie <- function(labels, values, colors, out.file=NULL)
 {
@@ -425,12 +501,14 @@ plotNrSamples <- function(gistic, subtypes, absolute)
 # scatterplot correlation between 
 #   (1) subtype association score, and 
 #   (2) subclonality score
-plotCorrelation <- function(assoc.score, subcl.score, subtypes=NULL, stcols=NULL)
+plotCorrelation <- function(assoc.score, subcl.score, 
+    subtypes=NULL, stcols=NULL, xlim=NULL, lpos="bottomright")
 {
     par(pch=20)
     if(is.null(subtypes)) col <- cb.red
     else col <- stcols[subtypes]
-    plot(assoc.score, subcl.score, col=col,
+    if(is.null(xlim)) xlim <- c(0, max(assoc.score))
+    plot(assoc.score, subcl.score, col=col, xlim=xlim,
         xlab=expression(paste("Subtype association score ", italic(S[A]))), 
         ylab=expression(paste("Subclonality score ", italic(S[C]))))
     
@@ -443,7 +521,7 @@ plotCorrelation <- function(assoc.score, subcl.score, subtypes=NULL, stcols=NULL
     
     legend("topright", legend=c(rho, p))
     if(!is.null(subtypes))
-        legend("bottomright", legend=names(stcols), col=stcols, lwd=2)
+        legend(lpos, legend=names(stcols), col=stcols, lwd=2)
 
     abline(lm(subcl.score ~ assoc.score), lty=2, col="grey")
 }
