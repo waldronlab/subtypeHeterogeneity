@@ -794,8 +794,9 @@ dim(sc.expr)
 
 Get consensus subtypes:
 ```{r consensusSubtypes}
-consensus.subtypes <- get.consensus.subtypes(sc.expr, rownames(sc.expr))
-    # remove.using.cutoff = TRUE, percentage.dataset.removed = 0.75
+# consensus.subtypes <- get.consensus.subtypes(sc.expr, rownames(sc.expr))
+res.file <- file.path(data.dir, "consensus_subtypes_verhaak100.rds")
+consensus.subtypes <- readRDS(res.file)
 ```
 
 Cell type annotation:
@@ -811,35 +812,21 @@ table(c2t)
 
 Expression heatmap incl. subtype and cell type annotation:
 ```{r scHeatmap}
-library(ComplexHeatmap)
 sind <- 2:ncol(sc.expr)
-
-# subtype
-st <- sub("_consensus$", "", consensus.subtypes$consensusOV.subtypes[sind])
-st <- as.factor(st)
-
-# cell type
-ccol <- c("#B62A84", "#2AB68C")
-names(ccol) <- unique(unname(c2t))
-ct <- as.factor(c2t[colnames(sc.expr)[sind]])
-
-scol <- list(Subtype=stcols, CellType=ccol)
-df <- data.frame(Subtype = st, CellType=ct)
-ha <- HeatmapAnnotation(df = df, col=scol)
-
-expr <- log(sc.expr[,sind] + 1, base=2)
-
-Heatmap(expr, name="log2TPM", top_annotation = ha,
-    show_row_names=FALSE, show_column_names=FALSE,
-    column_title="Cells", row_title="Genes")
+scHeatmap(sc.expr[,sind], consensus.subtypes$consensusOV.subtypes[sind])
 ```
 
 Subtype by cell type:
 ```{r stByCT}
+# subtype
+st <- consensus.subtypes$consensusOV.subtypes[sind]
+st <- sub("_consensus$", "", st)
+ct <- c2t[colnames(sc.expr)[sind]]
+
 ept <- table(st[ct=="Epithelial"])
 ept <- round(ept / sum(ept), digits=3)
 ept
-stro <- table(st[ct=="Stromal"])
+stro <- table(st[ct=="Stroma"])
 stro <- round(stro / sum(stro), digits=3)
 stro
 ```
@@ -855,13 +842,19 @@ Display classification probabilites:
 ```{r rfprobHeatmap}
 dat <- consensus.subtypes$rf.probs[sind,]
 colnames(dat) <- sub("_consensus$", "", colnames(dat))
+library(ComplexHeatmap)
 Heatmap(dat, show_row_names=FALSE, row_title="Cells", name="Prob")
 ```
 
 Consider only top50% confident classifications: 
 ```{r top50}
-subtr <- apply(consensus.subtypes$rf.probs[sind,], 1, function(row) sort(row)[3])
-my.predictions.margins <- rowMax(consensus.subtypes$rf.probs[sind,]) - subtr
+my.predictions.margins <- subtypeHeterogeneity::margin(consensus.subtypes$rf.probs)
+# bulk 
+my.predictions.margins[1]
+# single cells
+my.predictions.margins <- my.predictions.margins[sind]
+summary(my.predictions.margins)
+# top50
 ecdf.evaluated <- ecdf(my.predictions.margins)(my.predictions.margins)
 na.ind <- ecdf.evaluated < 0.5
 my.predictions.margins[na.ind] <- NA
@@ -870,7 +863,7 @@ top50 <- !is.na(my.predictions.margins)
 
 Max prob (subtype call) and margin score (diff to second highest prob) distribution:
 ```{r marginDist}
-maxp <- rowMax(consensus.subtypes$rf.probs[sind,])[top50]
+maxp <- Biobase::rowMax(consensus.subtypes$rf.probs[sind,])[top50]
 marg <- my.predictions.margins[top50]
 boxplot(maxp, marg, names=c("max", "margin"), ylab="class.prob")
 ```
@@ -886,6 +879,7 @@ stro
 
 Repeat analysis for logTPM > 3 (UofW single-cell threshold)
 ```{r exclLowExpr, eval=FALSE}
+expr <- log(sc.expr + 1, base=2)
 ind <- rowSums(expr) > 3
 consensus.subtypes <- get.consensus.subtypes(
     sc.expr[ind,], 
@@ -938,22 +932,71 @@ Merge:
 verhaak800 <- sort(unique(c(verhaak100, verhaak800)))
 ```
 
+Build extended training set based on extended verhaak signature:
 ```{r buildExtTraining}
-#load("~/Documents/PostDoc/NewYork/ovc/esets.not.rescaled.classified.RData")
 selectGenes <- function(eset)
 {
     ind <- fData(eset)$gene %in% verhaak800
     return(eset[ind,]) 
 }
-#esets <- lapply(esets.not.rescaled.classified, selectGenes)
-eset.file <- file.path(data.dir, "esets.not.rescaled.classified.filtered.RData")
+eset.file <- file.path(data.dir, "esets.rescaled.classified.filtered.RData")
 esets <- get(load(eset.file))
 esets.merged <- consensusOV:::dataset.merging(esets, method = "intersect", standardization = "none")
+dim(esets.merged)
 # sanity check
 fnames <- featureNames(consensusOV:::consensus.training.dataset.full)[2:3]
 snames <- sampleNames(consensusOV:::consensus.training.dataset.full)[1:5]
 exprs(esets.merged)[fnames, snames]
 exprs(consensusOV:::consensus.training.dataset.full)[2:3,1:5]
+training.ext <- esets.merged
 ```
 
+Single cell data restricted to verhaak800 signatures:
+```{r scExtRestricted}
+sc.file <- file.path(data.dir, "scRNAseq_verhaak800.txt")
+sc.expr <- as.matrix(read.delim(sc.file, row.names=1L))
+dim(sc.expr)
+sc.expr[1:5,1:5]
+# exclude NA
+ind <- apply(sc.expr, 1, function(x) any(is.na(x)))
+sc.expr <- sc.expr[!ind,]
+# exclude all zero 
+ind <- apply(sc.expr, 1, function(x) all(x == 0))
+sc.expr <- sc.expr[!ind,]
+dim(sc.expr)
+```
+
+
+```{r consSubtypesExt}
+# takes a while
+# consensus.subtypes <- get.consensus.subtypes(sc.expr, rownames(sc.expr), .training.dataset=training.ext)
+res.file <- file.path(data.dir, "consensus_subtypes_verhaak800.rds")
+consensus.subtypes <- readRDS(res.file)
+table(consensus.subtypes$consensusOV.subtypes)
+head(consensus.subtypes$rf.probs)
+# Margins
+my.predictions.margins <- subtypeHeterogeneity::margin(consensus.subtypes$rf.probs)
+# Bulk
+my.predictions.margins[1]
+# Cells
+summary(my.predictions.margins[sind])
+scHeatmap(sc.expr[,sind], consensus.subtypes$consensusOV.subtypes[sind])
+```
+
+```{r consSubtypesExt2}
+expr <- log(sc.expr + 1, base=2)
+ind <- rowSums(expr) > 3
+dim(sc.expr[ind,])
+# consensus.subtypes2 <- get.consensus.subtypes(sc.expr[ind,], rownames(sc.expr)[ind], .training.dataset=esets.merged)
+res.file <- file.path(data.dir, "consensus_subtypes_verhaak800_logTPMgr3.rds")
+consensus.subtypes2 <- readRDS(res.file)
+table(consensus.subtypes2$consensusOV.subtypes)
+head(consensus.subtypes2$rf.probs)
+# Margins
+my.predictions.margins <- subtypeHeterogeneity::margin(consensus.subtypes2$rf.probs)
+# Bulk
+my.predictions.margins[1]
+# Cells
+summary(my.predictions.margins[sind])
+```
 
