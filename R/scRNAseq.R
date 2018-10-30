@@ -44,23 +44,47 @@ scHeatmap <- function(sc.expr, subtypes, c2t.file="scRNAseq_celltypes.txt")
     c2t <- c2t[,2]
     names(c2t) <- n
 
-    # subtype
-    st <- sub("_consensus$", "", subtypes)
-    st <- as.factor(st)
-
     # cell type
     ccol <- c("#2AB68C", "#B62A84")
     names(ccol) <- unique(unname(c2t))
     ct <- as.factor(c2t[colnames(sc.expr)])
 
+    # subtype calls
+    st <- sub("_consensus$", "", subtypes$consensusOV.subtypes)
+    st <- as.factor(st)
+
+    # class probs per subtype        
+    dat <- subtypes$rf.probs
+    colnames(dat) <- sub("_consensus$", "", colnames(dat))
+   
+    cp.ramp <- circlize::colorRamp2(
+                    seq(quantile(dat, 0.01), quantile(dat, 
+                    0.99), length = 3), c("blue", "#EEEEEE", "red"))
+ 
+    # put together
     scol <- list(Subtype=stcols, CellType=ccol)
-    df <- data.frame(Subtype = st, CellType=ct)
-    ha <- ComplexHeatmap::HeatmapAnnotation(df = df, col=scol)
+    for(i in seq_len(ncol(dat)))
+    {
+        s <- colnames(dat)[i]
+        scol[[s]] <- cp.ramp 
+    }
+    df <- data.frame(CellType=ct, Subtype = st, dat)
+    names(scol)[3] <- colnames(df)[3] <- "ClassProb"
+    ha <- ComplexHeatmap::HeatmapAnnotation(df = df, 
+            col=scol, 
+            show_legend = c(rep(TRUE,3), rep(FALSE,3)),
+            show_annotation_name = c(rep(TRUE,3), rep(FALSE,3)),
+            annotation_name_offset = unit(2, "mm"),
+            gap = unit(c(0, 2, 0, 0, 0), "mm"))
 
     expr <- log(sc.expr + 1, base=2)
-    ComplexHeatmap::Heatmap(expr, name="log2TPM", top_annotation = ha,
+    ComplexHeatmap::draw(ComplexHeatmap::Heatmap(expr, name="log2TPM", top_annotation = ha,
                             show_row_names=FALSE, show_column_names=FALSE,
-                            column_title="Cells", row_title="Genes")
+                            column_title="Cells", row_title="Genes"))
+    
+    for(i in seq_len(ncol(dat)))
+        ComplexHeatmap::decorate_annotation(colnames(df)[i+2], 
+            {grid::grid.text(colnames(dat)[i], grid::unit(-2, "mm"), just = "right")})
 }
 
 margin <- function(rf.probs)

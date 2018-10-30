@@ -813,7 +813,10 @@ table(c2t)
 Expression heatmap incl. subtype and cell type annotation:
 ```{r scHeatmap}
 sind <- 2:ncol(sc.expr)
-scHeatmap(sc.expr[,sind], consensus.subtypes$consensusOV.subtypes[sind])
+sc.subtypes <- consensus.subtypes
+sc.subtypes$consensusOV.subtypes <- sc.subtypes$consensusOV.subtypes[sind]
+sc.subtypes$rf.probs <- sc.subtypes$rf.probs[sind, c(1:2,4,3)]
+scHeatmap(sc.expr[,sind], sc.subtypes)
 ```
 
 Subtype by cell type:
@@ -853,6 +856,7 @@ my.predictions.margins <- subtypeHeterogeneity::margin(consensus.subtypes$rf.pro
 my.predictions.margins[1]
 # single cells
 my.predictions.margins <- my.predictions.margins[sind]
+ma95 <- quantile(my.predictions.margins, 0.95)
 summary(my.predictions.margins)
 # top50
 ecdf.evaluated <- ecdf(my.predictions.margins)(my.predictions.margins)
@@ -888,15 +892,42 @@ consensus.subtypes <- get.consensus.subtypes(
 
 Margin scores in comparison to TCGA bulk: 
 ```{r marginCompTCGA}
-m99 <- c(0.0000,  0.0570,  0.1100,  0.1128,  0.1490,  0.5280)
-m92 <- c(0.00000, 0.02250, 0.03600, 0.05909, 0.06200, 0.52800)
-tcga.rseq <- c(0.0040,  0.1600,  0.3040,  0.3332,  0.4760,  0.8760)
-tcga.ma <- c(0.0000,  0.1325,  0.2870,  0.3199,  0.4870,  0.8520)
-names(m99) <-c("Min.", "1st Qu.",  "Median", "Mean", "3rd Qu.",    "Max.") 
-names(m92) <- names(tcga.rseq) <- names(tcga.rseq) <- names(m99)    
-boxplot(m92, m99, tcga.rseq, tcga.ma, ylab="margin score", 
-    names=c("scRNAseq92", "scRNAseq99","tcgaRNAseq", "tcgaMarray"), 
-    col=c(rep(cb.red,2), rep(cb.blue,2)))
+m100 <- c(0.0060, 0.1425, 0.2450, 0.2551, 0.3580, 0.8460)
+m800 <- c(0.0020, 0.1270, 0.2050, 0.2061, 0.2860, 0.4420)
+tcga.ma <- c(0.0060,  0.2265,  0.5250,  0.5196,  0.8115,  1.0000)
+tcga.rseq <- c(0.0000,  0.2700,  0.6020,  0.5524,  0.8280,  1.0000)
+names(m100) <- c("Min.", "1st Qu.",  "Median", "Mean", "3rd Qu.",    "Max.") 
+names(m800) <- names(tcga.ma) <- names(tcga.rseq) <- names(m100)    
+
+# base plot
+par(pch=20)
+par(las=1)
+boxplot(m100, m800, tcga.rseq, tcga.ma, ylab="margin score", 
+    names=c("scRNAseq100", "scRNAseq800", "TCGA-RNAseq", "TCGA-Marray"), 
+    col=c(rep(cb.red,2), rep(cb.blue,2)), varwidth=TRUE)
+points(c(1,2), y=c(0.42, 0.452), col=cb.red)
+text(c(1,2), y=c(0.42, 0.452), "Bulk", col=cb.red, pos=3)
+
+# ggplot
+df <- data.frame(
+    x=c("scRNAseq100", "scRNAseq800", "TCGA-RNAseq", "TCGA-Marray"), 
+    t(cbind(m100, m800, tcga.rseq, tcga.ma)))
+colnames(df)[2:7] <- c("y0", "y25", "y50", "mean", "y75", "y100") 
+df[,1] <- factor(df[,1], levels=rev(df[,1]))
+df[1,"y100"] <- ma95
+
+df.points <- data.frame(x=c(4,3,4), y=c(0.42, 0.452, 0.846))
+
+ggplot() + 
+    geom_boxplot(data=df,
+        aes(x=x, ymin=y0, lower=y25, middle=y50, upper=y75, ymax=y100), 
+        stat="identity", fill=factor(rep(c(cb.blue, cb.red), each=2))) + 
+    geom_point(data=df.points[1:2,], aes(x=x, y=y), color=cb.red) +
+    geom_point(data=df.points[3,], aes(x=x, y=y)) +
+    geom_text(data=df.points[1:2,], aes(x=x, y=y), 
+                color=cb.red, label="Bulk", hjust=0, nudge_x = 0.2) +
+    xlab("") + ylab("margin score") + coord_flip()
+
 ```
 
 ## Extension of consensus classifier
@@ -980,7 +1011,10 @@ my.predictions.margins <- subtypeHeterogeneity::margin(consensus.subtypes$rf.pro
 my.predictions.margins[1]
 # Cells
 summary(my.predictions.margins[sind])
-scHeatmap(sc.expr[,sind], consensus.subtypes$consensusOV.subtypes[sind])
+sc.subtypes <- consensus.subtypes
+sc.subtypes$consensusOV.subtypes <- sc.subtypes$consensusOV.subtypes[sind]
+sc.subtypes$rf.probs <- sc.subtypes$rf.probs[sind, c(1:2,4,3)]
+scHeatmap(sc.expr[,sind], sc.subtypes)
 ```
 
 ```{r consSubtypesExt2}
