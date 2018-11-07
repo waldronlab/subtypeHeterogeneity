@@ -29,6 +29,7 @@ export(
     getCnvGenesFromTCGA,    
     getMatchedAbsoluteCalls,
     getExtendedVerhaakSignature,
+    ggplotSubtypeStrata,
     gistic2RSE,
     gvizRegion,
     mapOVSubtypes,

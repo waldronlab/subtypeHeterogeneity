@@ -299,24 +299,6 @@ bpSubtypeStrata <- function(x, type=c("gain", "loss"))
         border=NA)
 }
 
-## OV
-#x <- extraL[order(subcl.score, decreasing=TRUE)[c(1,2,7)]]
-#names(x) <- c("8q24.21 (MYC)", c("20q13.33"), c("19p13.12 (BRD4)"))
-#x <- c(x, extraL[order(subcl.score)[c(1,7,9)]])
-#names(x)[4:6] <- c("8p21.2 (PPP2R2A)", "15q15.1 (MGA)", "15q11.2 (SNRPN)")
-#ggplotSubtypeStrata(x[c(4:6,1:3)], rep(c("loss","gain"), each=3))
-#
-#
-### SARC
-#x <- extraL[order(subcl.score)[c(1,2,4)]]
-## loss, gain, loss
-#names(x) <- c("13q14.2 (RB1)", "12q15 (MDM2)", "10q23.31 (PTEN)")
-#sarc.hscl <- extraL[rowRanges(gisticSARC)$band %in% c("1p36.32", "8p23.3", "5p15.33")]
-#x <- c(x, sarc.hscl[c(1,4,2)])
-## loss, loss, loss
-#names(x)[4:6] <- c("1p36.32 (TP73)", "8p23.2 (CSMD1)", "5p15.33 (TERT)")
-#ggplotSubtypeStrata(x, c("loss","gain", rep("loss", 4)))
-
 ggplotSubtypeStrata <- function(x, type=c("gain", "loss"))
 {
     .single <- function(y, ty=type)
@@ -359,7 +341,8 @@ ggplotSubtypeStrata <- function(x, type=c("gain", "loss"))
                 ggplot2::scale_fill_manual(values=rev(df$color[!duplicated(df$state)])) + 
                 ggplot2::scale_alpha_manual(values=rev(df$alpha[!duplicated(df$state)])) 
 
-    if(is.list(x)) p + facet_wrap( ~ gene, ncol = length(x) / 2)
+    if(is.list(x)) p + ggplot2::facet_wrap( ~ gene, 
+                       ncol = ifelse(length(x) %% 2 == 0, length(x) / 2, length(x)))
     else p
 }
 
@@ -559,31 +542,45 @@ plotNrCNAsPerSubtype <- function(type, subtype)
     return(spl)
 }
 
-plotPurityStrata <- function(subtys, puri.ploi)
+.extractLower <- function(x)
 {
+    spl <- unlist(strsplit(x, ","))[1]
+    spl <- substring(spl, 2, nchar(spl))
+    spl <- as.numeric(spl)
+    return(spl)
+}
+
+plotPurityStrata <- function(puri.ploi, subtys, gistic, absGRL,
+    method=c("equal.bin", "quintile"))
+{
+    method <- match.arg(method)
     puri.ploi <- puri.ploi[!is.na(puri.ploi[,1]),]
     cids <- intersect(rownames(subtys), rownames(puri.ploi))    
 
-    sebin <- stratifyByPurity(ovsubs, puri.ploi, method="equal.bin")
-    sex <- sapply(names(sebin), .extractUpper) 
-
+    sebin <- stratifyByPurity(ovsubs, puri.ploi, method=method)
+    sex <- vapply(names(sebin), .extractUpper, numeric(1))
+    sel <- vapply(names(sebin), .extractLower, numeric(1))
+    if(method=="equal.bin") sebin <- sebin[-1] 
+    strata.cor <- vapply(sebin, function(ids) 
+                    analyzeStrata(ids, absGRL, gistic, subtys), numeric(1))
+    
     par(pch=20)
-    hcols <- rev(heat.colors(5))
+    hcols <- rev(grey(2:6/8))
     col.ind <- vapply(puri.ploi[cids,1], 
                     function(p) min(which(p <= sex)), integer(1)) 
     plot(puri.ploi[cids,1], puri.ploi[cids,2], 
             col=hcols[col.ind], xlab="purity", ylab="ploidy")
     
     abline(v=sex[1:4], col=hcols[2:5], lty=3)
-    xm <- c(0.447, 0.605, 0.763, 0.921)
-    text(x=xm, y=8, labels=c(0.23, 0.17, 0.25, 0.38), col=hcols[2:5], font=2)
-
-    #squint <- stratifyByPurity(ovsubs, puri.ploi, method="quintile")
-    #sqx <- sapply(names(squint)[1:4], .extractUpper)
-    #abline(v=sqx, col="blue", lty=3)
-
-    #legend("topright", lty=3, 
-    #    legend=c("equal.bin", "quintile"), col=c("green", "blue"))
+    if(method=="equal.bin")
+    {
+        sex <- sex[-1]
+        sel <- sel[-1]
+    } 
+    xm <- sel + (sex - sel) / 2
+    text(x=xm, y=8, labels=round(strata.cor, digits=2), col=hcols, font=2)
+    axis(3, labels=lengths(sebin), at=xm)
+    mtext("#tumors", line=3)
 }
 
 

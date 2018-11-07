@@ -112,10 +112,6 @@ squint <- stratifyByPurity(ovsubs, puri.ploi, method="quintile")
 lengths(squint)
 ```
 
-```{r plotPurStrat, fig.width=5, fig.height=5}
-plotPurityStrata(ovsubs, puri.ploi)
-```
-
 # Test: gistic-subtype association
 ```{r subtyAssoc}
 pvals <- testSubtypes(gisticOV, ovsubs, padj.method="none")
@@ -210,6 +206,12 @@ plotCorrelation(assoc.score, subcl.score)
 sapply(squint, function(ids) analyzeStrata(ids, absGRL, gisticOV, ovsubs))
 sapply(sebin[-1], function(ids) analyzeStrata(ids, absGRL, gisticOV, ovsubs))
 ```
+
+```{r plotPurStrat, fig.width=5, fig.height=5}
+plotPurityStrata(puri.ploi, ovsubs, gisticOV, absGRL)
+plotPurityStrata(puri.ploi, ovsubs, gisticOV, absGRL, method="quintile")
+```
+
 
 ### Only copy losses and single copy gains
 ```{r corNoHighAmp}
@@ -488,22 +490,36 @@ ind <- order(subcl.score, decreasing=TRUE)
 rowRanges(gisticOV)[ind[1:2]]
 ```
 
-```{r selecttopplotOV, fig.width=6, fig.height=6}
-# highest subtype association
-ind <- order(assoc.score, decreasing=TRUE)
-top.genes <- c("BCL2L1", "BRD4", "FRS2", "MECOM", "ID4", "", "", "MYC", "", "") 
-for(i in 1:10)
-{
-    x <- ind[i]
-    type <- rowRanges(gisticOV)$type[x]
-    type <- ifelse(type == "Deletion", "loss", "gain") 
-    bpSubtypeStrata(extraL[[x]], type=type)
-    title(main=paste0(rowRanges(gisticOV)$band[x], " (", top.genes[i], ")"))
-}
+```{r clonalSubclOV}
+x <- extraL[order(subcl.score, decreasing=TRUE)[c(1,2,7)]]
+names(x) <- c("8q24.21 (MYC)", c("20q13.33"), c("19p13.12 (BRD4)"))
+x <- c(x, extraL[order(subcl.score)[c(1,7,9)]])
+names(x)[4:6] <- c("8p21.2 (PPP2R2A)", "15q15.1 (MGA)", "15q11.2 (SNRPN)")
+ggplotSubtypeStrata(x[c(4:6,1:3)], rep(c("loss","gain"), each=3))
 ```
 
+Strongest subtype association:
+```{r selecttopplotOV, fig.width=6, fig.height=6}
+ind <- order(assoc.score, decreasing=TRUE)
+x <- extraL[ind[c(1,3:5,7,9)]]
+names(x) <- c("20q11.21 (BCL2L1)", "12q15 (FRS2)", "3q26.2 (MECOM)", 
+    "6p22.3 (ID4)", "20p13", "12p13.33")
+ggplotSubtypeStrata(x, rep("gain", 6))
+```
 
-Plot regions:
+Regions of frequent loss in HGSOC:
+```{r freqLossRegs}
+x <- extraL[c(34,44,55)]
+names(x) <- c("10q23.31 (PTEN)", "13q14.2 (RB1)", "17q11.2 (NF1)")
+ggplotSubtypeStrata(x, rep("loss", 3))
+```
+
+Enrichment of deletions in predom. clonal regions
+```{r predClonalDels}
+rowRanges(gisticOV)$type[subcl.score < 0.3]
+```
+
+Plot regions on genome:
 ```{r intersectSamplesABSOLUTEandSubtype}
 isamples <- intersect(rownames(ovsubs), names(absGRL))
 absov <- absGRL[isamples]
@@ -635,6 +651,18 @@ tests <- testSubtypes(gisticSARC, sarcsubs, what="full")
 extraL <- stratifySubclonality(gisticSARC, subcl.gisticSARC, 
     sarcsubs, tests, st.names=names(sarc.cols))
 ```
+
+```{r clonalSubclSARC}
+x <- extraL[order(subcl.score)[c(1,2,4)]]
+# loss, gain, loss
+names(x) <- c("13q14.2 (RB1)", "12q15 (MDM2)", "10q23.31 (PTEN)")
+sarc.hscl <- extraL[rowRanges(gisticSARC)$band %in% c("1p36.32", "8p23.3", "5p15.33")]
+x <- c(x, sarc.hscl[c(1,4,2)])
+# loss, loss, loss
+names(x)[4:6] <- c("1p36.32 (TP73)", "8p23.2 (CSMD1)", "5p15.33 (TERT)")
+ggplotSubtypeStrata(x, c("loss","gain", rep("loss", 4)))
+```
+
 
 ```{r selecttopplot, fig.width=6, fig.height=6}
 # highest subtype association
@@ -927,8 +955,45 @@ ggplot() +
     geom_text(data=df.points[1:2,], aes(x=x, y=y), 
                 color=cb.red, label="Bulk", hjust=0, nudge_x = 0.2) +
     xlab("") + ylab("margin score") + coord_flip()
-
 ```
+
+```{r tcgaMAvsRSEQ}
+m <- matrix(c(73, 6, 1, 2,
+        7, 67, 1, 1,
+        1, 1, 76, 0,
+        1, 1, 4, 55), ncol=4, nrow=4, byrow=TRUE)
+rownames(m) <- colnames(m) <- c("IMR", "DIF", "PRO", "MES")
+m <- m[c(2,1,4,3), c(2,1,4,3)]
+df <- reshape2::melt(m)
+df[,2] <- factor(df[,2], levels=rev(levels(df[,2])))
+df$color <- ifelse(df$value > 10, "white", "grey46")
+df$class <- "Top100%"
+
+m2 <- matrix(c(46, 0, 0, 0,
+        1, 47, 0, 0,
+        0, 0, 59, 0,
+        0, 0, 0, 40), ncol=4, nrow=4, byrow=TRUE)
+rownames(m2) <- colnames(m2) <- c("IMR", "DIF", "PRO", "MES")
+m2 <- m2[c(2,1,4,3), c(2,1,4,3)]
+df2 <- reshape2::melt(m2)
+df2[,2] <- factor(df2[,2], levels=rev(levels(df2[,2])))
+df2$color <- ifelse(df2$value > 10, "white", "grey46")
+df2$class <- "Top75%"
+
+df <- rbind(df,df2)
+colnames(df)[1:2] <- c("Microarray", "RNAseq")
+
+ggplot(df, aes(Microarray, RNAseq)) +
+    geom_tile(data=df, aes(fill=value), color="white") +
+    scale_fill_gradient2(low="white", high="red", guide=FALSE) +
+    geom_text(aes(label=value), size=6, color=df$color) +
+    theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12),
+            axis.text.y = element_text(size=12), 
+            strip.text.x = element_text(size=12, face="bold")) +
+    coord_equal()   
+    facet_wrap( ~ class, ncol = 2) #+
+```
+
 
 ## Extension of consensus classifier
 
