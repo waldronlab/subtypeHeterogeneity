@@ -6,16 +6,16 @@ importMethodsFrom("IRanges", extractList, splitAsList, subsetByOverlaps)
 importMethodsFrom("GenomeInfoDb", seqlevels, "seqlevels<-", seqnames)
 importFrom("GenomeInfoDb", orderSeqlevels)
 
-importFrom("grDevices", "col2rgb", "dev.off", "png", "rgb")
-importFrom("graphics", "barplot", "boxplot", "par", "segments", "symbols", "text")
+importFrom("grDevices", "col2rgb", "dev.off", "grey", "png", "rgb")
+importFrom("graphics", "abline", "axis", "barplot", "boxplot", "legend", "mtext", 
+    "par", "plot", "rect", "segments", "symbols", "text")
 importFrom("methods", "as", "is")
-importFrom("stats", "chisq.test", "formula", "mad", "median", "model.matrix",
-    "p.adjust", "pchisq", "phyper", "pnorm", "qnorm","quantile", "rnorm", 
-    "runif")
+importFrom("stats", "chisq.test", "cor.test", "formula", "lm", "mad", "median", 
+    "model.matrix", "p.adjust", "pchisq", "phyper", "pnorm", "qnorm","quantile", 
+    "rnorm", "runif")
 importFrom("utils", "available.packages", "browseURL", "capture.output", 
     "download.file", "data", "memory.limit", "read.csv", "read.delim", 
     "untar", "unzip", "write.table")
-
 
 export( 
     analyzeCancerType,

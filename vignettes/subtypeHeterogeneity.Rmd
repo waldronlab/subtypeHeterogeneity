@@ -1,12 +1,12 @@
 ---
-title: "Subclonality of expression subtypes"
-author: Ludwig Geistlinger, Sehyun Oh, Markus Riester, and Levi Waldron
+title: "Supplement: statistical analysis literate programming output"
+author: Ludwig Geistlinger, Sehyun Oh, and Levi Waldron
 output:
   BiocStyle::html_document:
     toc: true
     toc_depth: 2
 vignette: >
-  % \VignetteIndexEntry{Functional enrichment analysis of high-throughput omics data}
+  % \VignetteIndexEntry{Statistical analysis output}
   % \VignetteEngine{knitr::rmarkdown}
 ---
 
@@ -16,7 +16,7 @@ suppressPackageStartupMessages({
     library(consensusOV)
     library(RaggedExperiment)
     library(ComplexHeatmap)
-    library(plotly)
+    library(ggplot2)
 })
 ```
 
@@ -26,7 +26,7 @@ library(subtypeHeterogeneity)
 library(consensusOV)
 library(RaggedExperiment)
 library(ComplexHeatmap)
-library(plotly)
+library(ggplot2)
 ```
 
 ```{r cols}
@@ -112,7 +112,7 @@ squint <- stratifyByPurity(ovsubs, puri.ploi, method="quintile")
 lengths(squint)
 ```
 
-# Test: gistic-subtype association
+# Subtype association
 ```{r subtyAssoc}
 pvals <- testSubtypes(gisticOV, ovsubs, padj.method="none")
 adj.pvals <- p.adjust(pvals, method="BH")
@@ -177,7 +177,7 @@ rowRanges(raOV)
 
 ## Summarize subclonality of ABSOLUTE calls in GISTIC regions 
 ```{r querySubcl}
-subcl.gisticOV <- querySubclonality(raOV, query=rowRanges(gisticOV), sum.method="any")
+subcl.gisticOV <- querySubclonality(raOV, query=rowRanges(gisticOV), sum.method="any", ext=500000)
 dim(subcl.gisticOV)
 subcl.gisticOV[1:5,1:5]
 ```
@@ -194,46 +194,9 @@ summary(subcl.score)
 assoc.score <- testSubtypes(gisticOV, ovsubs, what="statistic")
 cor(assoc.score, subcl.score, method="spearman")
 cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
-#corPermTest(gisticOV, ovsubs, subcl.score)
 ```
 
 ```{r plotCor, fig.width=6, fig.height=6}
-plotCorrelation(assoc.score, subcl.score) 
-```
-
-### Purity-stratified analysis
-```{r purStrat}
-sapply(squint, function(ids) analyzeStrata(ids, absGRL, gisticOV, ovsubs))
-sapply(sebin[-1], function(ids) analyzeStrata(ids, absGRL, gisticOV, ovsubs))
-```
-
-```{r plotPurStrat, fig.width=5, fig.height=5}
-plotPurityStrata(puri.ploi, ovsubs, gisticOV, absGRL)
-plotPurityStrata(puri.ploi, ovsubs, gisticOV, absGRL, method="quintile")
-```
-
-
-### Only copy losses and single copy gains
-```{r corNoHighAmp}
-noHighAmp <- getMatchedAbsoluteCalls(absGRL, ovsubs, max.cn=3)
-subcl.noHighAmp <- querySubclonality(noHighAmp, query=rowRanges(gisticOV))
-subcl.noHighAmp <- rowMeans(subcl.noHighAmp, na.rm=TRUE)
-cor(assoc.score, subcl.noHighAmp, method="spearman")
-cor.test(assoc.score, subcl.noHighAmp, method="spearman", exact=FALSE)$p.value
-#corPermTest(gisticOV, ovsubs, subcl.noHighAmp)
-```
-
-```{r plotCorNHA, fig.width=6, fig.height=6}
-plotCorrelation(assoc.score, subcl.noHighAmp)
-```
-
-### Extend peaks by 500 kb up- and downstream 
-```{r cor5kb, fig.width=6, fig.height=6}
-subcl.gisticOV.5kb <- querySubclonality(raOV, query=rowRanges(gisticOV), ext=500000)
-subcl.score <- rowMeans(subcl.gisticOV.5kb, na.rm=TRUE)
-summary(subcl.score)
-cor(assoc.score, subcl.score, method="spearman")
-cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
 plotCorrelation(assoc.score, subcl.score, 
     subtypes=mcols(gisticOV)$subtype, stcols=stcols)
 text(x=52.8, y=0.46, "20q11.21\n(BCL2L1)", pos=2)
@@ -246,6 +209,17 @@ text(x=25.693, y=0.408, "2q31.2 (PDE11A)", pos=4)
 text(x=26.991, y=0.353, "3p26.3", pos=4) 
 text(x=17.59, y=0.272, "15q15.1 (MGA)", pos=4) 
 text(x=12.389, y=0.22, "8p21.2 (PPP2R2A)", pos=4)
+```
+
+### Purity-stratified analysis
+```{r purStrat}
+sapply(squint, function(ids) analyzeStrata(ids, absGRL, gisticOV, ovsubs))
+sapply(sebin[-1], function(ids) analyzeStrata(ids, absGRL, gisticOV, ovsubs))
+```
+
+```{r plotPurStrat, fig.width=5, fig.height=5}
+plotPurityStrata(puri.ploi, ovsubs, gisticOV, absGRL)
+plotPurityStrata(puri.ploi, ovsubs, gisticOV, absGRL, method="quintile")
 ```
 
 ```{r annoOVranges}
@@ -393,38 +367,6 @@ legend("topright", inset=c(-0.3,0), legend=c("largest", "wmean"),
         col=c(cb.blue, cb.red), lwd=2)
 ```
 
-
-### Subclonality concordance with ABSOLUTE 
-
-Summarize subclonality of GISTIC2 regions
-
-```{r subclConcord}
-# PureCN
-maxScore <- function(score, range, qrange) max(score, na.rm=TRUE)
-pcn.rassay.sc <- RaggedExperiment::qreduceAssay(pcn.calls.ra, 
-                query=gisticOV.ranges.hg38, 
-                simplifyReduce=maxScore, i="score", background=NA)
-pcn.subcl <- rowMeans(pcn.rassay.sc, na.rm=TRUE)
-summary(pcn.subcl)
-
-#ABSOLUTE
-abs.rassay.sc <- RaggedExperiment::qreduceAssay(abs.calls.ra, 
-                query=gisticOV.ranges.hg19, 
-                simplifyReduce=maxScore, i="score", background=NA)
-abs.subcl <- rowMeans(abs.rassay.sc, na.rm=TRUE)
-summary(abs.subcl)
-```
-
-Correlation 
-```{r corConcord}
-cor.test(pcn.subcl, abs.subcl, method="spearman")
-```
-
-
-```{r selRegions}
-sort(abs.subcl[pcn.subcl > 0.4], decreasing=TRUE)
-```
-
 ### Select large losses called subclonal by ABSOLUTE 
 ```{r selectAbsCalls}
 selectAbsCalls <- function(sample, min.size=3000000)
@@ -465,7 +407,7 @@ blocks <- blocks[seqnames(blocks) == nmax]
 ### Select GISTIC regions of high subtype association and subclonality
 ```{r selecttopTables}
 tests <- testSubtypes(gisticOV, ovsubs, what="full")
-extraL <- stratifySubclonality(gisticOV, subcl.gisticOV.5kb, ovsubs, tests)
+extraL <- stratifySubclonality(gisticOV, subcl.gisticOV, ovsubs, tests)
 ```
 
 ```{r selecttop, fig.width=6, fig.height=6}
@@ -519,29 +461,6 @@ Enrichment of deletions in predom. clonal regions
 rowRanges(gisticOV)$type[subcl.score < 0.3]
 ```
 
-Plot regions on genome:
-```{r intersectSamplesABSOLUTEandSubtype}
-isamples <- intersect(rownames(ovsubs), names(absGRL))
-absov <- absGRL[isamples]
-(ov.rel <- table(ovsubs[names(absov),"cluster"]))
-```
-
-```{r plotHighSubcl, fig.width=6, fig.height=6}
-# myc
-r <- GRanges("chr8:128694547-129309687")
-g <- GRanges(c("chr8:128747680-128753674", "chr8:128806779-129113499"))
-names(g) <- c("MYC", "PVT1")
-genome(g) <- genome(r) <- "hg19" 
-
-rb <- GRanges("chr13:48875329-49064807")
-
-ov.olaps <- subsetByOverlaps(unlist(absov), r)
-#as a GRangesList: splitAsList(olaps, names(olaps))
-ov.olaps$State <- ovsubs[names(ov.olaps), "cluster"]
-gvizRegion(r, g, ov.olaps, ov.rel=ov.rel, type="+")
-```
-
-
 # Other cancer types
 
 ```{r allCTypes}
@@ -583,7 +502,7 @@ volcanoCorrelation(rho, p)
 gisticSARC <- gistic2RSE(ctype="SARC", peak="wide")
 sarcsubs <- getBroadSubtypes(ctype="SARC", clust.alg="CNMF")
 table(sarcsubs$cluster)
-pvals <- testSubtypes(gisticSARC, sarcsubs, padj.method="none")
+pvals <- suppressWarnings( testSubtypes(gisticSARC, sarcsubs, padj.method="none") )
 length(pvals)
 adj.pvals <- p.adjust(pvals, method="BH")
 sum(adj.pvals < 0.1)
@@ -603,7 +522,7 @@ lapply(1:3, function(cl) table(sarcsubs[sarcsubs$cluster == cl,"histType"]))
 ```
 
 ```{r sarc}
-assoc.score <- testSubtypes(gisticSARC, sarcsubs, what="statistic")
+assoc.score <- suppressWarnings( testSubtypes(gisticSARC, sarcsubs, what="statistic") )
 raSARC <- getMatchedAbsoluteCalls(absGRL, sarcsubs)
 subcl.gisticSARC <- querySubclonality(raSARC, query=rowRanges(gisticSARC), sum.method="any")
 subcl.score <- rowMeans(subcl.gisticSARC, na.rm=TRUE)
@@ -615,7 +534,7 @@ cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
 ```{r sarcPlot, fig.width=6, fig.height=6}
 sarc.cols <- stcols[c(1,3,2)]
 names(sarc.cols) <- c("MFS/UPS", "LMS", "DDLPS")
-sts <- testSubtypes(gisticSARC, sarcsubs, what="subtype")
+sts <- suppressWarnings( testSubtypes(gisticSARC, sarcsubs, what="subtype") )
 sts <- names(sarc.cols)[sts]
 plotCorrelation(assoc.score, subcl.score, subtypes=sts, stcols=sarc.cols, lpos="right")
 # top assoc
@@ -647,7 +566,7 @@ rowRanges(gisticSARC)[ind.subcl]
 ```
 
 ```{r selecttopSARC}
-tests <- testSubtypes(gisticSARC, sarcsubs, what="full")
+tests <- suppressWarnings( testSubtypes(gisticSARC, sarcsubs, what="full") )
 extraL <- stratifySubclonality(gisticSARC, subcl.gisticSARC, 
     sarcsubs, tests, st.names=names(sarc.cols))
 ```
@@ -663,21 +582,7 @@ names(x)[4:6] <- c("1p36.32 (TP73)", "8p23.2 (CSMD1)", "5p15.33 (TERT)")
 ggplotSubtypeStrata(x, c("loss","gain", rep("loss", 4)))
 ```
 
-
-```{r selecttopplot, fig.width=6, fig.height=6}
-# highest subtype association
-ind <- ind.assoc
-sarc.genes <- c("TP73", "MDM2", "UST", "PTEN", "RB1", "SPRN", "JUN", "", "NF1") 
-for(i in 1:9)
-{
-    x <- ind[i]
-    type <- rowRanges(gisticSARC)$type[x]
-    type <- ifelse(type == "Deletion", "loss", "gain") 
-    bpSubtypeStrata(extraL[[x]], type=type)
-    title(main=paste0(rowRanges(gisticSARC)$band[x], " (", sarc.genes[i], ")"))
-}
-```
-
+Using histopathological classification for subtype assignment:
 ```{r histcluster}
 histcl <- rep(4, nrow(sarcsubs))
 ind <- grep("myxofibrosarcoma", sarcsubs$histType)
@@ -689,11 +594,11 @@ histcl[ind] <- 2
 ind <- grep("dedifferentiated liposarcoma", sarcsubs$histType)
 histcl[ind] <- 3
 histsubs <- sarcsubs[histcl != 4,]
-histsubs$cluster <- histcl[histcl !=4]  
+histsubs$cluster <- histcl[histcl != 4]  
 ```
 
 ```{r testHistSubs}
-assoc.score <- testSubtypes(gisticSARC, histsubs, what="statistic")
+assoc.score <- suppressWarnings( testSubtypes(gisticSARC, histsubs, what="statistic") )
 raSARC <- getMatchedAbsoluteCalls(absGRL, histsubs)
 subcl.gisticSARC <- querySubclonality(raSARC, query=rowRanges(gisticSARC), sum.method="any")
 subcl.score <- rowMeans(subcl.gisticSARC, na.rm=TRUE)
@@ -703,7 +608,7 @@ cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
 ```
 
 ### Overlapping SCNAs between OV and SARC
-```{r ovsarcranges}
+```{r ovsarcranges, fig.width=6, fig.height=6}
 sarcranges <- rowRanges(gisticSARC)
 sarcranges$adj.pval <- adj.pvals
 sarcranges$subcl <- subcl.score
@@ -711,89 +616,7 @@ ovranges <- rowRanges(gisticOV)
 plotCommonSCNAs(ovranges, sarcranges)
 ```
 
-Plot regions:
-```{r intersectSamplesABSOLUTEandSubtypeSARC}
-isamples <- intersect(rownames(sarcsubs), names(absGRL))
-abssarc <- absGRL[isamples]
-```
-
-```{r plotHighSubclSarc}
-# myc
-sarc.olaps <- subsetByOverlaps(unlist(abssarc), r)
-#as a GRangesList: splitAsList(olaps, names(olaps))
-sarc.olaps$State <- sarcsubs[names(sarc.olaps), "cluster"]
-gvizRegion(r, g, ov.olaps, sarc.olaps)
-```
-
-
-<!--
-## Intrinsic subtypes: breast cancer
-Subtypes: luminal A, luminal B, basal-like, and HER2-enriched
-```{r brcaSubtyAssoc}
-gisticBRCA <- gistic2RSE(ctype="BRCA", peak="wide")
-brcasubs <- getBroadSubtypes(ctype="BRCA", clust.alg="CNMF")
-table(brcasubs$cluster)
-pvals <- testSubtypes(gisticBRCA, brcasubs, padj.method="none")
-length(pvals)
-adj.pvals <- p.adjust(pvals, method="BH")
-sum(adj.pvals < 0.1)
-hist(pvals, breaks=25, col="firebrick",xlab="Subtype association p-value", main="")
-```
-
-```{r brca}
-brca <- allCT$BRCA
-names(brca)
-brca[1:2]
-```
-
-## Late subtypes: glioblastoma
-Subtypes: mesenchymal, proneural, neural, and classical
-```{r gbmSubtyAssoc}
-gisticGBM <- gistic2RSE(ctype="GBM", peak="wide")
-gbmsubs <- getBroadSubtypes(ctype="GBM", clust.alg="CNMF")
-table(gbmsubs$cluster)
-pvals <- testSubtypes(gisticGBM, gbmsubs, padj.method="none")
-length(pvals)
-adj.pvals <- p.adjust(pvals, method="BH")
-sum(adj.pvals < 0.1)
-hist(pvals, breaks=25, col="firebrick",xlab="Subtype association p-value", main="")
-```
-
-```{r gbm}
-gbm <- allCT$GBM
-gbm[1:2]
-```
--->
-
 # Subtype classification in single-cell RNA-seq data 
-
-## Exploratory analysis
-```{r scRNAseq}
-sc.file <- file.path(data.dir, "scRNAseq_logTPM.rds")
-sc <- readRDS(sc.file)
-sc[1:5, 1:5]
-```
-
-```{r explore.scRNAseq}
-library(MASS)
-data(GSE14764.eset)
-boxplot(exprs(GSE14764.eset))
-boxplot(sc)
-ma.vals <- as.vector(exprs(GSE14764.eset))
-sc.vals <- as.vector(sc)
-truehist(ma.vals, nbins=50) 
-truehist(sc.vals, nbins=50)
-```
-
-```{r exploreZeroInflat}
-sc0 <- sc
-for(i in seq_len(nrow(sc)))
-    for(j in seq_len(ncol(sc)))
-        if(is.na(sc[i,j])) sc0[i,j] <- 0
-MASS::truehist(as.vector(sc0), nbins=50)
-perc0 <- apply(sc0, 2, function(x) mean(x==0) * 100)
-barplot(perc0,ylab="%genes with log2TPM = 0")
-```
 
 ## Subtype classification
 
@@ -839,7 +662,7 @@ table(c2t)
 ```
 
 Expression heatmap incl. subtype and cell type annotation:
-```{r scHeatmap}
+```{r scHeatmap, fig.width=6, fig.height=6}
 sind <- 2:ncol(sc.expr)
 sc.subtypes <- consensus.subtypes
 sc.subtypes$consensusOV.subtypes <- sc.subtypes$consensusOV.subtypes[sind]
@@ -862,62 +685,6 @@ stro <- round(stro / sum(stro), digits=3)
 stro
 ```
 
-Pie chart of subtype classification:
-```{r plotlyPie, eval=FALSE}
-ept <- ept[ept > 0]
-cind <- match(names(ept), names(stcols))
-plotlyPie(labels=names(ept), values=ept, colors=stcols[cind])
-```
-
-Display classification probabilites:
-```{r rfprobHeatmap}
-dat <- consensus.subtypes$rf.probs[sind,]
-colnames(dat) <- sub("_consensus$", "", colnames(dat))
-library(ComplexHeatmap)
-Heatmap(dat, show_row_names=FALSE, row_title="Cells", name="Prob")
-```
-
-Consider only top50% confident classifications: 
-```{r top50}
-my.predictions.margins <- subtypeHeterogeneity::margin(consensus.subtypes$rf.probs)
-# bulk 
-my.predictions.margins[1]
-# single cells
-my.predictions.margins <- my.predictions.margins[sind]
-ma95 <- quantile(my.predictions.margins, 0.95)
-summary(my.predictions.margins)
-# top50
-ecdf.evaluated <- ecdf(my.predictions.margins)(my.predictions.margins)
-na.ind <- ecdf.evaluated < 0.5
-my.predictions.margins[na.ind] <- NA
-top50 <- !is.na(my.predictions.margins)
-```
-
-Max prob (subtype call) and margin score (diff to second highest prob) distribution:
-```{r marginDist}
-maxp <- Biobase::rowMax(consensus.subtypes$rf.probs[sind,])[top50]
-marg <- my.predictions.margins[top50]
-boxplot(maxp, marg, names=c("max", "margin"), ylab="class.prob")
-```
-
-```{r stByCT-top50}
-ept <- table(st[top50][ct[top50]=="Epithelial"])
-ept <- round(ept / sum(ept), digits=3)
-ept
-stro <- table(st[top50][ct[top50]=="Stroma"])
-stro <- round(stro / sum(stro), digits=3)
-stro
-```
-
-Repeat analysis for logTPM > 3 (UofW single-cell threshold)
-```{r exclLowExpr, eval=FALSE}
-expr <- log(sc.expr + 1, base=2)
-ind <- rowSums(expr) > 3
-consensus.subtypes <- get.consensus.subtypes(
-    sc.expr[ind,], 
-    rownames(sc.expr)[ind])
-```
-
 Margin scores in comparison to TCGA bulk: 
 ```{r marginCompTCGA}
 m100 <- c(0.0060, 0.1425, 0.2450, 0.2551, 0.3580, 0.8460)
@@ -927,22 +694,13 @@ tcga.rseq <- c(0.0000,  0.2700,  0.6020,  0.5524,  0.8280,  1.0000)
 names(m100) <- c("Min.", "1st Qu.",  "Median", "Mean", "3rd Qu.",    "Max.") 
 names(m800) <- names(tcga.ma) <- names(tcga.rseq) <- names(m100)    
 
-# base plot
-par(pch=20)
-par(las=1)
-boxplot(m100, m800, tcga.rseq, tcga.ma, ylab="margin score", 
-    names=c("scRNAseq100", "scRNAseq800", "TCGA-RNAseq", "TCGA-Marray"), 
-    col=c(rep(cb.red,2), rep(cb.blue,2)), varwidth=TRUE)
-points(c(1,2), y=c(0.42, 0.452), col=cb.red)
-text(c(1,2), y=c(0.42, 0.452), "Bulk", col=cb.red, pos=3)
-
-# ggplot
 df <- data.frame(
     x=c("scRNAseq100", "scRNAseq800", "TCGA-RNAseq", "TCGA-Marray"), 
     t(cbind(m100, m800, tcga.rseq, tcga.ma)))
 colnames(df)[2:7] <- c("y0", "y25", "y50", "mean", "y75", "y100") 
 df[,1] <- factor(df[,1], levels=rev(df[,1]))
-df[1,"y100"] <- ma95
+my.predictions.margins <- subtypeHeterogeneity::margin(consensus.subtypes$rf.probs)[sind]
+df[1,"y100"] <- quantile(my.predictions.margins, 0.95)
 
 df.points <- data.frame(x=c(4,3,4), y=c(0.42, 0.452, 0.846))
 
@@ -957,6 +715,7 @@ ggplot() +
     xlab("") + ylab("margin score") + coord_flip()
 ```
 
+Consistency of subtpye calls (TCGA OV microarray vs RNA-seq):
 ```{r tcgaMAvsRSEQ}
 m <- matrix(c(73, 6, 1, 2,
         7, 67, 1, 1,
@@ -990,10 +749,9 @@ ggplot(df, aes(Microarray, RNAseq)) +
     theme(axis.text.x = element_text(angle=45, vjust=1, hjust=1, size=12),
             axis.text.y = element_text(size=12), 
             strip.text.x = element_text(size=12, face="bold")) +
-    coord_equal()   
-    facet_wrap( ~ class, ncol = 2) #+
+    coord_equal() +   
+    facet_wrap( ~ class, ncol = 2)
 ```
-
 
 ## Extension of consensus classifier
 
@@ -1012,17 +770,6 @@ verhaak100 <- read.delim(verhaak100.file, as.is=TRUE)
 verhaak100 <- verhaak100[2:101,1]
 ```
 
-Interesting:
-```{r ovlpVerhaak100-800}
-table(verhaak100 %in% verhaak800)
-```
-
-Also interesting:
-```{r ovlpVerhaakSigConsensusSig}
-consensus.sig <- fData(consensusOV:::consensus.training.dataset.full)$gene
-table(consensus.sig %in% verhaak100)
-```
-
 Merge:
 ```{r mergeVerhaak100-800}
 verhaak800 <- sort(unique(c(verhaak100, verhaak800)))
@@ -1038,7 +785,6 @@ selectGenes <- function(eset)
 eset.file <- file.path(data.dir, "esets.rescaled.classified.filtered.RData")
 esets <- get(load(eset.file))
 esets.merged <- consensusOV:::dataset.merging(esets, method = "intersect", standardization = "none")
-dim(esets.merged)
 # sanity check
 fnames <- featureNames(consensusOV:::consensus.training.dataset.full)[2:3]
 snames <- sampleNames(consensusOV:::consensus.training.dataset.full)[1:5]
@@ -1047,11 +793,10 @@ exprs(consensusOV:::consensus.training.dataset.full)[2:3,1:5]
 training.ext <- esets.merged
 ```
 
-Single cell data restricted to verhaak800 signatures:
+Single cell data restricted to verhaak800 signature:
 ```{r scExtRestricted}
 sc.file <- file.path(data.dir, "scRNAseq_verhaak800.txt")
 sc.expr <- as.matrix(read.delim(sc.file, row.names=1L))
-dim(sc.expr)
 sc.expr[1:5,1:5]
 # exclude NA
 ind <- apply(sc.expr, 1, function(x) any(is.na(x)))
@@ -1059,11 +804,10 @@ sc.expr <- sc.expr[!ind,]
 # exclude all zero 
 ind <- apply(sc.expr, 1, function(x) all(x == 0))
 sc.expr <- sc.expr[!ind,]
-dim(sc.expr)
 ```
 
 
-```{r consSubtypesExt}
+```{r consSubtypesExt, fig.width=6, fig.height=6}
 # takes a while
 # consensus.subtypes <- get.consensus.subtypes(sc.expr, rownames(sc.expr), .training.dataset=training.ext)
 res.file <- file.path(data.dir, "consensus_subtypes_verhaak800.rds")

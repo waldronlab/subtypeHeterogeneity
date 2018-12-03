@@ -49,7 +49,7 @@ getCnvGenesFromTCGA <- function()
     cnv.genes <- setdiff(cnv.genes, excl.genes)
 
     edb <- EnsDb.Hsapiens.v75::EnsDb.Hsapiens.v75
-    filtr <- AnnotationFilter::GenenameFilter(cnv.genes)
+    filtr <- AnnotationFilter::GeneNameFilter(cnv.genes)
     gr <- GenomicFeatures::genes(edb, filter=list(filtr))
     names(gr) <- gr$symbol
     gr <- as.data.frame(gr)
