@@ -48,7 +48,7 @@ testSubtypes <- function(gistic, subtys,
 corPermTest <- function(gistic, subtys, subcl.score, nperm=1000)
 {
     obs.stat <- testSubtypes(gistic, subtys, what="statistic") 
-    obs.cor <- abs(cor(obs.stat, subcl.score, method="spearman"))    
+    obs.cor <- cor(obs.stat, subcl.score, method="spearman")    
     times.greater <- 0
 
     x <- replicate(nperm,
@@ -58,7 +58,7 @@ corPermTest <- function(gistic, subtys, subcl.score, nperm=1000)
         rownames(subs.perm) <- rownames(subtys)
         perm.stat <- testSubtypes(gistic, subs.perm, what="statistic")
         perm.cor <- cor(perm.stat, subcl.score, method="spearman")
-        is.greater <- abs(perm.cor) >= obs.cor
+        is.greater <- perm.cor >= obs.cor
         times.greater <<- times.greater + is.greater
     })
     p <- (times.greater + 1) / (nperm + 1)
