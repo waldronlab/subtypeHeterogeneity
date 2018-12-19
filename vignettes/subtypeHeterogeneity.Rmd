@@ -105,6 +105,22 @@ head(puri.ploi)
 plotSubtypePurityPloidy(ovsubs, puri.ploi)
 ```
 
+Assessing the significance of differences between subtypes:
+```{r testSubtyPP}
+cids <- intersect(rownames(ovsubs), rownames(puri.ploi))
+subtys <- ovsubs[cids, "cluster"]
+subtys <- names(stcols)[subtys]
+pp <- puri.ploi[cids, ]
+summary(aov(purity ~ subtype, 
+            data.frame(purity=pp[,"purity"], subtype=subtys)))
+summary(aov(ploidy ~ subtype, 
+            data.frame(ploidy=pp[,"ploidy"], subtype=subtys)))
+summary(aov(subcl ~ subtype, 
+            data.frame(subcl=pp[,"Subclonal.genome.fraction"], subtype=subtys)))
+chisq.test(pp[,"Genome.doublings"], subtys)
+```
+
+Stratifying by purity:
 ```{r stratPur}
 sebin <- stratifyByPurity(ovsubs, puri.ploi, method="equal.bin")
 lengths(sebin)
@@ -575,11 +591,11 @@ extraL <- stratifySubclonality(gisticSARC, subcl.gisticSARC,
 x <- extraL[order(subcl.score)[c(1,2,4)]]
 # loss, gain, loss
 names(x) <- c("13q14.2 (RB1)", "12q15 (MDM2)", "10q23.31 (PTEN)")
-sarc.hscl <- extraL[rowRanges(gisticSARC)$band %in% c("1p36.32", "8p23.3", "5p15.33")]
-x <- c(x, sarc.hscl[c(1,4,2)])
+sarc.hscl <- extraL[rowRanges(gisticSARC)$band %in% c("1p36.32", "8p23.3", "20q13.33")]
+x <- c(x, sarc.hscl)
 # loss, loss, loss
-names(x)[4:6] <- c("1p36.32 (TP73)", "8p23.2 (CSMD1)", "5p15.33 (TERT)")
-ggplotSubtypeStrata(x, c("loss","gain", rep("loss", 4)))
+names(x)[4:6] <- c("1p36.32 (TP73)", "8p23.2 (CSMD1)", "20q13.33")
+ggplotSubtypeStrata(x, c("loss","gain", rep("loss", 3), "gain"))
 ```
 
 Using histopathological classification for subtype assignment:
@@ -702,7 +718,7 @@ df[,1] <- factor(df[,1], levels=rev(df[,1]))
 my.predictions.margins <- subtypeHeterogeneity::margin(consensus.subtypes$rf.probs)[sind]
 df[1,"y100"] <- quantile(my.predictions.margins, 0.95)
 
-df.points <- data.frame(x=c(4,3,4), y=c(0.42, 0.452, 0.846))
+df.points <- data.frame(x=c(4,3,4), y=c(0.482, 0.452, 0.846))
 
 ggplot() + 
     geom_boxplot(data=df,
