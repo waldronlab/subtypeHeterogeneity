@@ -212,6 +212,14 @@ cor(assoc.score, subcl.score, method="spearman")
 cor.test(assoc.score, subcl.score, method="spearman", exact=FALSE)$p.value
 ```
 
+Permutation test:
+```{r corPerm}
+obs.cor <- cor(assoc.score, subcl.score, method="spearman")
+perm.cor <- replicate(1000, 
+    cor(sample(assoc.score), subcl.score, method="spearman"))
+(sum(perm.cor >= obs.cor) + 1) / (1000 + 1)
+```
+
 ```{r plotCor, fig.width=6, fig.height=6}
 plotCorrelation(assoc.score, subcl.score, 
     subtypes=mcols(gisticOV)$subtype, stcols=stcols)
@@ -859,3 +867,7 @@ my.predictions.margins[1]
 summary(my.predictions.margins[sind])
 ```
 
+# Session info
+```{r sessionInfo}
+sessionInfo()
+```
