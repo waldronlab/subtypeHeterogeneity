@@ -31,7 +31,9 @@ Imports:
     rtracklayer
 Suggests: 
     BiocStyle, 
+    EnrichmentBrowser,
     RTCGAToolbox,
+    curatedTCGAData,
     dplyr,
     knitr, 
     rmarkdown

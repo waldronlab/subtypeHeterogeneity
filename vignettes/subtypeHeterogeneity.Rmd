@@ -15,8 +15,12 @@ suppressPackageStartupMessages({
     library(subtypeHeterogeneity) 
     library(consensusOV)
     library(RaggedExperiment)
+    library(EnrichmentBrowser)
     library(ComplexHeatmap)
     library(ggplot2)
+    library(EnrichmentBrowser)
+    library(curatedTCGAData)
+    library(DropletUtils)
 })
 ```
 
@@ -25,6 +29,8 @@ suppressPackageStartupMessages({
 library(subtypeHeterogeneity)
 library(consensusOV)
 library(RaggedExperiment)
+library(curatedTCGAData)
+library(DropletUtils)
 library(ComplexHeatmap)
 library(ggplot2)
 ```
@@ -715,28 +721,29 @@ m100 <- c(0.0060, 0.1425, 0.2450, 0.2551, 0.3580, 0.8460)
 m800 <- c(0.0020, 0.1270, 0.2050, 0.2061, 0.2860, 0.4420)
 tcga.ma <- c(0.0060,  0.2265,  0.5250,  0.5196,  0.8115,  1.0000)
 tcga.rseq <- c(0.0000,  0.2700,  0.6020,  0.5524,  0.8280,  1.0000)
+tcga.rseq.down <- c(0.0060,  0.2610,  0.5220,  0.5085,  0.7740, 0.9940)
 names(m100) <- c("Min.", "1st Qu.",  "Median", "Mean", "3rd Qu.",    "Max.") 
-names(m800) <- names(tcga.ma) <- names(tcga.rseq) <- names(m100)    
+names(m800) <- names(tcga.ma) <- names(tcga.rseq.down) <- names(tcga.rseq) <- names(m100)    
 
 df <- data.frame(
-    x=c("scRNAseq100", "scRNAseq800", "TCGA-RNAseq", "TCGA-Marray"), 
-    t(cbind(m100, m800, tcga.rseq, tcga.ma)))
+    x=c("scRNAseq100", "scRNAseq800", "TCGA-RNAseq \n (downsampled)", "TCGA-RNAseq", "TCGA-Marray"), 
+    t(cbind(m100, m800, tcga.rseq.down, tcga.rseq, tcga.ma)))
 colnames(df)[2:7] <- c("y0", "y25", "y50", "mean", "y75", "y100") 
 df[,1] <- factor(df[,1], levels=rev(df[,1]))
 my.predictions.margins <- subtypeHeterogeneity::margin(consensus.subtypes$rf.probs)[sind]
 df[1,"y100"] <- quantile(my.predictions.margins, 0.95)
 
-df.points <- data.frame(x=c(4,3,4), y=c(0.482, 0.452, 0.846))
+df.points <- data.frame(x=c(5,4,5), y=c(0.482, 0.452, 0.846))
 
 ggplot() + 
     geom_boxplot(data=df,
         aes(x=x, ymin=y0, lower=y25, middle=y50, upper=y75, ymax=y100), 
-        stat="identity", fill=factor(rep(c(cb.blue, cb.red), each=2))) + 
+        stat="identity", fill=factor(c(rep(cb.blue, 3), rep(cb.red, 2)))) + 
     geom_point(data=df.points[1:2,], aes(x=x, y=y), color=cb.red) +
     geom_point(data=df.points[3,], aes(x=x, y=y)) +
     geom_text(data=df.points[1:2,], aes(x=x, y=y), 
-                color=cb.red, label="Bulk", hjust=0, nudge_x = 0.2) +
-    xlab("") + ylab("margin score") + coord_flip()
+                color=cb.red, label="Bulk", hjust=0, nudge_x = 0.2, size=6) +
+    xlab("") + ylab("margin score") + theme_grey(base_size = 18) + coord_flip()
 ```
 
 Consistency of subtpye calls (TCGA OV microarray vs RNA-seq):
@@ -867,7 +874,57 @@ my.predictions.margins[1]
 summary(my.predictions.margins[sind])
 ```
 
+## Downsampling
+
+Full scRNA-seq dataset based on gene symbols:
+```{r scFullDat}
+sc.file <- file.path(data.dir, "scRNAseq_symbols.rds")
+sc <- readRDS(sc.file)
+sc
+```
+
+TCGA bulk RNA-seq data:
+```{r cTD}
+library(curatedTCGAData)
+tcga <- curatedTCGAData("OV", "RNASeqGene", FALSE)[[1]]
+tcga
+```
+
+Restrict to intersecting genes: 
+```{r isectscBulk}
+isect <- intersect(names(tcga), names(sc))
+length(isect)
+tcga <- tcga[isect,]
+sc <- sc[isect,]
+```
+
+Check library sizes:
+```{r libsizes}
+(sc.ls <- summary(colSums(assay(sc)[,sind], na.rm=TRUE)))
+(tcga.ls <- summary(colSums(assay(tcga))))
+(ls.prob <- sc.ls["Median"] / tcga.ls["Median"]) 
+```
+
+Downsampling:
+```{r downsmpl}
+library(DropletUtils)
+library(EnrichmentBrowser)
+tcga.down <- downsampleMatrix(assay(tcga), prop=ls.prob)
+summary(colSums(tcga.down))
+```
+
+Consensus subtyping and margin score distribution:
+```{r downsmplMargins}
+tcga.down <- SummarizedExperiment(assays=list(tcga.down))
+tcga.down <- idMap(tcga.down, org="hsa", from="SYMBOL", to="ENTREZID")
+#consensus.subtypes <- get.consensus.subtypes(assay(tcga.down), names(tcga.down))
+st.file <- file.path(data.dir, "consensus_subtypes_downsampled_tcgabulk_rseq.rds")
+consensus.subtypes <- readRDS(st.file)
+summary(subtypeHeterogeneity::margin(consensus.subtypes$rf.probs))
+```
+
 # Session info
+
 ```{r sessionInfo}
 sessionInfo()
 ```
