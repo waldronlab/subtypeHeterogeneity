@@ -886,16 +886,13 @@ sc
 TCGA bulk RNA-seq data:
 ```{r cTD}
 library(curatedTCGAData)
-tcga <- curatedTCGAData("OV", "RNASeqGene", FALSE)[[1]]
+suppressMessages(tcga <- curatedTCGAData("OV", "RNASeq2GeneNorm", FALSE)[[1]])
 tcga
 ```
 
 Restrict to intersecting genes: 
 ```{r isectscBulk}
-isect <- intersect(names(tcga), names(sc))
-length(isect)
-tcga <- tcga[isect,]
-sc <- sc[isect,]
+tcga <- tcga[names(sc),]
 ```
 
 Check library sizes:
