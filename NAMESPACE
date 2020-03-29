@@ -2,7 +2,7 @@ import("S4Vectors")
 import("GenomicRanges")
 import("SummarizedExperiment")
 
-importMethodsFrom("IRanges", extractList, splitAsList, subsetByOverlaps)
+importMethodsFrom("IRanges", extractList, subsetByOverlaps)
 importMethodsFrom("GenomeInfoDb", seqlevels, "seqlevels<-", seqnames)
 importFrom("GenomeInfoDb", orderSeqlevels)
 
@@ -50,5 +50,6 @@ export(
     stratifyByPurity,
     stratifySubclonality,
     testSubtypes,
+    tissueScore,
     volcanoCorrelation     
 )

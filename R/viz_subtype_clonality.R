@@ -62,10 +62,16 @@ getCnvGenesFromTCGA <- function()
 }
 
 # @args: gistic ... RangedSummarizedExperiment
-circosSubtypeAssociation <- function(gistic, cnv.genes)
+circosSubtypeAssociation <- function(gistic, cnv.genes, bw=FALSE)
 {
     gistic <- as.data.frame(rowRanges(gistic))
     gistic$alterationTypeColor <- ifelse(gistic$type=="Deletion", cb.blue, cb.red)
+    if(bw) 
+    if(bw)
+    {
+        gistic$alterationTypeColor <- ifelse(gistic$type=="Deletion", gray(0.6), gray(0.1))
+        stcols[c("DIF", "IMR", "MES", "PRO")] <- rev(gray(c(0.2, 0.5, 0.7, 0.9)))
+    }
     gistic$subtypeColor <- stcols[gistic$subtype]
     circlize::circos.initializeWithIdeogram(species="hg19", chr=paste0("chr",1:22), plotType=NULL)
     df <- circlize::read.chromInfo(species="hg19")
@@ -136,7 +142,7 @@ circosSubtypeAssociation <- function(gistic, cnv.genes)
     circlize::circos.clear()
 
     legend("bottomleft", legend=c("deletion", "amplification"), 
-        col=c(cb.blue, cb.red), lwd=2, cex=0.6, title="Outer circle")
+        col=c(gray(0.6), gray(0.1)), lwd=2, cex=0.6, title="Outer circle")
 
     legend("bottomright", legend=c("PRO", "MES", "DIF", "IMR"), 
         col=stcols, lwd=2, cex=0.6, title="Inner circle")
@@ -510,7 +516,7 @@ plotCorrelation <- function(assoc.score, subcl.score,
 }
 
 # barplot summarizing associated CNAs per subtype
-plotNrCNAsPerSubtype <- function(type, subtype)
+plotNrCNAsPerSubtype <- function(type, subtype, bw = FALSE)
 {
     spl <- split(type, subtype)
     .countType <- 
@@ -527,6 +533,7 @@ plotNrCNAsPerSubtype <- function(type, subtype)
     colnames(m) <- names(stcols)
     m <- m[,order(colSums(m))]
 
+    
     bp <- barplot(m, col=c(cb.blue, cb.red), border=NA, ylab="#CNAs")
     for(i in 1:4) 
         rect( xleft=bp[i]-0.5, ybottom=0, 

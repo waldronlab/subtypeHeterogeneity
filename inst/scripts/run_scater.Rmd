@@ -1,0 +1,358 @@
+---
+title: "Analyzing 10X Genomics Data with scater"
+author: "Sehyun Oh"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, results="hide", warning=FALSE}
+suppressPackageStartupMessages({
+    library(DropletUtils)
+    library(scater)
+    library(scran)
+})
+```
+
+## 1. Reference
+https://bioconductor.org/packages/release/workflows/vignettes/simpleSingleCell/inst/doc/umis.html
+```{r}
+library(DropletUtils)
+library(scater)
+library(scran)
+
+options(stringsAsFactors = FALSE)
+```
+
+## 2. Setting up the data
+##### Reading in a sparse matrix
+```{r message=FALSE}
+sample_num = "sample59"
+home.dir = "/data/OVCscRNAseq"
+dir.name = file.path(home.dir, "data/59")
+list.files(dir.name)
+```
+
+```{r}
+sce = read10xCounts(dir.name)
+sce
+```
+
+##### Annotating the rows
+```{r}
+rownames(sce) <- uniquifyFeatureNames(rowData(sce)$ID, rowData(sce)$Symbol)
+head(rownames(sce))
+```
+
+```{r message=FALSE, warning=FALSE}
+library(EnsDb.Hsapiens.v86)
+location <- mapIds(EnsDb.Hsapiens.v86, keys=rowData(sce)$ID, 
+    column="SEQNAME", keytype="GENEID")
+rowData(sce)$CHR <- location
+summary(location=="MT")
+```
+
+## 3. Calling cells from emptry droplets
+##### Testing for deviations from ambient expression
+```{r fig.width = 5, fig.height = 4.5}
+bcrank <- barcodeRanks(counts(sce))
+
+# Only showing unique points for plotting speed.
+uniq <- !duplicated(bcrank$rank)
+plot(bcrank$rank[uniq], bcrank$total[uniq], log="xy",
+    xlab="Rank", ylab="Total UMI count", cex.lab=1.2)
+
+abline(h=bcrank$inflection, col="darkgreen", lty=2)
+abline(h=bcrank$knee, col="dodgerblue", lty=2)
+
+legend("bottomleft", legend=c("Inflection", "Knee"), 
+    col=c("darkgreen", "dodgerblue"), lty=2, cex=1.2)
+```
+
+`emptyDrops` function wasn't applied, because the suspected 'empty drops' were
+already removed from the matrix when we received it from Tim.
+```{r eval=FALSE}
+set.seed(100)
+e.out <- emptyDrops(counts(sce))
+sum(e.out$FDR <= 0.001, na.rm=TRUE)
+```
+
+```{r eval=FALSE, echo=FALSE}
+# using which() to automatically remove NAs.
+sce <- sce[,which(e.out$FDR <= 0.001)]
+```
+
+```{r eval=FALSE, echo=FALSE}
+full.data <- read10xCounts(dir.name, col.names=TRUE)
+set.seed(100)
+limit <- 100   
+all.out <- emptyDrops(counts(full.data), lower=limit, test.ambient=TRUE)
+hist(all.out$PValue[all.out$Total <= limit & all.out$Total > 0],
+    xlab="P-value", main="", col="grey80") 
+```
+
+## 4. Quality control on the cells
+```{r message=FALSE, fig.width = 9, fig.height = 4}
+sce <- calculateQCMetrics(sce, feature_controls=list(Mito=which(location=="MT")))
+par(mfrow=c(1,3))
+
+# hist(sce$log10_total_counts, breaks=20, col="grey80",
+#     xlab="Log-total UMI count")
+# hist(sce$log10_total_features_by_counts, breaks=20, col="grey80",
+#     xlab="Log-total number of expressed features")
+# hist(sce$pct_counts_Mito, breaks=20, col="grey80",
+#     xlab="Proportion of reads in mitochondrial genes")
+
+hist(sce$total_counts/1e3, xlab="Library sizes (thousands)", main="", 
+    breaks=20, col="grey80", ylab="Number of cells")
+hist(sce$total_features_by_counts, xlab="Number of expressed genes", main="", 
+    breaks=20, col="grey80", ylab="Number of cells")
+hist(sce$pct_counts_Mito, xlab="Mitochondrial proportion (%)", 
+    ylab="Number of cells", breaks=20, main="", col="grey80")
+```
+
+We remove cells with log-library sizes that are more than 1 median absolute deviations (MADs) below the median log-library size. (A log-transformation improves resolution at small values, especially when the MAD of the raw values is comparable to or greater than the median.) We also remove cells where the log-transformed number of expressed genes is 1 MADs below the median. <-- Reference workflow used 3 MADs for `libsize.drop` and `feature.drop`, but our sample seemt to be more positvely skewed, so we tried 1 MADs for QC. 
+
+```{r}
+high.mito <- isOutlier(sce$pct_counts_Mito, nmads=3, type="higher")
+libsize.drop <- isOutlier(sce$total_counts, nmads=1, type="lower", log=TRUE)
+feature.drop <- isOutlier(sce$total_features_by_counts, nmads=1, type="lower", log=TRUE)
+sce <- sce[,!(high.mito | libsize.drop | feature.drop)]
+data.frame(ByHighMito=sum(high.mito),
+           ByLibSize=sum(libsize.drop), 
+           ByFeature=sum(feature.drop), 
+           Remaining=ncol(sce))
+```
+
+## 5. Examining gene expression
+```{r fig.width = 5, fig.height = 4.5}
+ave <- calcAverage(sce)
+hist(log10(ave), breaks=100, main="", col="grey",
+    xlab=expression(Log[10]~"average count"))
+```
+
+remove genes that have average counts of zero, as this means that they are not expressed in any cell
+```{r}
+rowData(sce)$AveCount <- ave
+to.keep = ave > 0
+sce = sce[to.keep,]
+summary(to.keep)
+```
+
+```{r eval=FALSE, echo=FALSE}
+# takes very long
+plotHighestExprs(sce)
+```
+
+## 6. Normalizing for cell-specific biases
+If method="igraph", a shared nearest neighbor graph is constructed using the buildSNNGraph function. 
+```{r}
+set.seed(1000)
+clusters <- quickCluster(sce, method="igraph", min.mean=0.1,
+    irlba.args=list(maxit=1000)) # for convergence.
+table(clusters)
+```
+
+Normalization by deconvolution
+```{r}
+sce <- computeSumFactors(sce, min.mean=0.1, cluster=clusters)
+summary(sizeFactors(sce))
+```
+
+```{r fig.width = 5, fig.height = 4.5}
+plot(sce$total_counts, sizeFactors(sce), log="xy")
+```
+
+```{r}
+sce <- scater::normalize(sce)
+```
+
+## 7. Modelling the mean-variance trend
+```{r}
+new.trend <- makeTechTrend(x=sce)
+```
+
+```{r fig.width = 5, fig.height = 4.5}
+fit <- trendVar(sce, use.spikes=FALSE, loess.args=list(span=0.05))
+plot(fit$mean, fit$var, pch=16)
+curve(fit$trend(x), col="dodgerblue", add=TRUE)
+curve(new.trend(x), col="red", add=TRUE)
+```
+
+```{r}
+fit0 <- fit
+fit$trend <- new.trend
+dec <- decomposeVar(fit=fit)
+top.dec <- dec[order(dec$bio, decreasing=TRUE),] 
+head(top.dec)
+```
+
+```{r fig.width = 5, fig.height = 4.5}
+plotExpression(sce, features=rownames(top.dec)[1:10])
+```
+
+## 8. Dimensionality reduction
+Denoise log-expression data by removing principal components corresponding to technical noise.
+```{r}
+set.seed(1000)
+sce <- denoisePCA(sce, technical=new.trend, approximate=TRUE)
+ncol(reducedDim(sce, "PCA"))
+```
+
+```{r fig.width = 5, fig.height = 4.5}
+plot(attr(reducedDim(sce), "percentVar"), xlab="PC",
+    ylab="Proportion of variance explained")
+abline(v=ncol(reducedDim(sce, "PCA")), lty=2, col="red")
+```
+
+```{r fig.width = 6, fig.height = 3}
+plotPCA(sce, ncomponents=3, colour_by="log10_total_features_by_counts")
+```
+
+```{r fig.width = 6, fig.height = 3.6}
+set.seed(100)
+sce <- runTSNE(sce, use_dimred="PCA", perplexity=30)
+plotTSNE(sce, colour_by="log10_total_features_by_counts")
+```
+
+## 9. Clustering with graph-based methods
+```{r eval=FALSE}
+snn.gr <- buildSNNGraph(sce, use.dimred="PCA")   # make 20 clusters
+clusters <- igraph::cluster_walktrap(snn.gr)
+sce$Cluster <- factor(clusters$membership)
+table(sce$Cluster)
+```
+
+```{r change_cluster}
+k = 20
+snn.gr <- buildSNNGraph(sce, use.dimred="PCA", k = k)   # make 6 clusters
+clusters <- igraph::cluster_walktrap(snn.gr)
+sce$Cluster <- factor(clusters$membership)
+table(sce$Cluster)
+```
+
+```{r echo=FALSE, eval=FALSE}
+cluster.mod <- clusterModularity(snn.gr, sce$Cluster, get.values=TRUE)
+log.ratio <- log2(cluster.mod$observed/cluster.mod$expected + 1)
+
+library(pheatmap)
+pheatmap(log.ratio, cluster_rows=FALSE, cluster_cols=FALSE, 
+    color=colorRampPalette(c("white", "blue"))(100))
+```
+
+```{r fig.width = 4.5, fig.height = 3.6}
+plotTSNE(sce, colour_by="Cluster")
+```
+
+## 10. Marker gene detection
+```{r}
+markers <- findMarkers(sce, clusters=sce$Cluster, direction="up")
+```
+
+```{r}
+marker.set <- markers[["8"]]
+head(marker.set[,1:8], 10) # only first 8 columns, for brevity
+```
+
+```{r eval=FALSE, fig.width = 5, fig.height = 7}
+chosen <- rownames(marker.set)[marker.set$Top <= 10]
+plotHeatmap(sce, features=chosen, exprs_values="logcounts", 
+    zlim=5, center=TRUE, symmetric=TRUE, cluster_cols=FALSE,
+    # colour_columns_by="Cluster",
+    columns=order(sce$Cluster),
+    show_colnames=FALSE)
+```
+
+Adopted from Shih et al., PLoS One (2018)
+```{r}
+epithelial = c('EPCAM', 'KRT8', 'KRT18', 'KRT19')
+lymphocyte = c('PTPRC', 'CD3E', 'CD19', 'MS4A1')
+endothelial = c('PECAM1', 'CD34')
+fibroblast = c('ACTA2', 'DCN', 'ACTB')
+stromal = c('THY1', 'ENG', 'VIM', 'CD44')
+
+fontsize <- theme(axis.text=element_text(size=8), axis.title=element_text(size=10))
+```
+
+### Epithelial marker expression
+```{r fig.width = 8, fig.height = 6.5}
+ep_1 <- plotTSNE(sce, colour_by=epithelial[1]) + fontsize
+ep_2 <- plotTSNE(sce, colour_by=epithelial[2]) + fontsize
+ep_3 <- plotTSNE(sce, colour_by=epithelial[3]) + fontsize
+ep_4 <- plotTSNE(sce, colour_by=epithelial[4]) + fontsize
+multiplot(ep_1, ep_3, ep_2, ep_4, cols=2)
+```
+
+### Lympocyte marker expression
+```{r fig.width = 8, fig.height = 6.5}
+ly_1 <- plotTSNE(sce, colour_by=lymphocyte[1]) + fontsize
+ly_2 <- plotTSNE(sce, colour_by=lymphocyte[2]) + fontsize
+ly_3 <- plotTSNE(sce, colour_by=lymphocyte[3]) + fontsize
+ly_4 <- plotTSNE(sce, colour_by=lymphocyte[4]) + fontsize
+multiplot(ly_1, ly_3, ly_2, ly_4, cols=2)
+```
+
+### Endothelial marker expression
+```{r fig.width = 8, fig.height = 3.5}
+en_1 <- plotTSNE(sce, colour_by=endothelial[1]) + fontsize
+en_2 <- plotTSNE(sce, colour_by=endothelial[2]) + fontsize
+multiplot(en_1, en_2, cols=2)
+```
+
+### Fibroblast marker expression
+```{r fig.width = 8, fig.height = 6.5}
+fb_1 <- plotTSNE(sce, colour_by=fibroblast[1]) + fontsize
+fb_2 <- plotTSNE(sce, colour_by=fibroblast[2]) + fontsize
+fb_3 <- plotTSNE(sce, colour_by=fibroblast[3]) + fontsize
+multiplot(fb_1, fb_2, fb_3, cols=2)
+```
+
+### Stromal marker expression
+```{r fig.width = 8, fig.height = 6.5}
+st_1 <- plotTSNE(sce, colour_by=stromal[1]) + fontsize
+st_2 <- plotTSNE(sce, colour_by=stromal[2]) + fontsize
+st_3 <- plotTSNE(sce, colour_by=stromal[3]) + fontsize
+st_4 <- plotTSNE(sce, colour_by=stromal[4]) + fontsize
+multiplot(st_1, st_3, st_2, st_4, cols=2)
+```
+
+### Ovarian cancer marker expression
+```{r echo=FALSE, fig.width = 12, fig.height = 7}
+epithelial_marker = c('WFDC2', 'CLDN4', 'FXYD3', 'CD24', 'ELF3', 'CLDN3', 'MUC1', 'SPINT2', 'KRT8', 'SLPI', 'KRT18', 'KRT19')
+
+ov_1 <- plotTSNE(sce, colour_by=epithelial_marker[1]) + fontsize
+ov_2 <- plotTSNE(sce, colour_by=epithelial_marker[2]) + fontsize
+ov_3 <- plotTSNE(sce, colour_by=epithelial_marker[3]) + fontsize
+ov_4 <- plotTSNE(sce, colour_by=epithelial_marker[4]) + fontsize
+ov_5 <- plotTSNE(sce, colour_by=epithelial_marker[5]) + fontsize
+ov_6 <- plotTSNE(sce, colour_by=epithelial_marker[6]) + fontsize
+ov_7 <- plotTSNE(sce, colour_by=epithelial_marker[7]) + fontsize
+ov_8 <- plotTSNE(sce, colour_by=epithelial_marker[8]) + fontsize
+ov_9 <- plotTSNE(sce, colour_by=epithelial_marker[9]) + fontsize
+ov_10 <- plotTSNE(sce, colour_by=epithelial_marker[10]) + fontsize
+ov_11 <- plotTSNE(sce, colour_by=epithelial_marker[11]) + fontsize
+ov_12 <- plotTSNE(sce, colour_by=epithelial_marker[12]) + fontsize
+multiplot(ov_1, ov_5, ov_9, ov_2, ov_6, ov_10, ov_3, ov_7, ov_11, ov_4, ov_8, ov_12, cols=4)
+```
+
+### Cell origin marker expression
+```{r fig.width = 8, fig.height = 6.5}
+cellOrigin = c("PAX8", "CALB2", "COL11A1")
+ft = plotTSNE(sce, colour_by=cellOrigin[1]) + fontsize
+ose_1 = plotTSNE(sce, colour_by=cellOrigin[2]) + fontsize
+ose_2 = plotTSNE(sce, colour_by=cellOrigin[3]) + fontsize
+multiplot(ft, ose_1, ose_2, cols=2)
+```
+
+```{r eval=FALSE}
+sample_fname = paste0("scater/data/", sample_num,"_sce_", ncol(sce), ".rda")
+saveRDS(sce, file = file.path(home.dir, sample_fname))
+```

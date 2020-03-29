@@ -191,7 +191,7 @@ populationRanges <- function(grl, density=0.1)
     }
    
     # compile hit clusters 
-    hit.clusters <- unname(splitAsList(hits, cid))
+    hit.clusters <- unname(split(hits, cid))
 
     # extract call clusters
     call.clusters <- lapply(hit.clusters, 

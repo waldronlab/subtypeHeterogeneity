@@ -197,8 +197,8 @@ getMatchedAbsoluteCalls <- function(absGRL, subtys, max.cn=Inf)
         absGRLmatched <- endoapply(absGRLmatched, 
             function(x) x[.totalCN(x) <= max.cn])
 
-    ra <- RaggedExperiment::RaggedExperiment(absGRLmatched, colData=subtys)
-    return(ra)
+    subtys <- S4Vectors::DataFrame(subtys)
+    RaggedExperiment::RaggedExperiment(absGRLmatched, colData = subtys)
 }
 
 # @args
@@ -231,10 +231,48 @@ annotateCytoBands <- function(gistic, cbands)
     olaps <- GenomicRanges::findOverlaps(rowRanges(gistic), cbands)
     sh <- S4Vectors::subjectHits(olaps)
     qh <- S4Vectors::queryHits(olaps)
-    olist <- GRangesList(splitAsList(cbands[sh], qh))
+    olist <- GRangesList(split(cbands[sh], qh))
     isects <- GenomicRanges::pintersect(olist, rowRanges(gistic))
     ind <- IntegerList(lapply(width(isects), which.max)) 
     bands <- unlist(isects[ind])$band
     mcols(gistic)$band <- bands
     return(gistic)
+}
+
+tissueScore <- function(emat)
+{
+    # get the signature 
+    sig.file <- system.file("extdata/FT_vs_OSE_signature.txt", 
+                                package="subtypeHeterogeneity")
+
+    sig <- read.delim(sig.file, as.is=TRUE)
+    sig <- split(sig[,"GENE"], sig[,"TISSUE"])
+    
+    # warn if certain signature genes are not present in the data
+    not.ft <- sum(!(sig$FT %in% rownames(emat)))
+    if(not.ft) warning(paste(not.ft, "of", 
+                                length(sig$FT), "FT genes not present"))
+
+    not.ose <- sum(!(sig$OSE %in% rownames(emat)))    
+    if(not.ose) warning(paste(not.ose, "of", 
+                                length(sig$OSE), "OSE genes not present"))
+
+    # scoring for one sample at a time
+    .scoreSample <- function(evals)
+    {
+        evals <- sort(evals)
+        .getRank <- function(genes) match(genes, names(evals)) / length(evals)
+        r <- lapply(sig, .getRank)
+        nna <- sum(!is.na(unlist(r)))
+        rs <-  sum(r[[1]], na.rm=TRUE) + sum(1 - r[[2]], na.rm=TRUE) 
+        s <- 2 * rs / nna - 1
+        return(s)
+    }
+
+    # apply to each sample & assign tissue of origin by thresholding
+    scores <- apply(emat, 2, .scoreSample)
+    tissues <- ifelse(scores > 0, "FT", "OSE")
+    tscores <- S4Vectors::DataFrame(tissues = tissues, scores = scores)
+
+    return(tscores)
 } 

@@ -33,6 +33,9 @@ library(curatedTCGAData)
 library(DropletUtils)
 library(ComplexHeatmap)
 library(ggplot2)
+library(EnrichmentBrowser)
+library(curatedTCGAData)
+library(DropletUtils)
 ```
 
 ```{r cols}
@@ -918,6 +921,100 @@ tcga.down <- idMap(tcga.down, org="hsa", from="SYMBOL", to="ENTREZID")
 st.file <- file.path(data.dir, "consensus_subtypes_downsampled_tcgabulk_rseq.rds")
 consensus.subtypes <- readRDS(st.file)
 summary(subtypeHeterogeneity::margin(consensus.subtypes$rf.probs))
+```
+
+# Tissue of origin
+
+Using the signature from Hao et al., Clin Cancer Res, 2017, to distinguish
+between tumors originating from fallopian tube (FT) or ovarian surface epithelium
+(OSE).
+
+```{r}
+library(curatedTCGAData)
+library(consensusOV)
+```
+
+Get the TCGA OV microarray data:
+
+```{r, message=FALSE}
+ov.ctd <- curatedTCGAData(diseaseCode="OV", assays="mRNAArray_huex*", dry.run=FALSE)
+se <- ov.ctd[[1]]
+assays(se) <- list(as.matrix(assay(se)))
+res.file <- file.path(data.dir, "consensus_subtypes_TCGA_marray_huex.rds")
+se <- idMap(se, org="hsa", from="SYMBOL", to="ENTREZID")
+```
+
+Assign consensus subtypes:
+
+```{r, eval=FALSE}
+cst <- get.consensus.subtypes(assay(se), names(se))
+saveRDS(cst, file=res.file)
+```
+
+```{r}
+res.file <- file.path(data.dir, "consensus_subtypes_TCGA_marray_huex.rds")
+cst <- readRDS(res.file)
+sts <- as.vector(cst$consensusOV.subtypes)
+sts <- sub("_consensus$", "", sts)
+names(sts) <- substring(colnames(se), 1, 15)
+margins <- subtypeHeterogeneity::margin(cst$rf.probs)
+```
+
+Compute tissue-of-origin scores:
+
+```{r}
+tsc <- get.hao.subtypes(assay(se), rownames(assay(se)))
+```
+
+Group by subtype:
+
+```{r}
+sub.split <- split(tsc$tissues, sts)
+sapply(sub.split, table)
+```
+
+Dispay score distribution per subtype:
+```{r}
+par(pch=20)
+par(cex.axis=1.1)
+par(cex=1.1)
+par(cex.lab=1.1)
+vlist <- split(tsc$scores, sts)
+boxplot(vlist, notch=TRUE, var.width=TRUE, ylab="tissue score", col=stcols[names(vlist)])
+abline(h=0, col="grey", lty=2)
+```
+
+Prepare data for visualization:
+
+```{r}
+sc.file <- file.path(data.dir, "scRNAseq_consensusOV_genes.txt")
+sc.expr <- as.matrix(read.delim(sc.file, row.names=1L))
+ind <- intersect(rownames(sc.expr), names(se))
+se.restr <- se[ind, ]
+```
+
+Heatmap:
+
+```{r}
+margin.ramp <- circlize::colorRamp2(
+                    seq(quantile(margins, 0.01), quantile(margins, 
+                    0.99), length = 3), c("blue", "#EEEEEE", "red"))
+
+tscore.ramp <- circlize::colorRamp2(
+                    seq(quantile(tsc$scores, 0.01), quantile(tsc$scores, 
+                    0.99), length = 3), c("blue", "#EEEEEE", "red"))
+
+df <- data.frame(Subtype = sts, Margin = margins, 
+                    Origin = tsc$tissues, Score = tsc$scores)
+
+scol <- list(Subtype = stcols, Margin = margin.ramp, 
+                Origin = c(OSE = cb.red, FT = cb.blue), Score = tscore.ramp)
+
+ha <- HeatmapAnnotation(df = df, col = scol, gap = unit(c(0, 2, 0), "mm"))
+Heatmap(assay(se.restr) - rowMeans(assay(se.restr)) , 
+            top_annotation = ha, name="Expr", 
+            show_row_names=FALSE, show_column_names=FALSE,
+            column_title="Tumors", row_title="Genes")
 ```
 
 # Session info
