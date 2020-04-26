@@ -8,7 +8,9 @@
 ############################################################
 
 # get Supplementary Table 8A from Verhaak et al, JCI, 2013
-getExtendedVerhaakSignature <- function(verhaak.file, nr.genes.per.subtype=200)
+getExtendedVerhaakSignature <- function(verhaak.file, 
+                                        nr.genes.per.subtype = 200,
+                                        by.subtype = FALSE)
 {
     dat <- read.delim(verhaak.file)
     dat <- dat[-c(1:2),1:13]
@@ -31,7 +33,8 @@ getExtendedVerhaakSignature <- function(verhaak.file, nr.genes.per.subtype=200)
     }
 
     st.genes <- lapply(sts, .getGenes)
-    st.genes <- sort(unique(unlist(st.genes))) 
+    if(by.subtype) names(st.genes) <- sts
+    else st.genes <- sort(unique(unlist(st.genes))) 
     return(st.genes)
 }
 
@@ -94,7 +97,14 @@ margin <- function(rf.probs)
     return(pred.margins)
 }
 
-
+getClassifierGenes <- function()
+{
+    fnames <- lapply(
+        consensusOV:::esets.rescaled.classified.filteredgenes,
+        Biobase::featureNames)
+    clgenes <- sort(unique(unlist(fnames)))
+    sub("^geneid.", "", clgenes)
+}
 
 
 

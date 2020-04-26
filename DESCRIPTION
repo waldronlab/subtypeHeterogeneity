@@ -7,7 +7,8 @@ Maintainer: Ludwig Geistlinger <ludwig.geistlinger@sph.cuny.edu>
 Depends: 
     R(>= 3.5.0), 
     GenomicRanges, 
-    SummarizedExperiment
+    SummarizedExperiment,
+    SingleCellExperiment
 Imports: 
     AnnotationFilter,
     Biobase,
@@ -20,15 +21,23 @@ Imports:
     IRanges, 
     RCurl, 
     RaggedExperiment, 
-    S4Vectors, 
+    S4Vectors,
+    SingleR, 
     TCGAutils, 
+    TxDb.Hsapiens.UCSC.hg38.knownGene,
     circlize,
     consensusOV,
     ggplot2, 
+    ggpubr,
+    infercnv,
     methods,
     plotly,
+    org.Hs.eg.db,
+    readr,
     reshape2,
-    rtracklayer
+    rtracklayer,
+    scater,
+    viridis
 Suggests: 
     BiocStyle, 
     DropletUtils,

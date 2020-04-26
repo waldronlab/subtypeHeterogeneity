@@ -76,5 +76,3 @@ T91         0.016         0.962         0.016         0.006
 attr(,"class")
 [1] "matrix" "array"  "votes" 
 
-
-`# EDASeq

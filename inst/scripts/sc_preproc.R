@@ -47,7 +47,7 @@ legend("bottomleft", legend=c("Inflection", "Knee"),
 dev.off()
 
 ## 4. Quality control on the cells
-df <- calculateQCMetrics(sce, feature_controls=list(Mito=which(location=="MT")),
+df <- perCellQCMetrics(sce, subsets=list(Mito=which(location=="MT")),
     BPPARAM = bp)
 
 pdf(file.path(plot.dir, "cellQC.pdf"))
@@ -60,11 +60,11 @@ par(mfrow=c(1,3))
 # hist(sce$pct_counts_Mito, breaks=20, col="grey80",
 #     xlab="Proportion of reads in mitochondrial genes")
 
-hist(sce$total_counts/1e3, xlab="Library sizes (thousands)", main="", 
+hist(df$sum/1e3, xlab="Library sizes (thousands)", main="", 
     breaks=20, col="grey80", ylab="Number of cells")
-hist(sce$total_features_by_counts, xlab="Number of expressed genes", main="", 
+hist(df$detected, xlab="Number of expressed genes", main="", 
     breaks=20, col="grey80", ylab="Number of cells")
-hist(sce$pct_counts_Mito, xlab="Mitochondrial proportion (%)", 
+hist(df$subsets_Mito_percent, xlab="Mitochondrial proportion (%)", 
     ylab="Number of cells", breaks=20, main="", col="grey80")
 dev.off()
 
@@ -99,7 +99,7 @@ rowData(sce)$AveCount <- ave
 to.keep = ave > 0.001
 sce = sce[to.keep,]
 
-cat(paste("\n\n Exluding", sum(to.keep), 
+cat(paste("\n\n Exluding", sum(!to.keep), 
     "genes due to insufficient expression\n\n"), file=log.file, append=TRUE)
 
 cat("Dims after low expression filter:\n", file=log.file, append=TRUE)
@@ -111,8 +111,9 @@ clusters <- quickCluster(sce, method="igraph", min.mean=0.1, BPPARAM = bp)
 sce <- computeSumFactors(sce, min.mean=0.1, cluster=clusters, BPPARAM = bp)
 
 pdf(file.path(plot.dir, "sizeFactors.pdf"))
-plot(sce$total_counts, sizeFactors(sce), log="xy")
+plot(librarySizeFactors(sce), sizeFactors(sce), pch=16,
+    xlab="Library size factors", ylab="Deconvolution factors", log="xy")
 dev.off()
 
-sce <- scater::normalize(sce)
+sce <- logNormCounts(sce)
 saveRDS(sce, file = file.path(sample.dir, paste0("sample", snr, "_sce.rds")))

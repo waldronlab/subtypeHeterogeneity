@@ -1,0 +1,678 @@
+---
+title: "Single cell analysis (10X tumors)"
+author: Ludwig Geistlinger, Sehyun Oh, and Levi Waldron
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 2
+vignette: >
+  % \VignetteIndexEntry{Single cell analysis}
+  % \VignetteEngine{knitr::rmarkdown}
+---
+
+```{r style, echo = FALSE}
+suppressPackageStartupMessages({ 
+    # OVC
+    library(subtypeHeterogeneity) 
+    library(consensusOV)
+    
+    # single cell
+    library(scater)
+    library(scran)
+    library(DropletUtils)
+    library(scRNAseq)
+    library(SingleR)
+    library(slingshot)
+    library(monocle3)
+
+    # Plotting
+    library(ComplexHeatmap)
+    library(ggpubr)
+
+    # Helpers
+    library(EnrichmentBrowser)
+})
+```
+
+# Setup
+
+Dependencies:
+```{r setup}
+# OVC
+library(subtypeHeterogeneity) 
+library(consensusOV)
+
+# Single cell
+library(scater)
+library(scran)
+library(DropletUtils)
+library(scRNAseq)
+library(slingshot)
+library(monocle3)
+
+# Annotation
+library(EnsDb.Hsapiens.v86)
+library(EnrichmentBrowser)
+
+# Plotting
+library(ComplexHeatmap)
+library(ggpubr)
+```
+
+Constants:
+```{r}
+SUBTYPES <- c("DIF", "IMR", "MES", "PRO")
+CELL.TYPES <- c("EPI", "LYMPH", "MYE", "STROM", "ENDO")
+```
+
+# Colors
+```{r cols}
+cb.pink <- "#CC79A7"
+cb.red <- "#D55E00"
+cb.blue <- "#0072B2"
+cb.yellow <- "#F0E442"
+cb.green <- "#009E73"
+cb.lightblue <- "#56B4E9"
+cb.orange <- "#E69F00"
+
+stcols <- c(cb.lightblue, cb.green, cb.orange, cb.pink) 
+names(stcols) <- SUBTYPES
+```
+
+Parallel computation:
+```{r}
+bp <- BiocParallel::registered()[[1]]
+```
+
+# Preprocessing
+
+Read 10X output (required files: `matrix.mtx`, `barcodes.tsv`, `genes.tsv`)
+```{r}
+sce <- DropletUtils::read10xCounts("tumor90")
+dim(sce)
+```
+
+Annotating the rows:
+```{r}
+rownames(sce) <- scater::uniquifyFeatureNames(rowData(sce)$ID, rowData(sce)$Symbol)
+location <- AnnotationDbi::mapIds(EnsDb.Hsapiens.v86, keys = rowData(sce)$ID, 
+                                  column = "SEQNAME", keytype = "GENEID")
+```
+
+Testing for deviations from ambient expression:
+```{r}
+bcrank <- DropletUtils::barcodeRanks(counts(sce))
+uniq <- !duplicated(bcrank$rank)
+
+plot(bcrank$rank[uniq], bcrank$total[uniq], log="xy",
+    xlab="Rank", ylab="Total UMI count", cex.lab=1.2)
+
+abline(h=bcrank$inflection, col="darkgreen", lty=2)
+abline(h=bcrank$knee, col="dodgerblue", lty=2)
+
+legend("bottomleft", legend=c("Inflection", "Knee"),
+    col=c("darkgreen", "dodgerblue"), lty=2, cex=1.2)
+```
+
+Quality control on the cells:
+```{r}
+df <- scater::perCellQCMetrics(sce, 
+                       subsets = list(Mito = which(location == "MT")),
+                       BPPARAM = bp)
+par(mfrow = c(1,3))
+hist(df$sum/1e3, xlab="Library sizes (thousands)", main="",
+    breaks=20, col="grey80", ylab="Number of cells")
+hist(df$detected, xlab="Number of expressed genes", main="",
+    breaks=20, col="grey80", ylab="Number of cells")
+hist(df$subsets_Mito_percent, xlab="Mitochondrial proportion (%)",
+    ylab="Number of cells", breaks=20, main="", col="grey80")
+par(mfrow = c(1,1))
+
+high.mito <- scater::isOutlier(df$subsets_Mito_percent, nmads = 3, type = "higher")
+libsize.drop <- scater::isOutlier(df$sum, nmads = 1, type = "lower", log = TRUE)
+feature.drop <- scater::isOutlier(df$detected, nmads = 1, type = "lower", log = TRUE)
+sce <- sce[,!(high.mito | libsize.drop | feature.drop)]
+
+df <- data.frame(ByHighMito = sum(high.mito),
+           ByLibSize = sum(libsize.drop),
+           ByFeature = sum(feature.drop),
+           Remaining = ncol(sce))
+
+df
+dim(sce)
+```
+
+Examining gene expression:
+```{r}
+ave <- scater::calculateAverage(sce, BPPARAM = bp)
+hist(log10(ave), breaks = 100, main = "", col = "grey",
+    xlab = expression(Log[10]~"average count"))
+```
+
+Remove genes that have too low average counts
+```{r}
+rowData(sce)$AveCount <- ave
+to.keep <- ave > 0.001
+sce <- sce[to.keep,]
+
+# Number excluded genes
+sum(!to.keep)
+dim(sce)
+```
+
+Library-size normalization:
+```{r}
+clusters <- scran::quickCluster(sce, method = "igraph", 
+                                min.mean = 0.1, BPPARAM = bp)
+sce <- scran::computeSumFactors(sce, min.mean = 0.1,
+                                cluster = clusters, BPPARAM = bp)
+plot(scater::librarySizeFactors(sce), sizeFactors(sce), pch = 16,
+    xlab = "Library size factors", ylab = "Deconvolution factors", log = "xy")
+sce <- scater::logNormCounts(sce)
+sce
+```
+
+# Dimension reduction
+
+Modelling the mean-variance trend:
+
+```{r}
+dec.pbmc <- scran::modelGeneVarByPoisson(sce, BPPARAM = bp)
+top.pbmc <- scran::getTopHVGs(dec.pbmc, prop = 0.1)
+plot(dec.pbmc$mean, dec.pbmc$total, pch=16, cex=0.5,
+    xlab="Mean of log-expression", ylab="Variance of log-expression")
+curfit <- metadata(dec.pbmc)
+curve(curfit$trend(x), col = 'dodgerblue', add = TRUE, lwd = 2)
+```
+
+Denoise log-expression data by removing principal components corresponding to 
+technical noise (might take a while):
+
+```{r}
+sce <- scran::denoisePCA(sce, subset.row = top.pbmc,
+                         technical = dec.pbmc, BPPARAM = bp)
+ncol(reducedDim(sce, "PCA"))
+plot(attr(reducedDim(sce), "percentVar"), xlab = "PC",
+     ylab = "Proportion of variance explained")
+abline(v = ncol(reducedDim(sce, "PCA")), lty = 2, col = "red")
+```
+
+tSNE:
+```{r}
+sce <- scater::runTSNE(sce, dimred = "PCA", perplexity = 30, BPPARAM = bp)
+sce$sizeFactor <- sizeFactors(sce)
+scater::plotTSNE(sce, colour_by = "sizeFactor")
+```
+
+# Clustering
+
+Clustering with graph-based methods:
+```{r}
+snn.gr <- scran::buildSNNGraph(sce, use.dimred = "PCA", BPPARAM = bp, k = 25)
+clusters <- igraph::cluster_walktrap(snn.gr)
+sce$Cluster <- factor(clusters$membership)
+table(sce$Cluster)
+```
+
+```{r}
+cluster.mod <- scran::clusterModularity(snn.gr, sce$Cluster, get.weights = TRUE)
+log.ratio <- log2(cluster.mod$observed/cluster.mod$expected + 1)
+
+ComplexHeatmap::Heatmap(log.ratio, cluster_rows = FALSE, cluster_columns = FALSE)
+scater::plotTSNE(sce, colour_by = "Cluster")
+```
+
+# Annotation (cell type and consensus subtype) 
+
+## SingleR cell type annotation
+
+Transfer cell type annotation from reference profiles in 
+the Human Primary Cell Atlas and ENCODE:
+```{r}
+hpc <- transferCellType(sce, "hpca")
+encode <- transferCellType(sce, "encode")
+
+sce$hpca.celltype <- hpc$labels 
+sce$encode.celltype <- encode$labels
+
+maxScore <- function(res)
+    vapply(1:nrow(res), function(i) res$scores[i, res[i,"labels"]], numeric(1))
+
+sce$hpca.celltype.score <- maxScore(hpc)
+sce$encode.celltype.score <- maxScore(hpc)
+```
+
+Display main cell types present:
+```{r}
+plotMainCellTypes(sce, "hpca.celltype")
+plotMainCellTypes(sce, "encode.celltype")
+```
+
+Display ambiguity of cell type assignments:
+```{r}
+SingleR::plotScoreHeatmap(hpc)
+SingleR::plotScoreHeatmap(encode)
+```
+
+## Marker genes
+
+Adopted from Shih et al., PLoS One (2018):
+```{r}
+epithelial <- c("EPCAM", "KRT8", "KRT18", "KRT19")
+lymphocyte <- c("PTPRC", "CD3E", "CD19", "MS4A1")
+endothelial <- c("PECAM1", "CD34")
+fibroblast <- c("ACTA2", "DCN", "ACTB")
+stromal <- c("THY1", "ENG", "VIM", "CD44")
+
+origin <- c("PAX8", "CALB2", "COL11A1")
+scater::plotTSNE(sce, colour_by = epithelial[1])
+```
+
+## consensusOV subtype annotation
+
+```{r}
+sce.entrez <- EnrichmentBrowser::idMap(sce, org = "hsa", 
+                                       from = "SYMBOL", to = "ENTREZID")
+am <- as.matrix(assay(sce.entrez, "logcounts"))
+cst <- consensusOV::get.consensus.subtypes(am, names(sce.entrez))
+
+sts <- sub("_consensus$", "", as.vector(cst$consensusOV.subtypes))
+sce$subtype <- sts
+sce$margin <- consensusOV::margin(cst$rf.probs)
+
+summary(sce$margin)
+scater::plotTSNE(sce, colour_by = "subtype")
+scater::plotTSNE(sce, colour_by = "margin")
+```
+
+## Visualization of results (all tumors)
+
+Read the pre-processed 10X data for all tumors as `list` of `SingleCellExperiment`s. 
+```{r}
+tumors <- c(59, 61, 76, 77, 89) 
+readSCE <- function(i) readRDS(gsub("XX", i, "tumorXX/sampleXX_sce.rds")) 
+sces <- lapply(tumors, readSCE)
+sces
+```
+
+Summarize cell type annotation:
+```{r, eval = FALSE}
+sces <- lapply(sces, annoCellType)
+```
+
+```{r}
+vapply(sces, function(sce) table(sce$celltype), integer(5))
+vapply(sces, function(sce) table(sce$subtype), integer(4))
+```
+
+Display cell type and subtype annotation for one tumor at a time:
+```{r, fig.height = 6, fig.wide = TRUE}
+p2a <- plotType(sces[[1]])
+p2b <- plotType(sces[[1]], type = "subtype")
+
+p2 <- ggarrange(p2b + theme_bw() + theme(plot.margin = margin(r = 1)), 
+                p2a + theme_bw() + theme(axis.text.y = element_blank(), 
+                                         axis.ticks.y = element_blank(), 
+                                         axis.title.y = element_blank(),
+                                         plot.margin = margin(l = 1, r=1)), 
+                legend = "top", align = "h", labels = c("A", "B"))
+p2
+# or
+```
+
+```{r, fig.height = 6, fig.small = TRUE}
+p3 <- ggarrange(p2b + theme_bw() + 
+                      theme(axis.text.x = element_blank(),  
+                            axis.ticks.x = element_blank(), 
+                            axis.title.x = element_blank()),  
+                p2a + theme_bw(),   
+                nrow = 2, legend = "none", align = "hv", labels = c("A", "B"))
+p3
+```
+
+Facet cell type and subtype visualization for all tumors:
+```{r, fig.wide = TRUE, fig.height = 6}
+stp <- facetTumors(sces, col = "subtype")
+pal <- get_palette("npg", 5)
+names(pal) <- CELL.TYPES
+ctp <- facetTumors(sces, col = "celltype", pal = pal)
+ggarrange(stp, ctp, nrow = 2, align = "hv")
+```
+
+Barplot percentage of subtype / cell type for all 10X tumors:
+
+```{r}
+cttab <- vapply(sces, getPerc, numeric(5), perc=FALSE)
+total <- colSums(cttab)
+prop.test(cttab["EPI",], total)
+prop.test(cttab["STROM",], total)
+```
+
+```{r, fig.height = 6}
+stbp <- bpType(sces, "subtype")
+ctbp <- bpType(sces)
+
+p1 <- ggarrange(stbp + theme(axis.text.x = element_blank(),
+                             axis.title.x = element_blank()),
+                             # axis.ticks.x = element_blank(),
+                             # axis.line.x = element_blank()), 
+                ctbp, ncol = 1,
+                legend = "left", align = "hv", labels = c("C", "D"))
+p1
+```
+
+Cell type vs subtype matrix:
+```{r}
+mat <- getCelltypeSubtypeMatrix(sces)
+ctstbp <- bpCrossType(mat)
+ctstbp
+```
+
+Or as matrix plot:
+```{r}
+mat <- round(mat / sum(mat) * 100)
+mat <- mat[,CELL.TYPES]
+matrixPlot(mat, cnames = c("SUBTYPE", "CELL.TYPE"), high.color = "darkgreen")
+```
+
+Margin scores:
+
+```{r}
+spl.margin <- function(sce, col = "celltype")
+    reshape2::melt(split(sce$margin, sce[[col]]))
+
+psces <- lapply(sces, spl.margin)
+for(i in tumors) psces[[match(i, tumors)]]$tumor <- paste0("T", i)
+df <- do.call(rbind, psces)
+colnames(df) <- c("MARGIN", "CELL.TYPE", "TUMOR")
+df[[2]] <- factor(df[[2]], levels = CELL.TYPES)
+```
+
+Boxplot of margin scores:
+```{r, fig.height = 4}
+ggboxplot(df, x = "CELL.TYPE", y = "MARGIN", width = 0.8, notch = TRUE,
+            fill = "CELL.TYPE", palette = get_palette("lancet", 5),
+            facet.by = "TUMOR", nrow = 1,  
+            x.text.angle = 45, legend="none", ggtheme = theme_bw(base_size = 12)) 
+```
+
+Facet TSNEs of margin scores:
+```{r, fig.height = 4}
+facetTumors(sces, "margin", cont = TRUE)
+```
+
+Only epithelial cells:
+```{r}
+df <- subset(df, CELL.TYPE == "EPI")
+df <- subset(df, TUMOR != "T61")
+bp <- ggboxplot(df, x = "TUMOR", y = "MARGIN", width = 0.8, notch = TRUE, 
+                fill = cb.red, 
+                legend="none", ggtheme = theme_bw(), ylab = "MARGIN (EPI CELLS)",
+                font.x = 14, font.y = 14, font.tickslab = c(13, "plain", "black"))
+                # ylim = c(0,1),x.text.angle = 45, 
+df.points <- data.frame(x=1:4, y=c(0.376, 0.766, 0.182, 0.646))
+bp <- bp + geom_point(data = df.points, aes(x = x, y = y), shape = 8, size = 3) +
+           geom_text(data = df.points[2,], aes(x = x, y = y),
+                     label = "Bulk", hjust = 0, nudge_x = 0.1, size = 5)
+bp
+```
+
+## Bulk RNA-seq
+
+```{r}
+dat1 <- read.delim("Bulk/Bulk_RNAseq.txt", as.is=TRUE)
+dat <- read.delim("Bulk/Bulk_RNAseq2.txt", as.is=TRUE)
+
+cpm.ind <- seq_len(which(dat[,1] == "")[1] - 1)
+cpm.dat <- dat[cpm.ind, 1:8]
+raw.dat <- dat[,9:16]
+
+cpm.sym <- cpm.dat[,1]
+raw.sym <- raw.dat[,1]
+```
+
+Use pre-computed library size-normalized expression values for subtype assignment:
+```{r, message = FALSE}
+rownames(cpm.dat) <- cpm.dat[,2] 
+cpm.dat <- cpm.dat[,3:8]
+colnames(cpm.dat) <- paste0("T", c(59, 77, 76, 89, 90, 91)) 
+cpm.dat <- as.matrix(cpm.dat)
+mode(cpm.dat) <- "numeric"
+cpm.se <- SummarizedExperiment(assays = list(cpm = cpm.dat))
+cpm.se <- EnrichmentBrowser::idMap(cpm.se, org="hsa", from="ENSEMBL", to="ENTREZID")
+# cst <- consensusOV::get.consensus.subtypes(assay(cpm.se), names(cpm.se))
+```
+
+```{r}
+cst <- readRDS("Bulk/cpm_subtypes.rds")
+cst
+```
+
+Sanity check: start from raw read counts
+```{r, message = FALSE}
+rownames(raw.dat) <- raw.dat[,2]
+raw.dat <- raw.dat[,3:8]
+colnames(raw.dat) <- paste0("T", c(59, 77, 76, 89, 90, 91))
+raw.dat <- as.matrix(raw.dat)
+mode(raw.dat) <- "numeric"
+raw.dat <- edgeR::cpm(raw.dat, log=TRUE)
+raw.se <- SummarizedExperiment(assays = list(raw = raw.dat))
+raw.se <- EnrichmentBrowser::idMap(raw.se, org="hsa", from="ENSEMBL", to="ENTREZID")
+# cst2 <- consensusOV::get.consensus.subtypes(assay(raw.se), names(raw.se))
+```
+
+Pretty much the same as when starting from already normalized expression values:
+```{r}
+cst2 <- readRDS("Bulk/raw_subtypes.rds")
+cst2
+```
+
+Contrast bulk and single-cell margins:
+```{r, fig.height = 8}
+mat <- t(cst$rf.probs)
+rownames(mat) <- sub("_consensus", "", rownames(mat))
+mat <- round(mat, digits = 2)
+mat <- mat[c(3,4,1,2),c(1,3,2,4)]
+mp <- matrixPlot(t(mat), cnames = c("TUMORS", "CLASS.PROB"), 
+                    bw.thresh = 0.5, gthresh = 0.2)
+mp <- mp + theme(axis.text.x = element_blank(),
+                 axis.title.x = element_blank(),
+                 axis.ticks.x = element_blank(),
+                 axis.line.x = element_blank(),
+                 plot.margin = margin(b = 0))
+mp <- mp + ylab("BULK")
+p0 <- ggarrange(ctstbp, mp, bp, 
+                nrow = 3, align = "v", heights = c(2,1,3), labels = c("E", "F"))
+p0
+```
+
+Heatmaps for transitional DIF-PRO patterns on EPI cells (Tumors 59 and 77):
+```{r, eval = FALSE}
+sces <- lapply(tumors, getClassProbs)
+```
+
+```{r, fig.height = 9, fig.wide = TRUE}
+h1 <- scHeatmap2(sces[[1]], title = "Cells (T59)", fsize = 8)
+h2 <- scHeatmap2(sces[[4]], title = "Cells (T77)", fsize = 8, 
+                name = "h2", add = TRUE, legend = FALSE)
+h1 + h2
+for(st in names(stcols)) 
+    ComplexHeatmap::decorate_annotation(st,
+        {grid::grid.text(st, grid::unit(-2, "mm"), just = "right")})
+```
+
+# InferCNV
+
+- tumor 59: 3,500 epithelial cells vs. 9,500 reference (non-epithelial) cells 
+- tumor 61: 1,200 epithelial cells vs. 7,400 reference (non-epithelial) cells 
+- tumor 76: 210 epithelial cells vs. 13,500 reference (non-epithelial) cells 
+- tumor 77: 2,900 epithelial cells vs. 4,000 reference (non-epithelial) cells 
+- tumor 89: 300 epithelial cells vs. 4,600 reference (non-epithelial) cells 
+- tumor 90: 900 epithelial cells vs. 2,700 reference (non-epithelial) cells 
+
+## Prepare input files and execute InferCNV
+
+Prepare input files from a `SingleCellExperiment`
+```{r, eval = FALSE}
+obj <- generateInferCNVInput(sces[[1]], "tumor59")
+```
+
+Run `inferCNV` for one tumor at a time (computational intensive, several hours).
+Best executed on a cluster (here with 20 cores).
+
+```{r, eval = FALSE}
+# cutoff = 1 works well for Smart-seq2, 
+# cutoff = 0.1 works well for 10x Genomics
+res <- infercnv::run(obj,
+                     cutoff = 0.1, 
+                     out_dir = "tumor59",
+                     num_threads = 20,
+                     denoise = TRUE,
+                     HMM = TRUE)
+```
+
+## Cross-tumor heatmap
+
+Additional tumor 90 at revision stage: 
+```{r}
+tumors <- c(tumors, 90)
+sces <- c(sces, readSCE(90))
+for(i in seq_along(sces)) colnames(sces[[i]]) <- sces[[i]]$Barcode
+```
+
+Read observation matrix (expression profiles of cancer epithelial cells)
+```{r, message = FALSE}
+obs.mats <- lapply(tumors, readObservations)
+```
+
+Subset and annotate cells:
+```{r}
+for(i in seq_along(tumors)) 
+    obs.mats[[i]] <- subsetObservations(obs.mats[[i]], sces[[i]])
+ra <- getCellAnnotation(sces, obs.mats)
+```
+
+Create union of genes featured in the inferCNV output of each tumor, 
+extend individual observations as needed, and create a combined observation matrix
+storing the information across all tumors:
+```{r}
+un <- Reduce(union, lapply(obs.mats, rownames))
+obs.mats <- lapply(obs.mats, extendObservations, un = un) 
+obs.mat <- do.call(cbind, lapply(obs.mats, function(o) o[un,]))
+```
+
+Obtain genomic coordinates for the genes in the combined observation matrix:
+```{r, message = FALSE}
+egenes <- symbols2ranges(rownames(obs.mat))
+obs.mat <- obs.mat[names(egenes),]
+chr <- as.character(seqnames(egenes))
+```
+
+Highlight specific recurrent regions with known driver genes from the TCGA OVC paper:
+```{r, message = FALSE}
+clabs <- getRecurrentDriverGenes(rownames(obs.mat))
+```
+
+
+Plot the heatmap:
+```{r, fig.wide = TRUE, fig.height = 10}
+ComplexHeatmap::Heatmap(t(obs.mat),
+    #top_annotation = ta,
+    right_annotation = ra,
+    name = "Expression",
+    col = circlize::colorRamp2(c(0.895, 1, 1.105), c("blue", "white", "red")),
+    row_title_rot = 0, column_title_rot = 90,
+    show_row_names = FALSE, show_column_names = TRUE,
+    cluster_rows = FALSE, cluster_columns = FALSE,
+    row_split = rep(paste0("T", tumors), sapply(obs.mats, ncol)),
+    column_spl = factor(chr, levels = unique(chr)),
+    column_gap = unit(0, "mm"),
+    column_title_gp = gpar(fontsize = 6),
+    column_labels = clabs,
+    column_names_gp = gpar(fontsize = 6),
+    border = TRUE)
+```
+
+# Cell Cycle
+
+## Cyclins
+
+```{r}
+for(i in seq_along(sces)) colnames(sces[[i]]) <- NULL
+sce <- subsetByCellType(sces[[1]], cell.type = "EPI", subtype = c("DIF", "PRO"))
+sce
+```
+
+```{r, fig.height = 6}
+cyclin.genes <- grep("^CCN[ABDE][0-9]$", names(sce), value = TRUE)
+cyclin.genes
+markerHeatmap(sce, cyclin.genes)
+bpCyclins(sce)
+```
+
+## Marker genes
+```{r, fig.height = 6}
+markers <- scran::findMarkers(sce, groups = sce$subtype)
+head(markers$DIF)
+markers$DIF["CCND1",]
+head(markers$DIF[markers$DIF$logFC.PRO < 0,])
+markerHeatmap(sce, rownames(markers$DIF)[1:25])
+```
+
+Contrast with bulk markers
+```{r, eval = FALSE}
+data.dir <- system.file("extdata", package = "subtypeHeterogeneity")
+verhaak.file <- file.path(data.dir, "Verhaak_supplementT8A.txt")
+bulk.markers <- getExtendedVerhaakSignature(verhaak.file, 
+                                            nr.genes.per.subtype = 200,
+                                            by.subtype = TRUE)
+markers <- compileMarkers(markers, bulk.markers)
+markers
+markerHeatmap(sce, rownames(markers), row.split = TRUE)
+```
+
+
+## Annotation transfer from reference profiles
+```{r, message = FALSE}
+sce.ref <- scRNAseq::LengESCData()
+sce.ref
+```
+
+## Cyclone 
+
+Run the cyclone classifier (pre-computed, computationally intensive)
+```{r, eval = FALSE}
+sce.ensembl <- EnrichmentBrowser::idMap(sce, org = "hsa", 
+                                        from = "SYMBOL", to = "ENSEMBL")
+marker.file <- system.file("extdata", "human_cycle_markers.rds", package="scran")
+hm.pairs <- readRDS(marker.file)
+cy.assignments <- scran::cyclone(sce.ensembl, hm.pairs)
+saveRDS(cy.assignments, file = "tumor59/cyclone.rds")
+```
+
+Get the computed assignments and plot:
+```{r}
+cy.assignments <- readRDS("tumor59/cyclone.rds")
+plot(cy.assignments$score$G1, cy.assignments$score$G2M,
+     xlab = "G1 score", ylab = "G2/M score", pch = 16)
+df <- data.frame(cy.assignments$score, subtype = sce$subtype)
+ggscatter(df, x = "G1", y = "G2M", color = "subtype",
+          palette = stcols[c("DIF", "PRO")], ggtheme = ggplot2::theme_bw())
+```
+
+```{r}
+tab <- table(cy.assignments$phases, sce$subtype)
+tab
+chisq.test(tab)
+```
+
+# Trajectory analysis
+
+## Slingshot
+
+```{r}
+reducedDims(sce)$PCA <- reducedDims(sce)$PCA[,1:10]
+sce <- slingshot(sce, clusterLabels = "Cluster", reducedDim = "PCA", approx_points=200)
+```
+
+## Monocle3

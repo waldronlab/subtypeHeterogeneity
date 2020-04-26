@@ -80,7 +80,7 @@ annoCellType <- function(sce)
                         "Osteoblasts", "Chondrocytes", "Myocytes", "Fibroblasts", 
                         "Pericytes", "Chondrocytes", "Smooth muscle", "Adipocytes")
         
-        if(hp %in% epithelial  || en %in% epithelial) ct <- "EPI"
+        if(hp %in% epithelial || en %in% epithelial) ct <- "EPI"
         else if(hp %in% myeloid || en %in% myeloid) ct <- "MYE"
         else if(hp %in% lymphocyte || en %in% lymphocyte) ct <- "LYMPH"
         else if(hp %in% endothelial || en %in% endothelial) ct <- "ENDO"
@@ -97,6 +97,36 @@ annoCellType <- function(sce)
 
 sces <- lapply(sces, annoCellType)
 
+anno77 <- function(sce)
+{
+    hpca <- sce$hpca.celltype
+    encode <- sce$encode.celltype
+
+    .decide <- function(hp, en)
+    {
+        epithelial <- c("Epithelial_cells", "Epithelial cells")
+        myeloid <- c("Macrophage", "Monocyte", "Macrophages", "Monocytes")
+        lymphocyte <- c("T_cells", "B_cell", "NK_cell", "CD8+ T-cells",
+                        "CD4+ T-cells", "B−cells", "NK cells")
+        endothelial <- c("Endothelial_cells", "Endothelial cells")
+        stromal <- c("Fibroblasts", "Tissue_stem_cells", "Smooth_muscle_cells",
+                        "Osteoblasts", "Chondrocytes", "Myocytes", "Fibroblasts", 
+                        "Pericytes", "Chondrocytes", "Smooth muscle", "Adipocytes")
+        
+        if(hp %in% epithelial && en %in% epithelial) ct <- "EPI"
+        else if(hp %in% myeloid && en %in% myeloid) ct <- "MYE"
+        else if(hp %in% lymphocyte && en %in% lymphocyte) ct <- "LYMPH"
+        else if(hp %in% endothelial && en %in% endothelial) ct <- "ENDO"
+        else if(hp %in% stromal && en %in% stromal) ct <- "STROM"
+        else ct <- NA_character_
+        return(ct)
+    }
+    
+    sce$celltype <- vapply(seq_len(ncol(sce)), 
+                            function(i) .decide(hpca[i], encode[i]), 
+                            character(1)) 
+    return(sce)
+}
 ##
 ### arrange subtype and celltype side-by-side
 ##
@@ -241,19 +271,15 @@ matrixPlot <- function(mat, cnames, high.color = "red", bw.thresh = 50, gthresh 
 ##
 ### Margin scores
 ##
-spl.margin <- function(sce, col = "celltype")
-{ 
-    spl <- split(sce$margin, sce[[col]])
-    df <- reshape2::melt(spl)
+spl.margin <- function(sce, col = "celltype") 
+    reshape2::melt(split(sce$margin, sce[[col]]))
     
-}
 psces <- lapply(sces, spl.margin) 
 for(i in tumors) psces[[match(i, tumors)]]$tumor <-  paste0("Tumor", i)
 df <- do.call(rbind, psces)
 colnames(df) <- c("MARGIN", "CELL.TYPE", "TUMOR")
 df[[2]] <- factor(df[[2]], levels = CELL.TYPES)
 
-# TODO: supplementary figure facet margin tsne + boxplot 
 bp <- ggboxplot(df, x = "CELL.TYPE", y = "MARGIN", width = 0.8, notch = TRUE, 
             fill = "CELL.TYPE", palette = get_palette("lancet", 5),
             facet.by = "TUMOR", nrow = 1, 

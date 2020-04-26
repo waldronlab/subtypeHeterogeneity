@@ -54,7 +54,7 @@ names(stcols) <- c("PRO", "MES", "DIF", "IMR")
 # Data sources
 
 ## Cancer types
-```{r ctypes}
+```{r ctypes, eval = FALSE}
 RTCGAToolbox::getFirehoseDatasets()
 ```
 
@@ -656,11 +656,7 @@ plotCommonSCNAs(ovranges, sarcranges)
 Genes considered by the `consensusOV` classifier:
 ```{r consensusGenes}
 library(consensusOV)
-fnames <- lapply(
-    consensusOV:::esets.rescaled.classified.filteredgenes, 
-    Biobase::featureNames)
-clgenes <- sort(unique(unlist(fnames)))
-clgenes <- sub("^geneid.", "", clgenes)
+clgenes <- getClassifierGenes()
 clgenes
 ```
 
