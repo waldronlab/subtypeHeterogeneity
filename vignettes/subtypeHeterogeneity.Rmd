@@ -679,7 +679,9 @@ res.file <- file.path(data.dir, "consensus_subtypes_verhaak100.rds")
 consensus.subtypes <- readRDS(res.file)
 ```
 
-Cell type annotation:
+## Cell type annotation
+
+Manual cell type annotation from Winterhoff el al:
 ```{r cellAnnotation}
 c2t.file <- file.path(data.dir, "scRNAseq_celltypes.txt")
 c2t <- read.delim(c2t.file, as.is=TRUE)
@@ -713,6 +715,32 @@ stro <- table(st[ct=="Stroma"])
 stro <- round(stro / sum(stro), digits=3)
 stro
 ```
+
+Contrasting manual with computational cell type annotation:
+```{r, message = FALSE, warning = FALSE}
+sc.file <- file.path(data.dir, "scRNAseq_symbols.rds")
+sc <- readRDS(sc.file)
+sc
+assay(sc, "logcounts") <- log(assay(sc) + 1, 2)
+hpc <- transferCellType(sc[,2:ncol(sc)], "hpca")
+encode <- transferCellType(sc[,2:ncol(sc)], "encode")
+```
+
+Verhaak subtypes:
+```{r, message = FALSE}
+sc.entrez <- EnrichmentBrowser::idMap(sc, from = "SYMBOL", to = "ENTREZID")
+sc.entrez <- sc.entrez[rowSums(assay(sc.entrez)[,2:93], na.rm = TRUE) > 10,]
+vst <- consensusOV::get.verhaak.subtypes(assay(sc.entrez, "logcounts"), names(sc.entrez))
+vst <- as.character(vst$Verhaak.subtypes)
+names(vst) <- colnames(sc.entrez)
+```
+
+```{r}
+acol <- data.frame(Winterhoff = c2t, Verhaak = vst[names(c2t)])
+SingleR::plotScoreHeatmap(encode[names(c2t),], annotation_col = acol)
+SingleR::plotScoreHeatmap(hpc[names(c2t),], annotation_col = acol)
+```
+## Margin score distribution
 
 Margin scores in comparison to TCGA bulk: 
 ```{r marginCompTCGA}
@@ -1011,6 +1039,76 @@ Heatmap(assay(se.restr) - rowMeans(assay(se.restr)) ,
             top_annotation = ha, name="Expr", 
             show_row_names=FALSE, show_column_names=FALSE,
             column_title="Tumors", row_title="Genes")
+```
+
+# Tumor stage
+
+## TCGA
+
+```{r}
+sts <- as.vector(cst$consensusOV.subtypes)
+sts <- sub("_consensus$", "", sts)
+names(sts) <- substring(colnames(ov.ctd[[1]]), 1, 12)
+sts <- sts[rownames(colData(ov.ctd))]
+dat <- cbind(sts, colData(ov.ctd)[,c("patient.stage_event.clinical_stage")])
+(tab <- table(dat[,1], dat[,2]))
+```
+
+Overall proportions:
+```{r}
+table(dat[,1]) / sum(table(dat[,1]))
+tab[,"stage iiic"] / sum(tab[,"stage iiic"])
+```
+
+Stage I tumors:
+```{r}
+sum(rowSums(tab[,1:3]))
+rowSums(tab[,1:3]) / sum(rowSums(tab[,1:3]))
+rfprobs <- cst$rf.probs
+rownames(rfprobs) <- substring(colnames(ov.ctd[[1]]), 1, 12)
+rfprobs <- rfprobs[rownames(colData(ov.ctd)),]
+rfprobs[dat[,2] %in% c("stage ia", "stage ib", "stage ic"),]
+```
+
+## Early-stage ovarian carcinoma study (GSE101108)
+
+Obtain the supplementary file from GEO
+
+```{r, eval = FALSE}
+raw.dat <- read.delim("GSE101108_OV106-391_counts.txt", row.names = 1L)
+raw.dat <- as.matrix(raw.dat)
+mode(raw.dat) <- "numeric"
+raw.dat <- edgeR::cpm(raw.dat, log=TRUE)
+raw.se <- SummarizedExperiment(assays = list(raw = raw.dat))
+raw.se <- EnrichmentBrowser::idMap(raw.se, org="hsa", from="ENSEMBL", to="ENTREZID")
+cst <- consensusOV::get.consensus.subtypes(assay(raw.se), names(raw.se))
+```
+
+Obtain pre-computed consensus subtype annotation and histotype annotation 
+
+```{r}
+res.file <- file.path(data.dir, "GSE101108_consensus_subtypes.rds")
+cst <- readRDS(res.file)
+map.file <- file.path(data.dir, "GSE101108_metadata_histotype.txt")
+map <- read.delim(map.file, as.is = TRUE)
+head(map)
+all(map[,1] == rownames(cst$rf.probs))
+colnames(map) <- sub("^characteristics..", "", colnames(map))
+map[,"histotype"] <- gsub(" ", "", map[,"histotype"])
+map[,"FIGO.stage"] <- gsub(" ", "", map[,"FIGO.stage"])
+table(map[,"histotype"])
+table(map[,"FIGO.stage"])
+table(map[,"FIGO.stage"], map[,"histotype"])
+```
+
+```{r}
+hgsc.ind <- map[,"histotype"] == "HGSC"
+stageI.ind <- map[,"FIGO.stage"] == "I"
+stageII.ind <- map[,"FIGO.stage"] == "II"
+table(cst$consensusOV.subtypes[hgsc.ind])
+table(cst$consensusOV.subtypes[hgsc.ind & stageI.ind])
+table(cst$consensusOV.subtypes[hgsc.ind & stageII.ind])
+cst$rf.probs[hgsc.ind & stageI.ind,]
 ```
 
 # Session info

@@ -35,22 +35,33 @@ cb.darkgrey <- "#878D92"
 
 #stcols <- c("steelblue", "darkseagreen3", "coral", "firebrick")
 stcols <- c(cb.lightblue, cb.green, cb.orange, cb.pink) 
-names(stcols) <- c("PRO", "MES", "DIF", "IMR")
+names(stcols) <- c("DIF", "IMR", "MES", "PRO")
 
 # as from Figure 1b in TCGA OVC paper, Nature 2011
-getCnvGenesFromTCGA <- function()
+getCnvGenesFromTCGA <- function(excl = TRUE, build = c("hg19", "hg38"))
 {
+    build <- match.arg(build)
     data.dir <- system.file("extdata", package="subtypeHeterogeneity")
     cnv.genes.file <- file.path(data.dir, "ovc_cnv_genes.txt") 
     cnv.genes <- scan(cnv.genes.file, what="character")
 
-    excl.genes <- c("XPR1", "PAX8", "SKP2", "PRIM2", "SOX17", "ERBB2",
-                        "ERBB3", "DEPTOR", "CDKN2A", "ZMYND8", "ANKRD11")
+    if(excl) excl.genes <- c("XPR1", "PAX8", "SKP2", "PRIM2", "SOX17", "ERBB2",
+                             "ERBB3", "DEPTOR", "CDKN2A", "ZMYND8", "ANKRD11")
+    else excl.genes <- c("XPR1", "CD47", "TACC3", "DEPTOR", "ERBB2", "ERBB3",
+                         "METTL17", "ANKRD11", "MAP2K4", "ZMYND8", "SC5D")
     cnv.genes <- setdiff(cnv.genes, excl.genes)
 
-    edb <- EnsDb.Hsapiens.v75::EnsDb.Hsapiens.v75
+    if(build == "hg19") edb <- EnsDb.Hsapiens.v75::EnsDb.Hsapiens.v75
+    else
+    {
+        ah <- AnnotationHub::AnnotationHub() 
+        # query(ah, "EnsDb for Homo sapiens")
+        edb <- ah[["AH78783"]] 
+    }
     filtr <- AnnotationFilter::GeneNameFilter(cnv.genes)
-    gr <- GenomicFeatures::genes(edb, filter=list(filtr))
+    gr <- GenomicFeatures::genes(edb, filter = list(filtr))
+    gr <- keepStandardChromosomes(gr, pruning.mode = "coarse")
+    gr <- gr[gr$gene_biotype == "protein_coding"]
     names(gr) <- gr$symbol
     gr <- as.data.frame(gr)
     gr <- gr[,1:3]

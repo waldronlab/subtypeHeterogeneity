@@ -13,6 +13,31 @@ CELL.TYPES <- c("EPI", "LYMPH", "MYE", "STROM", "ENDO")
 #
 # analysis
 #
+preprocessSCE <- function(sce)
+{
+    bp <- BiocParallel::registered()[[1]]
+    ave <- scater::calculateAverage(sce, BPPARAM = bp)
+    rowData(sce)$AveCount <- ave
+    to.keep <- ave > 0.001
+    sce <- sce[to.keep,]
+
+    clusters <- scran::quickCluster(sce, method = "igraph",
+                                    min.mean = 0.1, BPPARAM = bp)
+    sce <- scran::computeSumFactors(sce, min.mean = 0.1,
+                                    cluster = clusters, BPPARAM = bp)
+    sce <- scater::logNormCounts(sce)
+    dec.pbmc <- scran::modelGeneVarByPoisson(sce, BPPARAM = bp)
+    top.pbmc <- scran::getTopHVGs(dec.pbmc, prop = 0.1)
+    sce <- scran::denoisePCA(sce, subset.row = top.pbmc,
+                             technical = dec.pbmc, BPPARAM = bp)
+
+    sce <- scater::runTSNE(sce, dimred = "PCA", perplexity = 30, BPPARAM = bp)
+    sce$sizeFactor <- sizeFactors(sce)
+    snn.gr <- scran::buildSNNGraph(sce, use.dimred = "PCA", BPPARAM = bp, k = 25)
+    clusters <- igraph::cluster_walktrap(snn.gr)
+    sce$Cluster <- factor(clusters$membership)
+    sce
+}   
 
 compileMarkers <- function(sc.markers, bulk.markers, nr.markers = 10)
 {
@@ -26,6 +51,25 @@ compileMarkers <- function(sc.markers, bulk.markers, nr.markers = 10)
 
     sc.markers$DIF[c(sc.dif.markers[grid], sc.pro.markers[grid]),]         
 }
+
+getCommonMarkers <- function(marker.list, subtype = c("DIF", "PRO"), n = 5)
+{
+    subtype <- match.arg(subtype)
+    .subsetMarkers <- function(markers)
+    {
+        mst <- markers[["DIF"]]
+        if(subtype == "DIF") ind <- mst$logFC.PRO > 0
+        else ind <- mst$logFC.PRO < 0
+        rownames(mst[ind,])
+    }
+    st.markers <- lapply(marker.list, .subsetMarkers)
+    rn <- Reduce(intersect, st.markers)
+    ranks <- lapply(st.markers, function(markers) match(rn, markers))
+    cn <- do.call(cbind, ranks)
+    rmeans <- rowMeans(cn)
+    head(rn[order(rmeans)], n) 
+}
+
 
 generateInferCNVInput <- function(sce, sample.dir)
 {
@@ -94,19 +138,41 @@ subsetObservations <- function(obs.mat, sce)
 
 getRecurrentDriverGenes <- function(symbols)
 {
-    cnv.genes <- getCnvGenesFromTCGA()
-    orgdb <- org.Hs.eg.db::org.Hs.eg.db
-    eids <- AnnotationDbi::mapIds(orgdb, column = "ENTREZID",
-                                  keys = names(cnv.genes), keytype = "SYMBOL")
-    txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene::TxDb.Hsapiens.UCSC.hg38.knownGene
-    cgenes <- GenomicFeatures::genes(txdb, single.strand.genes.only = FALSE)
-    cgenes <- cgenes[unname(eids)]
-    cgenes <- unlist(GenomicRanges::GRangesList(lapply(cgenes, function(g) g[1])))
-    names(cgenes) <- names(eids)
+    symbols[match("ANKRD22", symbols)] <- "PTEN" 
+    symbols[match("TRIT1", symbols)] <- "MYCL"
+    cgenes <- getCnvGenesFromTCGA(excl = FALSE, build = "hg38")
     clabs <- vector("character", length = length(symbols))
     ind <- symbols %in% names(cgenes)
     clabs[ind] <- symbols[ind]
     clabs
+}
+
+getGISTIC <- function(egenes, obs.mat)
+{
+    gisticOV <- gistic2RSE(ctype="OV", peak="wide")
+    #gdf <- as.data.frame(rowRanges(gisticOV))
+    #gstr <- paste(gdf[,1], paste(gdf[,2], gdf[,3], sep = "-"), sep = ":")
+    #cat(gstr, file = "gistic_hg19.txt", sep = "\n")
+    gtype <- rowData(gisticOV)$type  
+
+    not.mapped <- c(22, 31, 43, 47, 67) 
+    gfile <- system.file("extdata", package = "subtypeHeterogeneity")
+    gfile <- file.path(gfile, "gisticOV_ranges_hg38.txt")
+    gstr <- scan(gfile, what = "character", sep = "\n")
+    #gstr <- gstr[-not.mapped]
+    gistic <- GenomicRanges::GRanges(gstr)
+    gtype <- gtype[-not.mapped]
+
+    stopifnot(all(names(egenes) == rownames(obs.mat)))
+    olaps <- GenomicRanges::findOverlaps(egenes, gistic)
+    sh <- S4Vectors::subjectHits(olaps)
+    qh <- S4Vectors::queryHits(olaps)
+    ampdel <- rep("Neutral", nrow(obs.mat))
+    ampdel[qh] <- gtype[sh]
+    ampdel <- substring(ampdel, 1, 3)  
+    df <- data.frame(GISTIC2 = ampdel)
+    col <- list(GISTIC2 = c(Amp = "red", Del = "blue", Neu = "white"))
+    ComplexHeatmap::HeatmapAnnotation(df = df, col = col)
 }
 
 symbols2ranges <- function(symbols)
@@ -296,7 +362,7 @@ plotType <- function(sce, type = c("celltype", "subtype"))
     ggpubr::ggpar(p, xlab = "Dimension 1", ylab = "Dimension 2")
 }
 
-bpType <- function(sces, type=c("celltype", "subtype"))
+bpType <- function(sces, type=c("celltype", "subtype"), pal)
 {
     type <- match.arg(type)
     n <- ifelse(type == "celltype", 5, 4)
@@ -309,28 +375,29 @@ bpType <- function(sces, type=c("celltype", "subtype"))
     if(type == "CELLTYPE")
     {
         df[[type]] <- factor(df[[type]], levels = rev(CELL.TYPES))
-        pal <- rev(ggpubr::get_palette("lancet", 5))
+        #pal <- rev(ggpubr::get_palette("lancet", 5))
     }
     else
     {
         df[[type]] <- factor(df[[type]], levels = rev(SUBTYPES))
-        pal <- rev(ggpubr::get_palette("npg", 4)[c(4,2,3,1)])
+        #pal <- rev(ggpubr::get_palette("npg", 4)[c(4,2,3,1)])
     }
 
     ggpubr::ggbarplot(df, "TUMORS", "value", fill = type,
                 color = type, palette = pal , ylab = "CELLS [%]")
 }
 
-bpCrossType <- function(mat)
+bpCrossType <- function(mat, pal)
 {
     perc <- round(mat / rowSums(mat) * 100, digits=1)
     df <- reshape2::melt(perc)
     type <- "CELL.TYPE"
     colnames(df) <- c("SUBTYPE", type, "value")
     df[[type]] <- factor(df[[type]], levels = rev(CELL.TYPES))
-    pal <- rev(ggpubr::get_palette("lancet", 5))
-    ggpubr::ggbarplot(df, "SUBTYPE", "value", fill = type, color = type,
-                        palette = pal , ylab = "CELLS [%]", legend = "none", xlab = "")
+    #pal <- rev(ggpubr::get_palette("lancet", 5))
+    ggpubr::ggbarplot(df, "SUBTYPE", "value", fill = type, color = type, 
+                        palette = pal, legend = "none",
+                        ylab = "CELLS [%]", xlab = "SUBTYPES")
 }
 
 matrixPlot <- function(mat, cnames, high.color = "red", bw.thresh = 50, gthresh = 0)
@@ -346,16 +413,17 @@ matrixPlot <- function(mat, cnames, high.color = "red", bw.thresh = 50, gthresh 
     ggplot2::ggplot(df, ggplot2::aes(get(cnames[1]), get(cnames[2]))) +
         ggplot2::geom_tile(data=df, ggplot2::aes(fill=value), color="white") +
         ggplot2::scale_fill_gradient2(low="white", high=high.color, guide=FALSE) +
-        ggplot2::geom_text(aes(label=value), size=5, color=df$color, fontface="bold") +
-        ggplot2::theme(text = ggplot2::element_text(size = 14),
-            axis.text = ggplot2::element_text(color = "black", size=12),
+        ggplot2::geom_text(aes(label=value), size=4, color=df$color, fontface="bold") +
+        ggplot2::theme(text = ggplot2::element_text(size = 12),
+            axis.text = ggplot2::element_text(color = "black", size=10),
             axis.text.x = ggplot2::element_text(angle=45, vjust=1, hjust=1)) +
     #coord_equal() + 
     ggplot2::xlab(cnames[1]) + ggplot2::ylab(cnames[2])
 }
 
 scHeatmap2 <- function(sce, cell.type = "EPI", subtype = c("DIF", "PRO"),
-        name = "log2TPM", title = "Cells", add = FALSE, fsize = 12, legend=TRUE)
+        name = "log2TPM", title = "Cells", add = "", fsize = 12, legend = TRUE,
+        last = FALSE)
 {
     #sce <- idMap(sce, org="hsa", from="SYMBOL", to="ENTREZID")
     sce <- sce[,!is.na(sce$celltype)]
@@ -379,7 +447,7 @@ scHeatmap2 <- function(sce, cell.type = "EPI", subtype = c("DIF", "PRO"),
     dat <- colData(sce)[, paste0(SUBTYPES, "_consensus")]
     dat <- as.matrix(dat)
     colnames(dat) <- sub("_consensus$", "", colnames(dat))
-    if(add) colnames(dat) <- paste0(colnames(dat), "2")
+    colnames(dat) <- paste0(colnames(dat), add)
 
     cp.ramp <- circlize::colorRamp2(
                     seq(quantile(dat, 0.01), quantile(dat,
@@ -393,12 +461,12 @@ scHeatmap2 <- function(sce, cell.type = "EPI", subtype = c("DIF", "PRO"),
     }
 
     df <- data.frame(CellType = ct, Subtype = st, dat)
-    if(add) names(scol)[3] <- colnames(df)[3] <- "ClassProb"
+    if(last) names(scol)[3] <- colnames(df)[3] <- "ClassProb"
 
     ha <- ComplexHeatmap::HeatmapAnnotation(df = df,
             col=scol,
-            show_legend = c(rep(TRUE, ifelse(add,3,2)), rep(FALSE,ifelse(add,3,4))),
-            show_annotation_name = c(rep(TRUE,ifelse(add,3,0)), rep(FALSE,ifelse(add,3,6))),
+            show_legend = c(rep(TRUE, ifelse(last,3,2)), rep(FALSE,ifelse(last,3,4))),
+            show_annotation_name = c(rep(TRUE,ifelse(last,3,0)), rep(FALSE,ifelse(last,3,6))),
             annotation_name_offset = unit(2, "mm"),
             gap = unit(c(0, 2, 0, 0, 0), "mm"))
 
@@ -420,7 +488,7 @@ scHeatmap2 <- function(sce, cell.type = "EPI", subtype = c("DIF", "PRO"),
     #            {grid::grid.text(colnames(dat)[i], grid::unit(-2, "mm"), just = "left")})
 }
 
-bpCyclins <- function(sce)
+bpCyclins <- function(sce, top.only = FALSE, nr.cells = 100)
 {
     sce <- subsetByCellType(sce)
     message(paste0("Total EPI-DIF:", sum(sce$subtype == "DIF")))
@@ -429,33 +497,50 @@ bpCyclins <- function(sce)
     cyclin.genes <- grep("^CCN[ABDE][0-9]$", names(sce), value = TRUE)
     am <- as.matrix(assay(sce, "logcounts"))
     am <- am[sort(cyclin.genes),]  
+    rownames(am) <- sub("^CCN", "", rownames(am))
 
     df <- reshape2::melt(am)
     df$subtype <- sce$subtype[df[,2]]
     df$margin <- sce$margin[df[,2]]
-    ind.dif <- tail(which(sce$subtype == "DIF"), 100)
-    ind.pro <- tail(which(sce$subtype == "PRO"), 100)
-    df$top <- ifelse(df[,2] %in% c(ind.dif, ind.pro), "Top100", "All")
-    df2 <- df[df$top == "Top100",]
-    df2$top <- "All"
-    df <- rbind(df, df2)
+    ind.dif <- tail(which(sce$subtype == "DIF"), nr.cells)
+    ind.pro <- tail(which(sce$subtype == "PRO"), nr.cells)
+    top <-  paste0("Top", nr.cells)
+    df$top <- ifelse(df[,2] %in% c(ind.dif, ind.pro), top, "All")
     colnames(df)[c(1,3)] <- c("Cyclins", "log2CPM")
-    all.lab <- paste0("All epithelial cells (",
-                        sum(sce$subtype == "DIF"), " DIF, ",
-                        sum(sce$subtype == "PRO"), " PRO", ")")
-    top.lab <- paste0("Top 100 highest margin cells (",
-                        length(ind.dif), " DIF, ",
-                        length(ind.pro), " PRO", ")")
     
-    ggpubr::ggboxplot(df, "Cyclins", "log2CPM", color = "subtype",
+    if(top.only)
+    { 
+        df <- df[df$top == top,]
+        ggpubr::ggboxplot(df, "Cyclins", "log2CPM", legend = "none", ggtheme = theme_bw(),
+                          color = "subtype", palette = stcols[c("DIF", "PRO")])
+    }
+    else
+    {
+        df2 <- df[df$top == top,]
+        df2$top <- "All"
+        df <- rbind(df, df2)
+        all.lab <- paste0("All epithelial cells (",
+                            sum(sce$subtype == "DIF"), " DIF, ",
+                            sum(sce$subtype == "PRO"), " PRO", ")")
+        top.lab <- paste0("Top ", nr.cells, " highest margin cells (",
+                            length(ind.dif), " DIF, ",
+                            length(ind.pro), " PRO", ")")
+ 
+        ggpubr::ggboxplot(df, "Cyclins", "log2CPM", color = "subtype",
                 palette = stcols[c("DIF", "PRO")], facet.by = "top",
                 nrow = 2, ncol = 1,
                 panel.labs = list(top = c(all.lab, top.lab)))  
+    }
 }
 
 markerHeatmap <- function(sce, markers, row.split = FALSE)
 {
     sce <- subsetByCellType(sce)
+    
+    st <- sce$subtype
+    ind <- c(rev(which(st == "DIF")), which(st == "PRO"))
+    sce <- sce[,ind]
+    
     am <- as.matrix(assay(sce, "logcounts"))
     am <- am[markers,] 
     ind <- colSums(am) > 0
@@ -484,6 +569,48 @@ markerHeatmap <- function(sce, markers, row.split = FALSE)
                             row_split = row.split)
 }
 
+markerHeatmapList <- function(sces, markers, row.split = FALSE)
+{
+    sces <- lapply(sces, subsetByCellType)
+    
+    .orderCellsBySubtype <- function(sce)
+    {
+        st <- sce$subtype
+        ind <- c(rev(which(st == "DIF")), which(st == "PRO"))
+        sce[,ind]
+    }
+    sces <- lapply(sces, .orderCellsBySubtype)
+    
+    ams <- lapply(sces, function(sce) as.matrix(assay(sce, "logcounts"))[markers,])
+    am <- do.call(cbind, ams)
+    for(i in seq_along(sces)) sces[[i]] <- sces[[i]][,colSums(ams[[i]]) > 0]
+
+    sts <- lapply(sces, function(sce) sce$subtype)
+    sts <- unlist(sts)
+    margins <- lapply(sces, function(sce) sce$margin)
+    margins <- unlist(margins)
+    df <- data.frame(Subtype = sts, Margin = margins)
+
+    margin.ramp <- circlize::colorRamp2(
+                    seq(quantile(margins, 0.01), quantile(margins,
+                    0.99), length = 3), c("blue", "#EEEEEE", "red"))
+
+    col <- list(Subtype = stcols, Margin = margin.ramp)
+    ha <- ComplexHeatmap::HeatmapAnnotation(df = df, col = col, show_legend = FALSE)
+
+    if(row.split)
+        row.split <- rep(c("DIF", "PRO"), each = length(markers) / 2)
+    else row.split <- NULL   
+
+    col.split <- rep(names(sces), vapply(sces, ncol, integer(1)))
+
+    am <- t(scale(t(am)))
+    ComplexHeatmap::Heatmap(am, name = "Expression", top_annotation = ha,
+                            cluster_rows = FALSE, cluster_columns = FALSE, 
+                            row_split = row.split, column_split = col.split,
+                            show_heatmap_legend = FALSE)
+}
+
 plotMainCellTypes <- function(sce, col, nr.types = 6)
 {
     main.cats <- sort(table(sce[[col]]), decreasing=TRUE)
@@ -495,3 +622,39 @@ plotMainCellTypes <- function(sce, col, nr.types = 6)
     scater::plotTSNE(sce.sub, colour_by = col, shape_by = col)
 }
 
+pseudotimeHeatmap <- function(sce, lineage = 1, nr.genes = 100, 
+                              cluster.rows = FALSE, scale = TRUE)
+{
+    t <- sce[[paste("slingPseudotime", lineage, sep = "_")]]
+    grid <- seq_len(nr.genes)
+    Y <- as.matrix(assay(sce, "logcounts"))
+    vartop <- names(sort(apply(Y, 1, var), decreasing = TRUE))[grid]
+
+    Y <- Y[vartop,]
+    
+    gam.pval <- apply(Y, 1, 
+        function(z)
+        {
+            d <- data.frame(z=z, t=t)
+            suppressWarnings({
+                lo <- gam::lo
+                tmp <- suppressWarnings(gam::gam(z ~ lo(t), data=d))
+            })
+            summary(tmp)[3][[1]][2,3]
+        })
+
+    topgenes <- names(sort(gam.pval, decreasing = FALSE))[grid]
+    heatdata <- Y[topgenes, order(t, na.last = NA)]
+    heatclus <- sce$subtype[order(t, na.last = NA)]
+    
+    # plot the heatmap
+    df <- data.frame(Subtype = heatclus)
+    col <- list(Subtype = stcols)
+    ha <- ComplexHeatmap::HeatmapAnnotation(df = df, col = col)
+    am <- as.matrix(heatdata)
+    if(scale) am <- t(scale(t(am)))
+    ComplexHeatmap::Heatmap(am, 
+        name = "Expression", top_annotation = ha,
+        cluster_rows = cluster.rows, cluster_columns = FALSE,
+        row_names_gp = gpar(fontsize = 6))
+}

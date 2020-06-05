@@ -11,7 +11,9 @@ Depends:
     SingleCellExperiment
 Imports: 
     AnnotationFilter,
+    AnnotationHub,
     Biobase,
+    BiocParallel,
     ComplexHeatmap,
     EnsDb.Hsapiens.v75,
     GenomicFeatures,
@@ -27,8 +29,10 @@ Imports:
     TxDb.Hsapiens.UCSC.hg38.knownGene,
     circlize,
     consensusOV,
+    gam,
     ggplot2, 
     ggpubr,
+    igraph,
     infercnv,
     methods,
     plotly,
@@ -37,6 +41,7 @@ Imports:
     reshape2,
     rtracklayer,
     scater,
+    scran,
     viridis
 Suggests: 
     BiocStyle, 
