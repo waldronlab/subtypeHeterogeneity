@@ -312,11 +312,14 @@ p3
 
 Facet cell type and subtype visualization for all tumors:
 ```{r, fig.wide = TRUE, fig.height = 6}
-stp <- facetTumors(sces, col = "subtype")
-pal <- get_palette("npg", 5)
+stp <- facetTumors(sces, col = "subtype", pal = stcols)
+pal <- ggpubr::get_palette("npg", 5)
 names(pal) <- CELL.TYPES
-ctp <- facetTumors(sces, col = "celltype", pal = pal)
-ggarrange(stp, ctp, nrow = 2, align = "hv")
+ctp <- facetTumors(sces, col = "celltype", pal = pal) 
+p2 <- ggpubr::ggarrange(stp + theme(axis.text.x = element_blank(),
+                                    axis.title.x = element_blank()), 
+                        ctp, nrow = 2, align = "v", labels = c("A", "B"),
+                        heights = c(1, 1.2))
 ```
 
 Barplot percentage of subtype / cell type for all 10X tumors:
@@ -329,21 +332,14 @@ prop.test(cttab["STROM",], total)
 ```
 
 ```{r, fig.height = 6}
-stbp <- bpType(sces, "subtype")
-ctbp <- bpType(sces)
-p1 <- ggarrange(stbp + theme(axis.text.x = element_blank(),
-                             axis.title.x = element_blank()),
-                             # axis.ticks.x = element_blank(),
-                             # axis.line.x = element_blank()), 
-                ctbp, ncol = 1,
-                legend = "left", align = "hv", labels = c("C", "D"))
-p1
+stbp <- bpType(sces, "subtype", pal = stcols)
+ctbp <- bpType(sces, "celltype", pal = pal)
 ```
 
 Cell type vs subtype matrix:
 ```{r}
 mat <- getCelltypeSubtypeMatrix(sces)
-ctstbp <- bpCrossType(mat)
+ctstbp <- bpCrossType(mat, pal)
 ctstbp
 ```
 
@@ -352,6 +348,20 @@ Or as matrix plot:
 mat <- round(mat / sum(mat) * 100)
 mat <- mat[,CELL.TYPES]
 matrixPlot(mat, cnames = c("SUBTYPE", "CELL.TYPE"), high.color = "darkgreen")
+```
+
+```{r}
+p1 <- ggarrange(stbp,
+                ctbp + theme(axis.text.y = element_blank(),
+                             axis.title.y = element_blank()),
+                             # axis.ticks.x = element_blank(),
+                             # axis.line.x = element_blank()), 
+                ctstbp + theme(axis.text.y = element_blank(),
+                             axis.title.y = element_blank()),
+                nrow = 1, hjust = c(-0.5, 0.5, 0.5),
+                widths = c(1.3,1,1),
+                legend = "none", align = "h", labels = c("C", "D", "E"))
+p1
 ```
 
 Margin scores:
@@ -382,16 +392,15 @@ facetTumors(sces, "margin", cont = TRUE)
 Only epithelial cells:
 ```{r}
 df <- subset(df, CELL.TYPE == "EPI")
-df <- subset(df, TUMOR != "T61")
-bp <- ggboxplot(df, x = "TUMOR", y = "MARGIN", width = 0.8, notch = TRUE, 
-                fill = cb.red, 
-                legend="none", ggtheme = theme_bw(), ylab = "MARGIN (EPI CELLS)",
-                font.x = 14, font.y = 14, font.tickslab = c(13, "plain", "black"))
+bp <- ggboxplot(df, x = "TUMOR", y = "MARGIN", width = 0.8, notch = TRUE,
+                fill = cb.red,
+                legend="none", ggtheme = theme_bw(), ylab = "MARGIN (EPI)",
+                font.x = 11, font.y = 11, font.tickslab = c(10, "plain", "black"))
                 # ylim = c(0,1),x.text.angle = 45, 
-df.points <- data.frame(x=1:4, y=c(0.376, 0.766, 0.182, 0.646))
+df.points <- data.frame(x=1:5, y=c(0.376, 0.766, 0.182, 0.646, 0.214))
 bp <- bp + geom_point(data = df.points, aes(x = x, y = y), shape = 8, size = 3) +
            geom_text(data = df.points[2,], aes(x = x, y = y),
-                     label = "Bulk", hjust = 0, nudge_x = 0.1, size = 5)
+                     label = "Bulk", hjust = 0, nudge_x = 0.1, size = 4)
 bp
 ```
 
@@ -445,11 +454,18 @@ cst2
 
 Contrast bulk and single-cell margins:
 ```{r, fig.height = 8}
-mat <- t(cst$rf.probs)
-rownames(mat) <- sub("_consensus", "", rownames(mat))
-mat <- round(mat, digits = 2)
-mat <- mat[c(3,4,1,2),c(1,3,2,4)]
-mp <- matrixPlot(t(mat), cnames = c("TUMORS", "CLASS.PROB"), 
+#mat <- t(cst$rf.probs)
+#rownames(mat) <- sub("_consensus", "", rownames(mat))
+#mat <- round(mat, digits = 2)
+#mat <- mat[c(3,4,1,2),c(1,3,2,4)]
+mat <- rbind(c(0.15, 0.02, 0.5, 0.13, 0.12),
+             c(0.59, 0.03, 0.14, 0.77, 0.07),
+             c(0.22, 0.85, 0.03, 0.08, 0.3),
+             c(0.04, 0.09, 0.32, 0.02, 0.52))
+colnames(mat) <- paste0("T", tumors)
+rownames(mat) <- SUBTYPES
+mat <- mat[4:1,]
+mp <- matrixPlot(t(mat), cnames = c("TUMORS", "CLASS.PROB"),
                     bw.thresh = 0.5, gthresh = 0.2)
 mp <- mp + theme(axis.text.x = element_blank(),
                  axis.title.x = element_blank(),
@@ -457,9 +473,11 @@ mp <- mp + theme(axis.text.x = element_blank(),
                  axis.line.x = element_blank(),
                  plot.margin = margin(b = 0))
 mp <- mp + ylab("BULK")
-p0 <- ggarrange(ctstbp, mp, bp, 
-                nrow = 3, align = "v", heights = c(2,1,3), labels = c("E", "F"))
+p0 <- ggarrange(mp, bp, vjust = 0.5, hjust = 0.5,
+                nrow = 2, align = "v", heights = c(1,3), labels = c("F", ""))
 p0
+p3 <- ggarrange(p1, p0, nrow = 1, widths = c(2,1))
+ggarrange(p2, p3, heights = c(2,1), nrow = 2)
 ```
 
 Heatmaps for transitional DIF-PRO patterns on EPI cells (Tumors 59 and 77):
@@ -806,7 +824,7 @@ gs <- ggscatter(df, x = "G1", y = "G2M",
                 color = "subtype", palette = stcols[c("DIF", "PRO")], 
                 ggtheme = ggplot2::theme_bw(), legend = "none")
 
-# ggarrange(im, ggarrange(ggarrange(bc, gs, ncol = 2, labels = c("B", "C")), m, nrow = 2, labels = c("", "D")), ncol = 2, labels = c("A",""))
+ggarrange(im, ggarrange(ggarrange(bc, gs, ncol = 2, labels = c("B", "C")), m, nrow = 2, labels = c("", "D")), ncol = 2, labels = c("A",""))
 ```
 
 ### Tumor 77
