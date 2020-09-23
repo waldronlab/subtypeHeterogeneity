@@ -33,10 +33,10 @@ cb.lightgrey <- "#C9C9BD"
 cb.darkgrey <- "#878D92"
 
 
-#stcols <- c("steelblue", "darkseagreen3", "coral", "firebrick")
 stcols <- c(cb.lightblue, cb.green, cb.orange, cb.pink) 
 bw.stcols <- grey(c(0.8, 0.6, 0.4, 0.2)) 
-names(stcols) <- names(bw.stcols) <- c("DIF", "IMR", "MES", "PRO")
+SUBTYPES <- c("DIF", "IMR", "MES", "PRO")
+names(stcols) <- names(bw.stcols) <- SUBTYPES 
 
 # as from Figure 1b in TCGA OVC paper, Nature 2011
 getCnvGenesFromTCGA <- function(excl = TRUE, build = c("hg19", "hg38"))
@@ -556,8 +556,8 @@ plotNrCNAsPerSubtype <- function(type, subtype, bw = FALSE)
         }
     m <- vapply(spl, .countType, integer(2))
     m <- m[2:1,]     
-    colnames(m) <- names(stcols)
     m <- m[,order(colSums(m))]
+    colnames(m) <- c("MES", "DIF", "IMR", "PRO")
 
     col <- if(bw) gray(c(0.8, 0.1)) else c(cb.blue, cb.red)  
     if(bw)

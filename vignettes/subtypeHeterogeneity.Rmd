@@ -1,12 +1,12 @@
 ---
-title: "Supplement: statistical analysis literate programming output"
+title: "Absolute somatic copy number alteration analysis"
 author: Ludwig Geistlinger, Sehyun Oh, and Levi Waldron
 output:
   BiocStyle::html_document:
     toc: true
     toc_depth: 2
 vignette: >
-  % \VignetteIndexEntry{Statistical analysis output}
+  % \VignetteIndexEntry{Absolute SCNA analysis}
   % \VignetteEngine{knitr::rmarkdown}
 ---
 
@@ -47,8 +47,9 @@ cb.green <- "#009E73"
 cb.lightblue <- "#56B4E9"
 cb.orange <- "#E69F00"
 
+SUBTYPES <- c("DIF", "IMR", "MES", "PRO")
 stcols <- c(cb.lightblue, cb.green, cb.orange, cb.pink) 
-names(stcols) <- c("PRO", "MES", "DIF", "IMR")
+names(stcols) <- SUBTYPES
 ```
 
 # Data sources
@@ -231,7 +232,7 @@ perm.cor <- replicate(1000,
 
 ```{r plotCor, fig.width=6, fig.height=6}
 plotCorrelation(assoc.score, subcl.score, 
-    subtypes=mcols(gisticOV)$subtype, stcols=stcols)
+    subtypes=mcols(gisticOV)$subtype, stcols=stcols[c(4,3,1,2)])
 text(x=52.8, y=0.46, "20q11.21\n(BCL2L1)", pos=2)
 text(x=50, y=0.52, "19p13.12\n(BRD4)", pos=2)
 text(x=39.489, y=0.332, "12q15\n(FRS2)", pos=4)
@@ -440,7 +441,8 @@ blocks <- blocks[seqnames(blocks) == nmax]
 ### Select GISTIC regions of high subtype association and subclonality
 ```{r selecttopTables}
 tests <- testSubtypes(gisticOV, ovsubs, what="full")
-extraL <- stratifySubclonality(gisticOV, subcl.gisticOV, ovsubs, tests)
+extraL <- stratifySubclonality(gisticOV, subcl.gisticOV, ovsubs,
+                               tests, st.names = names(stcols)[c(4,3,1,2)])
 ```
 
 ```{r selecttop, fig.width=6, fig.height=6}

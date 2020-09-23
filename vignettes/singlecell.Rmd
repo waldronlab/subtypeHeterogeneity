@@ -393,7 +393,7 @@ Only epithelial cells:
 ```{r}
 df <- subset(df, CELL.TYPE == "EPI")
 bp <- ggboxplot(df, x = "TUMOR", y = "MARGIN", width = 0.8, notch = TRUE,
-                fill = cb.red,
+                fill = "lightgrey", #cb.red,
                 legend="none", ggtheme = theme_bw(), ylab = "MARGIN (EPI)",
                 font.x = 11, font.y = 11, font.tickslab = c(10, "plain", "black"))
                 # ylim = c(0,1),x.text.angle = 45, 
@@ -561,7 +561,6 @@ chr <- as.character(seqnames(egenes))
 Highlight specific recurrent regions with known driver genes from the TCGA OVC paper:
 ```{r, message = FALSE}
 clabs <- getRecurrentDriverGenes(rownames(obs.mat))
-
 ```
 
 Plot the heatmap:
@@ -570,7 +569,8 @@ ComplexHeatmap::Heatmap(t(obs.mat),
     #top_annotation = ta,
     right_annotation = ra,
     name = "Expression",
-    col = circlize::colorRamp2(c(0.895, 1, 1.105), c("blue", "white", "red")),
+    col = circlize::colorRamp2(#c(0.895, 1.105), c("white", "black")),
+                                c(0.895, 1, 1.105), c("blue", "white", "red")),
     row_title_rot = 0, column_title_rot = 90,
     show_row_names = FALSE, show_column_names = TRUE,
     cluster_rows = FALSE, cluster_columns = FALSE,
@@ -686,10 +686,6 @@ grid <- sample(ncol(high.down), ncol(am))
 cvec <- vector("numeric", length = ncol(am))
 for(i in seq_along(cvec)) cvec[i] <- cor(am[,i], high.down[,grid[i]])
 summary(cvec)
-```
-
-```{r}
-sces$T77 <- sce77.high  
 ```
 
 # Cell Cycle
@@ -818,10 +814,10 @@ Figure 5:
 
 ```{r}
 bc <- bpCyclins(sces[[1]], top.only = TRUE) + ylim(c(0,4.3))
-bc <- geom_signif(annotations = "1.8e-07", 
+bc <- bc + geom_signif(annotations = "1.8e-07", 
                   y_position = 4.25, xmin = 4.8, xmax = 5.2) 
 gs <- ggscatter(df, x = "G1", y = "G2M", 
-                color = "subtype", palette = stcols[c("DIF", "PRO")], 
+                color = "subtype", palette = bw.stcols[c("DIF", "PRO")], 
                 ggtheme = ggplot2::theme_bw(), legend = "none")
 
 ggarrange(im, ggarrange(ggarrange(bc, gs, ncol = 2, labels = c("B", "C")), m, nrow = 2, labels = c("", "D")), ncol = 2, labels = c("A",""))
