@@ -198,7 +198,7 @@ extendObservations <- function(om, un)
     rbind(om, m)
 }
 
-getCellAnnotation <- function(sces, obs.mats)
+getCellAnnotation <- function(sces, obs.mats, bw = FALSE)
 {   
     for(i in seq_along(sces)) 
         sces[[i]] <- sces[[i]][,colnames(obs.mats[[i]])]
@@ -206,7 +206,14 @@ getCellAnnotation <- function(sces, obs.mats)
     margins <- do.call(c, lapply(sces, function(sce) sce$margin))
     df <- data.frame(Subtype = sts, Margin = margins)
 
-    margin.ramp <- circlize::colorRamp2(
+    if(bw)
+    { 
+        stcols <- bw.stcols
+        margin.ramp <- circlize::colorRamp2(
+                    seq(quantile(margins, 0.01), quantile(margins,
+                    0.99), length = 2), c("white", "black"))
+    }
+    else margin.ramp <- circlize::colorRamp2(
                     seq(quantile(margins, 0.01), quantile(margins,
                     0.99), length = 3), c("blue", "#EEEEEE", "red"))
 
@@ -318,8 +325,10 @@ annoCellType <- function(sce)
 #
 # visualization
 #
-facetTumors <- function(sces, col = "subtype", pal = stcols, cont = FALSE)
+facetTumors <- function(sces, col = "subtype", pal = stcols, cont = FALSE, shape = 21)
 {   
+    for(i in seq_along(sces)) sces[[i]][[col]] <- factor(sces[[i]][[col]], 
+                                                         levels = names(pal)) 
     psces <- lapply(sces, scater::plotTSNE, colour_by = col)
     psces <- lapply(psces, function(p) p$data)
     for(i in tumors) psces[[match(i, tumors)]]$tumor <-  paste0("Tumor", i)
@@ -327,8 +336,8 @@ facetTumors <- function(sces, col = "subtype", pal = stcols, cont = FALSE)
     
     colnames(df)[3] <- col
     df <- df[!is.na(df[[col]]),] 
-    p <- ggplot2::ggplot(df, ggplot2::aes_string(x = "X", y = "Y", fill = col)) + 
-            ggplot2::geom_point(alpha = 0.75, shape=21, color="grey", size=1) +
+    p <- ggplot2::ggplot(df, ggplot2::aes_string(x = "X", y = "Y", fill = col, shape = col, color = col)) + 
+            ggplot2::geom_point(alpha = 0.7, size = 0.75) +
         ggplot2::facet_wrap(~tumor, nrow=1, ncol=5) +
         ggplot2::xlab("Dimension 1") +
         ggplot2::ylab("Dimension 2") +
@@ -338,7 +347,8 @@ facetTumors <- function(sces, col = "subtype", pal = stcols, cont = FALSE)
     is.cont <- col %in% names(sces[[1]]) || cont
     if(is.cont) p <- p + viridis::scale_fill_viridis()
     else p <- p + ggplot2::scale_fill_manual(values=pal) +
-                  guides(fill = guide_legend(override.aes = list(size=7))) 
+                  ggplot2::scale_color_manual(values=pal) +
+                  guides(fill = guide_legend(override.aes = list(size=7, alpha =1))) 
     p
 }
 
@@ -488,7 +498,7 @@ scHeatmap2 <- function(sce, cell.type = "EPI", subtype = c("DIF", "PRO"),
     #            {grid::grid.text(colnames(dat)[i], grid::unit(-2, "mm"), just = "left")})
 }
 
-bpCyclins <- function(sce, top.only = FALSE, nr.cells = 100)
+bpCyclins <- function(sce, top.only = FALSE, nr.cells = 100, bw = FALSE)
 {
     sce <- subsetByCellType(sce)
     message(paste0("Total EPI-DIF:", sum(sce$subtype == "DIF")))
@@ -507,7 +517,9 @@ bpCyclins <- function(sce, top.only = FALSE, nr.cells = 100)
     top <-  paste0("Top", nr.cells)
     df$top <- ifelse(df[,2] %in% c(ind.dif, ind.pro), top, "All")
     colnames(df)[c(1,3)] <- c("Cyclins", "log2CPM")
-    
+
+    if(bw) stcols <- bw.stcols    
+
     if(top.only)
     { 
         df <- df[df$top == top,]
@@ -569,7 +581,7 @@ markerHeatmap <- function(sce, markers, row.split = FALSE)
                             row_split = row.split)
 }
 
-markerHeatmapList <- function(sces, markers, row.split = FALSE)
+markerHeatmapList <- function(sces, markers, row.split = FALSE, bw = FALSE)
 {
     sces <- lapply(sces, subsetByCellType)
     
@@ -591,7 +603,16 @@ markerHeatmapList <- function(sces, markers, row.split = FALSE)
     margins <- unlist(margins)
     df <- data.frame(Subtype = sts, Margin = margins)
 
-    margin.ramp <- circlize::colorRamp2(
+    if(bw)
+    { 
+        stcols <- bw.stcols
+        margin.ramp <- circlize::colorRamp2(
+                    seq(quantile(margins, 0.01), quantile(margins,
+                    0.99), length = 2), c("white", "black"))
+        
+
+    }
+    else margin.ramp <- circlize::colorRamp2(
                     seq(quantile(margins, 0.01), quantile(margins,
                     0.99), length = 3), c("blue", "#EEEEEE", "red"))
 
@@ -605,7 +626,14 @@ markerHeatmapList <- function(sces, markers, row.split = FALSE)
     col.split <- rep(names(sces), vapply(sces, ncol, integer(1)))
 
     am <- t(scale(t(am)))
-    ComplexHeatmap::Heatmap(am, name = "Expression", top_annotation = ha,
+    if(bw) main.ramp <- circlize::colorRamp2(
+                    seq(quantile(as.vector(am), 0.01), quantile(as.vector(am),
+                    0.99), length = 2), c("white", "black"))
+    else main.ramp <- margin.ramp <- circlize::colorRamp2(
+                    seq(quantile(as.vector(am), 0.01), quantile(as.vector(am),
+                    0.99), length = 3), c("blue", "#EEEEEE", "red"))
+
+    ComplexHeatmap::Heatmap(am, name = "Expression", col = main.ramp, top_annotation = ha,
                             cluster_rows = FALSE, cluster_columns = FALSE, 
                             row_split = row.split, column_split = col.split,
                             show_heatmap_legend = FALSE)
@@ -650,11 +678,14 @@ pseudotimeHeatmap <- function(sce, lineage = 1, nr.genes = 100,
     # plot the heatmap
     df <- data.frame(Subtype = heatclus)
     col <- list(Subtype = stcols)
-    ha <- ComplexHeatmap::HeatmapAnnotation(df = df, col = col)
+    ha <- ComplexHeatmap::HeatmapAnnotation(df = df, col = col, show_legend = FALSE)
     am <- as.matrix(heatdata)
     if(scale) am <- t(scale(t(am)))
     ComplexHeatmap::Heatmap(am, 
         name = "Expression", top_annotation = ha,
+        show_heatmap_legend = FALSE,
+        show_row_names = FALSE,
         cluster_rows = cluster.rows, cluster_columns = FALSE,
-        row_names_gp = gpar(fontsize = 6))
+        row_names_gp = gpar(fontsize = 6), row_title = "Genes",
+        column_title = "Cells")
 }

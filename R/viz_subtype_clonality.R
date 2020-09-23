@@ -35,7 +35,8 @@ cb.darkgrey <- "#878D92"
 
 #stcols <- c("steelblue", "darkseagreen3", "coral", "firebrick")
 stcols <- c(cb.lightblue, cb.green, cb.orange, cb.pink) 
-names(stcols) <- c("DIF", "IMR", "MES", "PRO")
+bw.stcols <- grey(c(0.8, 0.6, 0.4, 0.2)) 
+names(stcols) <- names(bw.stcols) <- c("DIF", "IMR", "MES", "PRO")
 
 # as from Figure 1b in TCGA OVC paper, Nature 2011
 getCnvGenesFromTCGA <- function(excl = TRUE, build = c("hg19", "hg38"))
@@ -73,16 +74,17 @@ getCnvGenesFromTCGA <- function(excl = TRUE, build = c("hg19", "hg38"))
 }
 
 # @args: gistic ... RangedSummarizedExperiment
-circosSubtypeAssociation <- function(gistic, cnv.genes, bw=FALSE)
+circosSubtypeAssociation <- function(gistic, cnv.genes, bw = FALSE)
 {
     gistic <- as.data.frame(rowRanges(gistic))
     gistic$alterationTypeColor <- ifelse(gistic$type=="Deletion", cb.blue, cb.red)
-    if(bw) 
     if(bw)
     {
-        gistic$alterationTypeColor <- ifelse(gistic$type=="Deletion", gray(0.6), gray(0.1))
-        stcols[c("DIF", "IMR", "MES", "PRO")] <- rev(gray(c(0.2, 0.5, 0.7, 0.9)))
+        gistic$alterationTypeColor <- ifelse(gistic$type=="Deletion", gray(0.8), gray(0.1))
+        stcols <- rev(gray(c(0.1, 0.3, 0.6, 0.9)))
+        names(stcols) <- c("DIF", "IMR", "MES", "PRO")
     }
+    gistic$subtype <- c("PRO", "MES", "DIF", "IMR")[gistic$subtype]
     gistic$subtypeColor <- stcols[gistic$subtype]
     circlize::circos.initializeWithIdeogram(species="hg19", chr=paste0("chr",1:22), plotType=NULL)
     df <- circlize::read.chromInfo(species="hg19")
@@ -153,9 +155,9 @@ circosSubtypeAssociation <- function(gistic, cnv.genes, bw=FALSE)
     circlize::circos.clear()
 
     legend("bottomleft", legend=c("deletion", "amplification"), 
-        col=c(gray(0.6), gray(0.1)), lwd=2, cex=0.6, title="Outer circle")
+        col=c(gray(0.8), gray(0.1)), lwd=2, cex=0.6, title="Outer circle")
 
-    legend("bottomright", legend=c("PRO", "MES", "DIF", "IMR"), 
+    legend("bottomright", legend = names(stcols), 
         col=stcols, lwd=2, cex=0.6, title="Inner circle")
 }
 
@@ -504,11 +506,19 @@ plotNrSamples <- function(gistic, subtypes, absolute)
 plotCorrelation <- function(assoc.score, subcl.score, 
     subtypes=NULL, stcols=NULL, xlim=NULL, lpos="bottomright")
 {
-    par(pch=20)
-    if(is.null(subtypes)) col <- cb.red
-    else col <- stcols[subtypes]
+    if(is.null(subtypes))
+    { 
+        col <- cb.red
+        pch <- 20
+    }
+    else
+    { 
+        col <- stcols[subtypes]
+        pch <- c(20, 15, 17, 8)
+        pch <- pch[subtypes]
+    }
     if(is.null(xlim)) xlim <- c(0, max(assoc.score))
-    plot(assoc.score, subcl.score, col=col, xlim=xlim,
+    plot(assoc.score, subcl.score, col=col, xlim=xlim, pch = pch,
         xlab=expression(paste("Subtype association score ", italic(S[A]))), 
         ylab=expression(paste("Subclonality score ", italic(S[C]))))
     
@@ -521,7 +531,12 @@ plotCorrelation <- function(assoc.score, subcl.score,
     
     legend("topright", legend=c(rho, p))
     if(!is.null(subtypes))
-        legend(lpos, legend=names(stcols), col=stcols, lwd=2)
+    {
+        ind <- order(names(stcols))
+        stcols <- stcols[ind]
+        pch <- c(20, 15, 17, 8)
+        legend(lpos, legend=names(stcols), col=stcols, pch = pch[ind])
+    }
 
     abline(lm(subcl.score ~ assoc.score), lty=2, col="grey")
 }
@@ -544,12 +559,19 @@ plotNrCNAsPerSubtype <- function(type, subtype, bw = FALSE)
     colnames(m) <- names(stcols)
     m <- m[,order(colSums(m))]
 
-    
-    bp <- barplot(m, col=c(cb.blue, cb.red), border=NA, ylab="#CNAs")
+    col <- if(bw) gray(c(0.8, 0.1)) else c(cb.blue, cb.red)  
+    if(bw)
+    {
+        stcols <- rev(gray(c(0.1, 0.3, 0.6, 0.9)))
+        names(stcols) <- c("DIF", "IMR", "MES", "PRO")
+    }
+    bcol <- stcols[colnames(m)]
+ 
+    bp <- barplot(m, col=col, border=NA, ylab="#CNAs")
     for(i in 1:4) 
         rect( xleft=bp[i]-0.5, ybottom=0, 
                 xright=bp[i]+0.5, ytop=sum(m[,i]), 
-                border=stcols[c(2:4,1)][i], lwd=3)
+                border=bcol[i], lwd=3)
 }
 
 .extractUpper <- function(x)

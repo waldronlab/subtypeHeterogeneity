@@ -1154,7 +1154,7 @@ nr.early <- vapply(early.hgs, function(x) sum(x, na.rm = TRUE), integer(1))
 sum(nr.early)
 ```
 
-```{r}
+```{r, eval = FALSE}
 for(i in seq_along(esets)) colnames(fData(esets[[i]]))[c(1,3)] <- c("PROBEID", "ENTREZID")
 esets <- lapply(esets, EnrichmentBrowser::probe2gene)
 for(i in seq_along(esets)) assay(esets[[i]]) <- EnrichmentBrowser:::.naTreat(assay(esets[[i]]))
@@ -1165,7 +1165,12 @@ for(i in seq_along(esets))
     cst[[i]] <- get.consensus.subtypes(assay(esets[[i]]),
                                        rownames(esets[[i]]))
 }
+saveRDS()
+```
 
+```{r}
+res.file <- file.path(data.dir, "MetaGxOvarian_consensus_subtypes.rds")
+cst <- readRDS(res.file)
 tab <- vapply(c(1:6,8:length(esets)), function(i) table(cst[[i]]$consensusOV.subtypes[stageI.hgs[[i]]]), integer(4))    
 colSums(t(tab))
 ```

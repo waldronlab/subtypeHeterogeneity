@@ -1,11 +1,11 @@
 Package: subtypeHeterogeneity
-Version: 0.99.0
-Date: 2018-12-03
+Version: 1.0.0
+Date: 2020-09-20
 Title: Tumor subclonality of expression-based cancer subtypes 
 Author: Ludwig Geistlinger, Seyhun Oh, Markus Riester, Levi Waldron
 Maintainer: Ludwig Geistlinger <ludwig.geistlinger@sph.cuny.edu>
 Depends: 
-    R(>= 3.5.0), 
+    R(>= 4.0.0), 
     GenomicRanges, 
     SummarizedExperiment,
     SingleCellExperiment
