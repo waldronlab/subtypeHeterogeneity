@@ -1,0 +1,19 @@
+title: "subtypeHeterogeneity"
+
+url: https://waldronlab.io/subtypeHeterogeneity
+
+template:
+  params:
+    bootswatch: flatly
+
+navbar:
+  title: ~
+  type: default
+  left:
+    - text: Workshop
+      href: articles/subtypeHeterogeneity.html
+  right:
+    - icon: fa-github
+      href: https://github.com/waldronlab/subtypeHeterogeneity
+     
+

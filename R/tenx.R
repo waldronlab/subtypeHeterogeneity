@@ -327,7 +327,7 @@ annoCellType <- function(sce)
 #
 facetTumors <- function(sces, col = "subtype", pal = stcols, cont = FALSE, shape = 21)
 {   
-    for(i in seq_along(sces)) sces[[i]][[col]] <- factor(sces[[i]][[col]], 
+    if(!cont) for(i in seq_along(sces)) sces[[i]][[col]] <- factor(sces[[i]][[col]], 
                                                          levels = names(pal)) 
     psces <- lapply(sces, scater::plotTSNE, colour_by = col)
     psces <- lapply(psces, function(p) p$data)
@@ -336,8 +336,9 @@ facetTumors <- function(sces, col = "subtype", pal = stcols, cont = FALSE, shape
     
     colnames(df)[3] <- col
     df <- df[!is.na(df[[col]]),] 
-    p <- ggplot2::ggplot(df, ggplot2::aes_string(x = "X", y = "Y", fill = col, shape = col, color = col)) + 
-            ggplot2::geom_point(alpha = 0.7, size = 0.75) +
+    if(!cont) shape <- col
+    p <- ggplot2::ggplot(df, ggplot2::aes_string(x = "X", y = "Y", fill = col, shape = shape, color = col)) + 
+            ggplot2::geom_point(alpha = 0.7, size = 0.75, shape = shape) +
         ggplot2::facet_wrap(~tumor, nrow=1, ncol=5) +
         ggplot2::xlab("Dimension 1") +
         ggplot2::ylab("Dimension 2") +

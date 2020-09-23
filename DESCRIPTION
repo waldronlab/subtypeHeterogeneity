@@ -44,16 +44,18 @@ Imports:
     scran,
     viridis
 Suggests: 
-    BiocStyle, 
     DropletUtils,
     EnrichmentBrowser,
     RTCGAToolbox,
     curatedTCGAData,
     dplyr,
     knitr, 
-    rmarkdown
+    rmarkdown,
+    pkgdown
 Description: Multi-omic analysis of HGS ovarian cancer subtypes.
 License: Artistic-2.0
+URL: https://waldronlab.github.io/subtypeHeterogeneity
+DockerImage: ludwigg/subtypeheterogeneity:latest
 VignetteBuilder: knitr
 biocViews: CopyNumberVariation, DifferentialExpression, GeneExpression, 
     GenomeWideAssociation, GenomicVariation, SomaticMutation
