@@ -1,4 +1,0 @@
-tenx.R:    gam.pval <- apply(Y, 1, 
-tenx.R:                lo <- gam::lo
-tenx.R:                tmp <- suppressWarnings(gam::gam(z ~ lo(t), data=d))
-tenx.R:    topgenes <- names(sort(gam.pval, decreasing = FALSE))[grid]
