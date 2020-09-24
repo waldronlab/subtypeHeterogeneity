@@ -267,7 +267,7 @@ ggplotSubtypeStrata <- function(x, type=c("gain", "loss"))
 
 plotlyPie <- function(labels, values, colors, out.file=NULL)
 {
-    require(dplyr)
+    requireNamespace(dplyr)
     p <- plotly::plot_ly(
         labels = labels, 
         values = values, 

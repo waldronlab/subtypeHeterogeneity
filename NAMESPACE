@@ -1,21 +1,19 @@
-import("S4Vectors")
-import("GenomicRanges")
-import("SummarizedExperiment")
+import("SingleCellExperiment")
 
 importMethodsFrom("IRanges", extractList, subsetByOverlaps)
 importMethodsFrom("GenomeInfoDb", seqlevels, "seqlevels<-", seqnames)
 importFrom("GenomeInfoDb", orderSeqlevels)
 
-importFrom("grDevices", "col2rgb", "dev.off", "grey", "png", "rgb")
+importFrom("grDevices", "col2rgb", "dev.off", "grey", "gray", "png", "rgb")
 importFrom("graphics", "abline", "axis", "barplot", "boxplot", "legend", "mtext", 
     "par", "plot", "rect", "segments", "symbols", "text")
 importFrom("methods", "as", "is")
-importFrom("stats", "chisq.test", "cor.test", "formula", "lm", "mad", "median", 
+importFrom("stats", "chisq.test", "cor", "cor.test", "formula", "lm", "mad", "median", 
     "model.matrix", "p.adjust", "pchisq", "phyper", "pnorm", "qnorm","quantile", 
-    "rnorm", "runif")
+    "rnorm", "runif", "var")
 importFrom("utils", "available.packages", "browseURL", "capture.output", 
-    "download.file", "data", "memory.limit", "read.csv", "read.delim", 
-    "untar", "unzip", "write.table")
+    "download.file", "data", "head", "memory.limit", "read.csv", "read.delim", 
+    "tail", "untar", "unzip", "write.table")
 
 export( 
     analyzeCancerType,
@@ -46,7 +44,6 @@ export(
     getRecurrentDriverGenes,
     ggplotSubtypeStrata,
     gistic2RSE,
-    gvizRegion,
     mapOVSubtypes,
     margin,
     markerHeatmap,

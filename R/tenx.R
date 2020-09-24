@@ -307,7 +307,8 @@ annoCellType <- function(sce)
                     "Neurons")
     myeloid <- c("Macrophage", "Monocyte", "Macrophages", "Monocytes", "DC",
                     "Erythrocytes", "Neutrophils")
-    lymphocyte <- c("T_cells", "B_cell", "Pre-B_cell_CD34-", "NK_cell", "CD8+ T-cells",                        "CD4+ T-cells", "HSC", "B−cells", "NK cells", "Pro-B_cell_CD34+")
+    lymphocyte <- c("T_cells", "B_cell", "Pre-B_cell_CD34-", "NK_cell", "CD8+ T-cells",
+                    "CD4+ T-cells", "HSC", "B-cells", "NK cells", "Pro-B_cell_CD34+")
     endothelial <- c("Endothelial_cells", "Endothelial cells")
     stromal <- c("Fibroblasts", "Tissue_stem_cells", "Smooth_muscle_cells",
                     "Osteoblasts", "Chondrocytes", "Myocytes", "Fibroblasts", 

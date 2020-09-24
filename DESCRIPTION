@@ -8,14 +8,17 @@ Depends:
     R(>= 4.0.0), 
     SingleCellExperiment
 Imports: 
+    AnnotationDbi,
     AnnotationFilter,
     AnnotationHub,
     Biobase,
+    BiocGenerics,
     BiocParallel,
     ComplexHeatmap,
     EnsDb.Hsapiens.v75,
     GenomicFeatures,
     GenomeInfoDb,
+    GenomicRanges,
     IRanges, 
     RCurl, 
     RaggedExperiment, 
@@ -35,18 +38,19 @@ Imports:
     org.Hs.eg.db,
     readr,
     reshape2,
-    rtracklayer,
     scater,
     scran,
     viridis
 Suggests: 
     DropletUtils,
     EnrichmentBrowser,
+    MetaGxOvarian,
     RTCGAToolbox,
     curatedTCGAData,
     dplyr,
     knitr, 
     rmarkdown,
+    rtracklayer,
     pkgdown
 Description: Multi-omic analysis of HGS ovarian cancer subtypes.
 License: Artistic-2.0
