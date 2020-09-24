@@ -1,14 +1,20 @@
 ---
-title: "Absolute somatic copy number alteration analysis"
-author: Ludwig Geistlinger, Sehyun Oh, and Levi Waldron
-output:
-  BiocStyle::html_document:
-    toc: true
-    toc_depth: 2
 vignette: >
   % \VignetteIndexEntry{Absolute SCNA analysis}
   % \VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output:
+  html_document:
+    mathjax: null   
 ---
+
+# Absolute somatic copy number alteration analysis
+
+```{r, include = FALSE}
+library(knitr)
+opts_chunk$set(out.width = "100%", cache = TRUE)
+options(repos = c(CRAN = 'https://cloud.r-project.org')) 
+```
 
 ```{r style, echo = FALSE}
 suppressPackageStartupMessages({ 
