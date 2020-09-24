@@ -6,8 +6,6 @@ Author: Ludwig Geistlinger, Seyhun Oh, Markus Riester, Levi Waldron
 Maintainer: Ludwig Geistlinger <ludwig.geistlinger@sph.cuny.edu>
 Depends: 
     R(>= 4.0.0), 
-    GenomicRanges, 
-    SummarizedExperiment,
     SingleCellExperiment
 Imports: 
     AnnotationFilter,
@@ -18,8 +16,6 @@ Imports:
     EnsDb.Hsapiens.v75,
     GenomicFeatures,
     GenomeInfoDb,
-    GSEABenchmarkeR, 
-    Gviz,
     IRanges, 
     RCurl, 
     RaggedExperiment, 

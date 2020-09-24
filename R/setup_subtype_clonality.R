@@ -8,7 +8,7 @@
 ############################################################
 
 ## SETUP
-ctypes <- RTCGAToolbox::getFirehoseDatasets()
+ctypes <- TCGAutils::diseaseCodes[,"Study.Abbreviation"]
 
 ## cancer types
 .isSubClonal <- function(x) as.integer(x$Subclonal_HSCN_a1 | x$Subclonal_HSCN_a2)
@@ -56,7 +56,7 @@ ctypes <- RTCGAToolbox::getFirehoseDatasets()
 
 ## GISTIC
 # @returns: a RangedSummarizedExperiment
-gistic2RSE <- function(ctype=RTCGAToolbox::getFirehoseDatasets(), 
+gistic2RSE <- function(ctype=TCGAutils::diseaseCodes[,"Study.Abbreviation"], 
     peak=c("wide", "narrow", "full"), cache=TRUE)
 {
     ctype <- match.arg(ctype)
@@ -65,7 +65,7 @@ gistic2RSE <- function(ctype=RTCGAToolbox::getFirehoseDatasets(),
     
     if(cache)
     {
-        gisticSE <- GSEABenchmarkeR:::.getResourceFromCache(
+        gisticSE <- EnrichmentBrowser:::.getResourceFromCache(
             rname, update.value=NA, ucdir="subtypeHeterogeneity")
         if(!is.null(gisticSE)) return(gisticSE)
     }
@@ -133,7 +133,7 @@ gistic2RSE <- function(ctype=RTCGAToolbox::getFirehoseDatasets(),
     colnames(gisticSE) <- TCGAutils::TCGAbarcode(colnames(gisticSE), sample=TRUE)
     colnames(gisticSE)<- sub("A$", "", colnames(gisticSE))
 
-    GSEABenchmarkeR::cacheResource(gisticSE, rname, ucdir="subtypeHeterogeneity")
+    EnrichmentBrowser:::.cacheResource(gisticSE, rname, ucdir="subtypeHeterogeneity")
 
     return(gisticSE)
 }
@@ -141,7 +141,7 @@ gistic2RSE <- function(ctype=RTCGAToolbox::getFirehoseDatasets(),
 
 ## Broad subtypes
 # @returns: a matrix with sample IDs as rownames and at least a column "cluster"
-getBroadSubtypes <- function(ctype=RTCGAToolbox::getFirehoseDatasets(), 
+getBroadSubtypes <- function(ctype=TCGAutils::diseaseCodes[,"Study.Abbreviation"], 
     clust.alg=c("CNMF", "Consensus_Plus"), cache=TRUE)
 {
     ctype <- match.arg(ctype)
@@ -149,7 +149,7 @@ getBroadSubtypes <- function(ctype=RTCGAToolbox::getFirehoseDatasets(),
     rname <- paste("subtypes", ctype, clust.alg, sep="_")
     if(cache)
     {
-        subtys <- GSEABenchmarkeR:::.getResourceFromCache(
+        subtys <- EnrichmentBrowser:::.getResourceFromCache(
             rname, update.value=NA, ucdir="subtypeHeterogeneity")
         if(!is.null(subtys)) return(subtys)
     }
@@ -179,7 +179,7 @@ getBroadSubtypes <- function(ctype=RTCGAToolbox::getFirehoseDatasets(),
     rownames(subtys) <- subtys[,1]
     subtys <- subtys[,-1] 
     
-    GSEABenchmarkeR::cacheResource(subtys, rname, ucdir="subtypeHeterogeneity")
+    EnrichmentBrowser:::.cacheResource(subtys, rname, ucdir="subtypeHeterogeneity")
     return(subtys)
 }
 
