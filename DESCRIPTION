@@ -49,6 +49,7 @@ Suggests:
     curatedTCGAData,
     dplyr,
     knitr, 
+    pheatmap,
     rmarkdown,
     rtracklayer,
     pkgdown
