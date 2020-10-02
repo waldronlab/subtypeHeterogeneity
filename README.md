@@ -17,13 +17,22 @@ Analysis as documented in this repository was carried out using
 
 **Installation:**
 
-Assuming R and Bioconductor are installed:
+Option 1: Docker
 
-1. Download the code from GitHub using the `Download ZIP` option.
-2. Unzip the downloaded `subtypeHeterogeneity-master.zip`. 
-3. Rename the unzipped directory to `subtypeHeterogeneity`.
-4. Build the package eg. via `R CMD build subtypeHeterogeneity`.
-5. Install the package eg. via `R CMD INSTALL subtypeHeterogeneity_1.0.0.tar.gz`. 
+[Docker image](https://hub.docker.com/repository/docker/ludwigg/enrichomics) 
+that comes with all dependencies already installed
+
+Option 2: Local installation
+
+Assuming [R](https://cran.r-project.org/) and 
+[Bioconductor](https://www.bioconductor.org/install/) 
+are installed:
+
+```
+BiocManager::install("waldronlab/subtypeHeterogeneity",
+                     dependencies = TRUE,
+                     build_vignettes = TRUE)
+```
 
 ## Absolute somatic copy number alteration analysis (Figures 2 and 3)
 
@@ -31,7 +40,8 @@ The code for reproducing Figures 2 and 3 can be found in the
 [vignettes/subtypeHeterogeneity.Rmd](https://github.com/waldronlab/subtypeHeterogeneity/blob/master/vignettes/subtypeHeterogeneity.Rmd) file.
 
 To view the fully rendered HTML document containing literate programming output
-from within R:
+see either [here](https://waldronlab.io/subtypeHeterogeneity/articles/subtypeHeterogeneity.html), 
+or from within your local R installation:
 
 ```
 browseVignettes("subtypeHeterogeneity")

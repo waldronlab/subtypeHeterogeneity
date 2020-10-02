@@ -10,7 +10,7 @@ navbar:
   title: ~
   type: default
   left:
-    - text: Workshop
+    - text: Absolute SCNA analysis
       href: articles/subtypeHeterogeneity.html
   right:
     - icon: fa-github

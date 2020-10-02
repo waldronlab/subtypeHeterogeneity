@@ -61,8 +61,8 @@ names(stcols) <- SUBTYPES
 # Data sources
 
 ## Cancer types
-```{r ctypes, eval = FALSE}
-RTCGAToolbox::getFirehoseDatasets()
+```{r ctypes}
+TCGAutils::diseaseCodes
 ```
 
 ## ABSOLUTE
@@ -1096,8 +1096,6 @@ hn <- sum(tab[3:4,7:10])
 fisher.test(matrix(c(de, he, dn, hn), nrow = 2 ))
 ```
 
-
-
 ## Early-stage ovarian carcinoma study (GSE101108)
 
 Obtain the supplementary file from GEO
@@ -1138,8 +1136,6 @@ table(cst$consensusOV.subtypes[hgsc.ind & stageI.ind])
 table(cst$consensusOV.subtypes[hgsc.ind & stageII.ind])
 cst$rf.probs[hgsc.ind & stageI.ind,]
 ```
-
-## Early-stage ovarian carcinoma study (GSE101108)
 
 ## MetaGxOvarian data collection
 
