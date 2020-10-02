@@ -38,7 +38,7 @@
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 <li>
-  <a href="articles/subtypeHeterogeneity.html">Workshop</a>
+  <a href="articles/subtypeHeterogeneity.html">Absolute SCNA analysis</a>
 </li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
@@ -67,19 +67,18 @@
 <p>Ludwig Geistlinger, Sehyun Oh, Marcel Ramos, Lucas Schiffer, Rebecca S. LaRue, Christine M. Henzler, Sarah A. Munro, Claire Daughters, Andrew C. Nelson, Boris J. Winterhoff, Zenas Chang, Shobhana Talukdar, Mihir Shetty, Sally A. Mullany, Martin Morgan, Giovanni Parmigiani, Michael J. Birrer, Li-Xuan Qin, Markus Riester, Timothy K. Starr and Levi Waldron. <a href="https://doi.org/10.1158/0008-5472.CAN-20-0521">Multi-omic analysis of subtype evolution and heterogeneity in high-grade serous ovarian carcinoma</a>. Cancer Research, 2020. doi: 10.1158/0008-5472.CAN-20-0521.</p>
 <p>Analysis as documented in this repository was carried out using <a href="https://cran.r-project.org/">R-4.0.2</a> and <a href="https://www.bioconductor.org/install/">Bioconductor-3.11</a>.</p>
 <p><strong>Installation:</strong></p>
-<p>Assuming R and Bioconductor are installed:</p>
-<ol>
-<li>Download the code from GitHub using the <code>Download ZIP</code> option.</li>
-<li>Unzip the downloaded <code>subtypeHeterogeneity-master.zip</code>.</li>
-<li>Rename the unzipped directory to <code>subtypeHeterogeneity</code>.</li>
-<li>Build the package eg. via <code>R CMD build subtypeHeterogeneity</code>.</li>
-<li>Install the package eg. via <code>R CMD INSTALL subtypeHeterogeneity_1.0.0.tar.gz</code>.</li>
-</ol>
+<p>Option 1: Docker</p>
+<p><a href="https://hub.docker.com/repository/docker/ludwigg/enrichomics">Docker image</a> that comes with all dependencies already installed</p>
+<p>Option 2: Local installation</p>
+<p>Assuming <a href="https://cran.r-project.org/">R</a> and <a href="https://www.bioconductor.org/install/">Bioconductor</a> are installed:</p>
+<pre><code><a href="https://rdrr.io/pkg/BiocManager/man/install.html">BiocManager::install("waldronlab/subtypeHeterogeneity",
+                     dependencies = TRUE,
+                     build_vignettes = TRUE)</a></code></pre>
 <div id="absolute-somatic-copy-number-alteration-analysis-figures-2-and-3" class="section level2">
 <h2 class="hasAnchor">
 <a href="#absolute-somatic-copy-number-alteration-analysis-figures-2-and-3" class="anchor"></a>Absolute somatic copy number alteration analysis (Figures 2 and 3)</h2>
 <p>The code for reproducing Figures 2 and 3 can be found in the <a href="https://github.com/waldronlab/subtypeHeterogeneity/blob/master/vignettes/subtypeHeterogeneity.Rmd">vignettes/subtypeHeterogeneity.Rmd</a> file.</p>
-<p>To view the fully rendered HTML document containing literate programming output from within R:</p>
+<p>To view the fully rendered HTML document containing literate programming output see either <a href="https://waldronlab.io/subtypeHeterogeneity/articles/subtypeHeterogeneity.html">here</a>, or from within your local R installation:</p>
 <pre><code><a href="https://rdrr.io/r/utils/browseVignettes.html">browseVignettes("subtypeHeterogeneity")</a></code></pre>
 <p>and select the <code>Absolute SCNA analysis</code> HTML vignette.</p>
 </div>

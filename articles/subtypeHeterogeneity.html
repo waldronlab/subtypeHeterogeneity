@@ -38,7 +38,7 @@
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 <li>
-  <a href="../articles/subtypeHeterogeneity.html">Workshop</a>
+  <a href="../articles/subtypeHeterogeneity.html">Absolute SCNA analysis</a>
 </li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
@@ -109,12 +109,88 @@
 <h2 class="hasAnchor">
 <a href="#cancer-types" class="anchor"></a>Cancer types</h2>
 <div class="sourceCode" id="cb3"><pre class="downlit">
-<span class="fu">RTCGAToolbox</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/RTCGAToolbox/man/getFirehoseDatasets.html">getFirehoseDatasets</a></span><span class="op">(</span><span class="op">)</span></pre></div>
+<span class="fu">TCGAutils</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/TCGAutils/man/diseaseCodes.html">diseaseCodes</a></span></pre></div>
+<pre><code>##    Study.Abbreviation Available SubtypeData
+## 1                 ACC       Yes         Yes
+## 2                BLCA       Yes         Yes
+## 3                BRCA       Yes         Yes
+## 4                CESC       Yes          No
+## 5                CHOL       Yes          No
+## 6                CNTL        No          No
+## 7                COAD       Yes         Yes
+## 8                DLBC       Yes          No
+## 9                ESCA       Yes          No
+## 10               FPPP        No          No
+## 11                GBM       Yes         Yes
+## 12               HNSC       Yes         Yes
+## 13               KICH       Yes         Yes
+## 14               KIRC       Yes         Yes
+## 15               KIRP       Yes         Yes
+## 16               LAML       Yes         Yes
+## 17               LCML        No          No
+## 18                LGG       Yes         Yes
+## 19               LIHC       Yes          No
+## 20               LUAD       Yes         Yes
+## 21               LUSC       Yes         Yes
+## 22               MESO       Yes          No
+## 23               MISC        No          No
+## 24                 OV       Yes         Yes
+## 25               PAAD       Yes          No
+## 26               PCPG       Yes          No
+## 27               PRAD       Yes         Yes
+## 28               READ       Yes          No
+## 29               SARC       Yes          No
+## 30               SKCM       Yes         Yes
+## 31               STAD       Yes         Yes
+## 32               TGCT       Yes          No
+## 33               THCA       Yes         Yes
+## 34               THYM       Yes          No
+## 35               UCEC       Yes         Yes
+## 36                UCS       Yes          No
+## 37                UVM       Yes          No
+##                                                          Study.Name
+## 1                                          Adrenocortical carcinoma
+## 2                                      Bladder Urothelial Carcinoma
+## 3                                         Breast invasive carcinoma
+## 4  Cervical squamous cell carcinoma and endocervical adenocarcinoma
+## 5                                                Cholangiocarcinoma
+## 6                                                          Controls
+## 7                                              Colon adenocarcinoma
+## 8                   Lymphoid Neoplasm Diffuse Large B-cell Lymphoma
+## 9                                              Esophageal carcinoma
+## 10                                              FFPE Pilot Phase II
+## 11                                          Glioblastoma multiforme
+## 12                            Head and Neck squamous cell carcinoma
+## 13                                               Kidney Chromophobe
+## 14                                Kidney renal clear cell carcinoma
+## 15                            Kidney renal papillary cell carcinoma
+## 16                                           Acute Myeloid Leukemia
+## 17                                     Chronic Myelogenous Leukemia
+## 18                                         Brain Lower Grade Glioma
+## 19                                   Liver hepatocellular carcinoma
+## 20                                              Lung adenocarcinoma
+## 21                                     Lung squamous cell carcinoma
+## 22                                                     Mesothelioma
+## 23                                                    Miscellaneous
+## 24                                Ovarian serous cystadenocarcinoma
+## 25                                        Pancreatic adenocarcinoma
+## 26                               Pheochromocytoma and Paraganglioma
+## 27                                          Prostate adenocarcinoma
+## 28                                            Rectum adenocarcinoma
+## 29                                                          Sarcoma
+## 30                                          Skin Cutaneous Melanoma
+## 31                                           Stomach adenocarcinoma
+## 32                                      Testicular Germ Cell Tumors
+## 33                                                Thyroid carcinoma
+## 34                                                          Thymoma
+## 35                             Uterine Corpus Endometrial Carcinoma
+## 36                                           Uterine Carcinosarcoma
+## 37                                                   Uveal Melanoma</code></pre>
 </div>
 <div id="absolute" class="section level2">
 <h2 class="hasAnchor">
 <a href="#absolute" class="anchor"></a>ABSOLUTE</h2>
-<div class="sourceCode" id="cb4"><pre class="downlit">
+<div class="sourceCode" id="cb5"><pre class="downlit">
 <span class="va">data.dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, package<span class="op">=</span><span class="st">"subtypeHeterogeneity"</span><span class="op">)</span> 
 <span class="va">absFile</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"ABSOLUTE_grangeslist.rds"</span><span class="op">)</span>
 <span class="va">absGRL</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="va">absFile</span><span class="op">)</span> 
@@ -144,7 +220,7 @@
 <div id="gistic2" class="section level2">
 <h2 class="hasAnchor">
 <a href="#gistic2" class="anchor"></a>GISTIC2</h2>
-<div class="sourceCode" id="cb6"><pre class="downlit">
+<div class="sourceCode" id="cb7"><pre class="downlit">
 <span class="va">gisticOV</span> <span class="op">&lt;-</span> <span class="fu">gistic2RSE</span><span class="op">(</span>ctype<span class="op">=</span><span class="st">"OV"</span>, peak<span class="op">=</span><span class="st">"wide"</span><span class="op">)</span>
 <span class="va">gisticOV</span></pre></div>
 <pre><code>## class: RangedSummarizedExperiment 
@@ -156,7 +232,7 @@
 ## colnames(579): TCGA-04-1331-01 TCGA-04-1332-01 ... TCGA-VG-A8LO-01
 ##   TCGA-WR-A838-01
 ## colData names(0):</code></pre>
-<div class="sourceCode" id="cb8"><pre class="downlit">
+<div class="sourceCode" id="cb9"><pre class="downlit">
 <span class="fu">rowRanges</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span></pre></div>
 <pre><code>## GRanges object with 70 ranges and 1 metadata column:
 ##        seqnames              ranges strand |          type
@@ -174,7 +250,7 @@
 ##   [70]    chr22   48668761-51304566      * |      Deletion
 ##   -------
 ##   seqinfo: 23 sequences from an unspecified genome; no seqlengths</code></pre>
-<div class="sourceCode" id="cb10"><pre class="downlit">
+<div class="sourceCode" id="cb11"><pre class="downlit">
 <span class="fu">assay</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></pre></div>
 <pre><code>##      TCGA-04-1331-01 TCGA-04-1332-01 TCGA-04-1335-01 TCGA-04-1336-01
 ## [1,]               1               0               1               0
@@ -195,11 +271,11 @@
 <div id="broad-subtypes" class="section level3">
 <h3 class="hasAnchor">
 <a href="#broad-subtypes" class="anchor"></a>Broad subtypes</h3>
-<div class="sourceCode" id="cb12"><pre class="downlit">
+<div class="sourceCode" id="cb13"><pre class="downlit">
 <span class="va">ovsubs</span> <span class="op">&lt;-</span> <span class="fu">getBroadSubtypes</span><span class="op">(</span>ctype<span class="op">=</span><span class="st">"OV"</span>, clust.alg<span class="op">=</span><span class="st">"CNMF"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">ovsubs</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 569   2</code></pre>
-<div class="sourceCode" id="cb14"><pre class="downlit">
+<div class="sourceCode" id="cb15"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">ovsubs</span><span class="op">)</span></pre></div>
 <pre><code>##                 cluster silhouetteValue
 ## TCGA-04-1331-01       1      0.07993633
@@ -208,7 +284,7 @@
 ## TCGA-04-1347-01       1      0.02585325
 ## TCGA-04-1350-01       1      0.26985422
 ## TCGA-04-1351-01       1      0.26021068</code></pre>
-<div class="sourceCode" id="cb16"><pre class="downlit">
+<div class="sourceCode" id="cb17"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">ovsubs</span><span class="op">[</span>,<span class="st">"cluster"</span><span class="op">]</span><span class="op">)</span></pre></div>
 <pre><code>## 
 ##   1   2   3   4 
@@ -217,7 +293,7 @@
 <div id="ov-subtypes-from-different-studies" class="section level3">
 <h3 class="hasAnchor">
 <a href="#ov-subtypes-from-different-studies" class="anchor"></a>OV subtypes from different studies</h3>
-<div class="sourceCode" id="cb18"><pre class="downlit">
+<div class="sourceCode" id="cb19"><pre class="downlit">
 <span class="va">pooled.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"pooled_subtypes.rds"</span><span class="op">)</span>
 <span class="va">pooled.subs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="va">pooled.file</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">pooled.subs</span><span class="op">[</span>,<span class="st">"data.source"</span><span class="op">]</span><span class="op">)</span></pre></div>
@@ -228,7 +304,7 @@
 ##          174          128          122           78          139           56 
 ##         TCGA 
 ##          448</code></pre>
-<div class="sourceCode" id="cb20"><pre class="downlit">
+<div class="sourceCode" id="cb21"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">pooled.subs</span><span class="op">[</span>,<span class="st">"Verhaak"</span><span class="op">]</span><span class="op">)</span>  </pre></div>
 <pre><code>## 
 ## IMR DIF PRO MES 
@@ -237,7 +313,7 @@
 <div id="tcga-subtype-consistency" class="section level3">
 <h3 class="hasAnchor">
 <a href="#tcga-subtype-consistency" class="anchor"></a>TCGA subtype consistency</h3>
-<div class="sourceCode" id="cb22"><pre class="downlit">
+<div class="sourceCode" id="cb23"><pre class="downlit">
 <span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu">mapOVSubtypes</span><span class="op">(</span><span class="va">ovsubs</span>, <span class="va">pooled.subs</span><span class="op">)</span>
 <span class="va">tab</span></pre></div>
 <pre><code>##      1  2  3  4
@@ -245,18 +321,18 @@
 ## DIF 26  5 66 16
 ## PRO 85  5  7  3
 ## MES 11 62  7  1</code></pre>
-<div class="sourceCode" id="cb24"><pre class="downlit">
+<div class="sourceCode" id="cb25"><pre class="downlit">
 <span class="op">(</span><span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html">sort</a></span><span class="op">(</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">tab</span>, <span class="fl">1</span>, <span class="va">which.max</span><span class="op">)</span> <span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>## PRO MES DIF IMR 
 ##   1   2   3   4</code></pre>
-<div class="sourceCode" id="cb26"><pre class="downlit">
+<div class="sourceCode" id="cb27"><pre class="downlit">
 <span class="va">sts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">ind</span><span class="op">)</span><span class="op">[</span><span class="va">ovsubs</span><span class="op">[</span>,<span class="st">"cluster"</span><span class="op">]</span><span class="op">]</span>
 <span class="va">ovsubs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">ovsubs</span>, subtype<span class="op">=</span><span class="va">sts</span>, stringsAsFactors<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></pre></div>
 </div>
 <div id="subtype-purity-ploidy" class="section level3">
 <h3 class="hasAnchor">
 <a href="#subtype-purity-ploidy" class="anchor"></a>Subtype purity &amp; ploidy</h3>
-<div class="sourceCode" id="cb27"><pre class="downlit">
+<div class="sourceCode" id="cb28"><pre class="downlit">
 <span class="va">pp.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"ABSOLUTE_Purity_Ploidy.rds"</span><span class="op">)</span>
 <span class="va">puri.ploi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="va">pp.file</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">puri.ploi</span><span class="op">)</span></pre></div>
@@ -267,11 +343,11 @@
 ## TCGA-04-1347-01   0.94   4.29                2                      0.46
 ## TCGA-04-1350-01   0.99   3.04                1                        NA
 ## TCGA-04-1351-01   0.72   4.37                2                        NA</code></pre>
-<div class="sourceCode" id="cb29"><pre class="downlit">
+<div class="sourceCode" id="cb30"><pre class="downlit">
 <span class="fu">plotSubtypePurityPloidy</span><span class="op">(</span><span class="va">ovsubs</span>, <span class="va">puri.ploi</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/plotPP-1.png" width="100%"></p>
 <p>Assessing the significance of differences between subtypes:</p>
-<div class="sourceCode" id="cb30"><pre class="downlit">
+<div class="sourceCode" id="cb31"><pre class="downlit">
 <span class="va">cids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html">intersect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">ovsubs</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">puri.ploi</span><span class="op">)</span><span class="op">)</span>
 <span class="va">subtys</span> <span class="op">&lt;-</span> <span class="va">ovsubs</span><span class="op">[</span><span class="va">cids</span>, <span class="st">"cluster"</span><span class="op">]</span>
 <span class="va">subtys</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">stcols</span><span class="op">)</span><span class="op">[</span><span class="va">subtys</span><span class="op">]</span>
@@ -284,7 +360,7 @@
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 7 observations deleted due to missingness</code></pre>
-<div class="sourceCode" id="cb32"><pre class="downlit">
+<div class="sourceCode" id="cb33"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/aov.html">aov</a></span><span class="op">(</span><span class="va">ploidy</span> <span class="op">~</span> <span class="va">subtype</span>, 
             <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>ploidy<span class="op">=</span><span class="va">pp</span><span class="op">[</span>,<span class="st">"ploidy"</span><span class="op">]</span>, subtype<span class="op">=</span><span class="va">subtys</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>##              Df Sum Sq Mean Sq F value Pr(&gt;F)   
@@ -293,7 +369,7 @@
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 7 observations deleted due to missingness</code></pre>
-<div class="sourceCode" id="cb34"><pre class="downlit">
+<div class="sourceCode" id="cb35"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/aov.html">aov</a></span><span class="op">(</span><span class="va">subcl</span> <span class="op">~</span> <span class="va">subtype</span>, 
             <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>subcl<span class="op">=</span><span class="va">pp</span><span class="op">[</span>,<span class="st">"Subclonal.genome.fraction"</span><span class="op">]</span>, subtype<span class="op">=</span><span class="va">subtys</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>##              Df Sum Sq Mean Sq F value Pr(&gt;F)   
@@ -302,7 +378,7 @@
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 153 observations deleted due to missingness</code></pre>
-<div class="sourceCode" id="cb36"><pre class="downlit">
+<div class="sourceCode" id="cb37"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/stats/chisq.test.html">chisq.test</a></span><span class="op">(</span><span class="va">pp</span><span class="op">[</span>,<span class="st">"Genome.doublings"</span><span class="op">]</span>, <span class="va">subtys</span><span class="op">)</span></pre></div>
 <pre><code>## 
 ##  Pearson's Chi-squared test
@@ -310,12 +386,12 @@
 ## data:  pp[, "Genome.doublings"] and subtys
 ## X-squared = 28.319, df = 6, p-value = 8.182e-05</code></pre>
 <p>Stratifying by purity:</p>
-<div class="sourceCode" id="cb38"><pre class="downlit">
+<div class="sourceCode" id="cb39"><pre class="downlit">
 <span class="va">sebin</span> <span class="op">&lt;-</span> <span class="fu">stratifyByPurity</span><span class="op">(</span><span class="va">ovsubs</span>, <span class="va">puri.ploi</span>, method<span class="op">=</span><span class="st">"equal.bin"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/lengths.html">lengths</a></span><span class="op">(</span><span class="va">sebin</span><span class="op">)</span></pre></div>
 <pre><code>## (0.209,0.368] (0.368,0.526] (0.526,0.684] (0.684,0.842]     (0.842,1] 
 ##             4            36            79           199           197</code></pre>
-<div class="sourceCode" id="cb40"><pre class="downlit">
+<div class="sourceCode" id="cb41"><pre class="downlit">
 <span class="va">squint</span> <span class="op">&lt;-</span> <span class="fu">stratifyByPurity</span><span class="op">(</span><span class="va">ovsubs</span>, <span class="va">puri.ploi</span>, method<span class="op">=</span><span class="st">"quintile"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/lengths.html">lengths</a></span><span class="op">(</span><span class="va">squint</span><span class="op">)</span></pre></div>
 <pre><code>## (0.21,0.658] (0.658,0.77]  (0.77,0.84]   (0.84,0.9]      (0.9,1] 
@@ -326,37 +402,37 @@
 <div id="subtype-association" class="section level1">
 <h1 class="hasAnchor">
 <a href="#subtype-association" class="anchor"></a>Subtype association</h1>
-<div class="sourceCode" id="cb42"><pre class="downlit">
+<div class="sourceCode" id="cb43"><pre class="downlit">
 <span class="va">pvals</span> <span class="op">&lt;-</span> <span class="fu">testSubtypes</span><span class="op">(</span><span class="va">gisticOV</span>, <span class="va">ovsubs</span>, padj.method<span class="op">=</span><span class="st">"none"</span><span class="op">)</span>
 <span class="va">adj.pvals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/p.adjust.html">p.adjust</a></span><span class="op">(</span><span class="va">pvals</span>, method<span class="op">=</span><span class="st">"BH"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">adj.pvals</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 70</code></pre>
-<div class="sourceCode" id="cb44"><pre class="downlit">
+<div class="sourceCode" id="cb45"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">adj.pvals</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 0.80025111 0.14279265 0.11317350 0.90288094 0.03365597 0.45058975</code></pre>
-<div class="sourceCode" id="cb46"><pre class="downlit">
+<div class="sourceCode" id="cb47"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">adj.pvals</span> <span class="op">&lt;</span> <span class="fl">0.1</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 35</code></pre>
-<div class="sourceCode" id="cb48"><pre class="downlit">
+<div class="sourceCode" id="cb49"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/graphics/hist.html">hist</a></span><span class="op">(</span><span class="va">pvals</span>, breaks<span class="op">=</span><span class="fl">25</span>, col<span class="op">=</span><span class="st">"firebrick"</span>,
         xlab<span class="op">=</span><span class="st">"Subtype association p-value"</span>, main<span class="op">=</span><span class="st">""</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/plotAssoc-1.png" width="100%"></p>
 <div id="genomic-distribution-of-subtype-associated-cnas" class="section level2">
 <h2 class="hasAnchor">
 <a href="#genomic-distribution-of-subtype-associated-cnas" class="anchor"></a>Genomic distribution of subtype-associated CNAs</h2>
-<div class="sourceCode" id="cb49"><pre class="downlit">
-<span class="va">cnv.genes</span> <span class="op">&lt;-</span> <span class="fu">getCnvGenesFromTCGA</span><span class="op">(</span><span class="op">)</span></pre></div>
 <div class="sourceCode" id="cb50"><pre class="downlit">
+<span class="va">cnv.genes</span> <span class="op">&lt;-</span> <span class="fu">getCnvGenesFromTCGA</span><span class="op">(</span><span class="op">)</span></pre></div>
+<div class="sourceCode" id="cb51"><pre class="downlit">
 <span class="va">sig.ind</span> <span class="op">&lt;-</span> <span class="va">adj.pvals</span> <span class="op">&lt;</span> <span class="fl">0.1</span>
 <span class="fu">mcols</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span><span class="op">$</span><span class="va">subtype</span> <span class="op">&lt;-</span> <span class="fu">testSubtypes</span><span class="op">(</span><span class="va">gisticOV</span>, <span class="va">ovsubs</span>, what<span class="op">=</span><span class="st">"subtype"</span><span class="op">)</span>
 <span class="fu">mcols</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span><span class="op">$</span><span class="va">significance</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">sig.ind</span>, <span class="st">"*"</span>, <span class="st">""</span><span class="op">)</span>
 <span class="fu">circosSubtypeAssociation</span><span class="op">(</span><span class="va">gisticOV</span>, <span class="va">cnv.genes</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/circosSubAssoc-1.png" width="100%"></p>
-<div class="sourceCode" id="cb51"><pre class="downlit">
+<div class="sourceCode" id="cb52"><pre class="downlit">
 <span class="fu">plotNrCNAsPerSubtype</span><span class="op">(</span><span class="fu">mcols</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span><span class="op">$</span><span class="va">type</span><span class="op">[</span><span class="va">sig.ind</span><span class="op">]</span>, <span class="fu">mcols</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span><span class="op">$</span><span class="va">subtype</span><span class="op">[</span><span class="va">sig.ind</span><span class="op">]</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/cnaPerSubtype-1.png" width="100%"></p>
 <p>Annotate cytogenetic bands:</p>
-<div class="sourceCode" id="cb52"><pre class="downlit">
+<div class="sourceCode" id="cb53"><pre class="downlit">
 <span class="va">bands.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"cytoBand_hg19.txt"</span><span class="op">)</span>
 <span class="va">cbands</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.delim</a></span><span class="op">(</span><span class="va">bands.file</span>, header<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span>
 <span class="va">cbands</span> <span class="op">&lt;-</span> <span class="va">cbands</span><span class="op">[</span>,<span class="op">-</span><span class="fl">5</span><span class="op">]</span>
@@ -381,7 +457,7 @@
 ##   [862]     chrY 28800000-59373566      * |        Yq12
 ##   -------
 ##   seqinfo: 24 sequences from hg19 genome; no seqlengths</code></pre>
-<div class="sourceCode" id="cb54"><pre class="downlit">
+<div class="sourceCode" id="cb55"><pre class="downlit">
 <span class="va">gisticOV</span> <span class="op">&lt;-</span> <span class="fu">annotateCytoBands</span><span class="op">(</span><span class="va">gisticOV</span>, <span class="va">cbands</span><span class="op">)</span>
 <span class="fu">mcols</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span></pre></div>
 <pre><code>## DataFrame with 70 rows and 4 columns
@@ -398,7 +474,7 @@
 ## 68       Deletion         1                  21q22.3
 ## 69  Amplification         4                  22q12.2
 ## 70       Deletion         1            *    22q13.33</code></pre>
-<div class="sourceCode" id="cb56"><pre class="downlit">
+<div class="sourceCode" id="cb57"><pre class="downlit">
 <span class="va">coocc</span> <span class="op">&lt;-</span> <span class="fu">analyzeCooccurence</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span> 
 <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">coocc</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu">mcols</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span><span class="op">$</span><span class="va">band</span>
 <span class="fu">ComplexHeatmap</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/ComplexHeatmap/man/Heatmap.html">Heatmap</a></span><span class="op">(</span><span class="va">coocc</span>, show_row_names<span class="op">=</span><span class="cn">TRUE</span>, show_column_names<span class="op">=</span><span class="cn">FALSE</span>, 
@@ -413,7 +489,7 @@
 <div id="match-subtyped-samples-and-absolute-samples" class="section level2">
 <h2 class="hasAnchor">
 <a href="#match-subtyped-samples-and-absolute-samples" class="anchor"></a>Match subtyped samples and ABSOLUTE samples</h2>
-<div class="sourceCode" id="cb57"><pre class="downlit">
+<div class="sourceCode" id="cb58"><pre class="downlit">
 <span class="va">raOV</span> <span class="op">&lt;-</span> <span class="fu">getMatchedAbsoluteCalls</span><span class="op">(</span><span class="va">absGRL</span>, <span class="va">ovsubs</span><span class="op">)</span>
 <span class="va">raOV</span></pre></div>
 <pre><code>## class: RaggedExperiment 
@@ -423,7 +499,7 @@
 ## colnames(516): TCGA-04-1331-01 TCGA-04-1341-01 ... TCGA-61-2094-01
 ##   TCGA-61-2104-01
 ## colData names(3): cluster silhouetteValue subtype</code></pre>
-<div class="sourceCode" id="cb59"><pre class="downlit">
+<div class="sourceCode" id="cb60"><pre class="downlit">
 <span class="fu">rowRanges</span><span class="op">(</span><span class="va">raOV</span><span class="op">)</span></pre></div>
 <pre><code>## GRanges object with 76062 ranges and 0 metadata columns:
 ##           seqnames              ranges strand
@@ -445,11 +521,11 @@
 <div id="summarize-subclonality-of-absolute-calls-in-gistic-regions" class="section level2">
 <h2 class="hasAnchor">
 <a href="#summarize-subclonality-of-absolute-calls-in-gistic-regions" class="anchor"></a>Summarize subclonality of ABSOLUTE calls in GISTIC regions</h2>
-<div class="sourceCode" id="cb61"><pre class="downlit">
+<div class="sourceCode" id="cb62"><pre class="downlit">
 <span class="va">subcl.gisticOV</span> <span class="op">&lt;-</span> <span class="fu">querySubclonality</span><span class="op">(</span><span class="va">raOV</span>, query<span class="op">=</span><span class="fu">rowRanges</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span>, sum.method<span class="op">=</span><span class="st">"any"</span>, ext<span class="op">=</span><span class="fl">500000</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">subcl.gisticOV</span><span class="op">)</span></pre></div>
 <pre><code>## [1]  70 516</code></pre>
-<div class="sourceCode" id="cb63"><pre class="downlit">
+<div class="sourceCode" id="cb64"><pre class="downlit">
 <span class="va">subcl.gisticOV</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></pre></div>
 <pre><code>##                          TCGA-04-1331-01 TCGA-04-1341-01 TCGA-04-1342-01
 ## chr1:26463410-28070286                 0               0              NA
@@ -468,7 +544,7 @@
 <h2 class="hasAnchor">
 <a href="#subclonality-score" class="anchor"></a>Subclonality score</h2>
 <p>Def: Fraction of samples in which a mutation is subclonal.</p>
-<div class="sourceCode" id="cb65"><pre class="downlit">
+<div class="sourceCode" id="cb66"><pre class="downlit">
 <span class="va">subcl.score</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">rowMeans</a></span><span class="op">(</span><span class="va">subcl.gisticOV</span>, na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">subcl.score</span><span class="op">)</span></pre></div>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -477,21 +553,21 @@
 <div id="correlation-subtype-association-score-and-subclonality-score" class="section level2">
 <h2 class="hasAnchor">
 <a href="#correlation-subtype-association-score-and-subclonality-score" class="anchor"></a>Correlation: subtype-association score and subclonality score</h2>
-<div class="sourceCode" id="cb67"><pre class="downlit">
+<div class="sourceCode" id="cb68"><pre class="downlit">
 <span class="va">assoc.score</span> <span class="op">&lt;-</span> <span class="fu">testSubtypes</span><span class="op">(</span><span class="va">gisticOV</span>, <span class="va">ovsubs</span>, what<span class="op">=</span><span class="st">"statistic"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="va">assoc.score</span>, <span class="va">subcl.score</span>, method<span class="op">=</span><span class="st">"spearman"</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 0.3097017</code></pre>
-<div class="sourceCode" id="cb69"><pre class="downlit">
+<div class="sourceCode" id="cb70"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/stats/cor.test.html">cor.test</a></span><span class="op">(</span><span class="va">assoc.score</span>, <span class="va">subcl.score</span>, method<span class="op">=</span><span class="st">"spearman"</span>, exact<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span><span class="op">$</span><span class="va">p.value</span></pre></div>
 <pre><code>## [1] 0.009081272</code></pre>
 <p>Permutation test:</p>
-<div class="sourceCode" id="cb71"><pre class="downlit">
+<div class="sourceCode" id="cb72"><pre class="downlit">
 <span class="va">obs.cor</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="va">assoc.score</span>, <span class="va">subcl.score</span>, method<span class="op">=</span><span class="st">"spearman"</span><span class="op">)</span>
 <span class="va">perm.cor</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">replicate</a></span><span class="op">(</span><span class="fl">1000</span>, 
     <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="va">assoc.score</span><span class="op">)</span>, <span class="va">subcl.score</span>, method<span class="op">=</span><span class="st">"spearman"</span><span class="op">)</span><span class="op">)</span>
 <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">perm.cor</span> <span class="op">&gt;=</span> <span class="va">obs.cor</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1000</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 0.001998002</code></pre>
-<div class="sourceCode" id="cb73"><pre class="downlit">
+<div class="sourceCode" id="cb74"><pre class="downlit">
 <span class="fu">plotCorrelation</span><span class="op">(</span><span class="va">assoc.score</span>, <span class="va">subcl.score</span>, 
     subtypes<span class="op">=</span><span class="fu">mcols</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span><span class="op">$</span><span class="va">subtype</span>, stcols<span class="op">=</span><span class="va">stcols</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>,<span class="fl">3</span>,<span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/text.html">text</a></span><span class="op">(</span>x<span class="op">=</span><span class="fl">52.8</span>, y<span class="op">=</span><span class="fl">0.46</span>, <span class="st">"20q11.21\n(BCL2L1)"</span>, pos<span class="op">=</span><span class="fl">2</span><span class="op">)</span>
@@ -508,21 +584,21 @@
 <div id="purity-stratified-analysis" class="section level3">
 <h3 class="hasAnchor">
 <a href="#purity-stratified-analysis" class="anchor"></a>Purity-stratified analysis</h3>
-<div class="sourceCode" id="cb74"><pre class="downlit">
+<div class="sourceCode" id="cb75"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">squint</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ids</span><span class="op">)</span> <span class="fu">analyzeStrata</span><span class="op">(</span><span class="va">ids</span>, <span class="va">absGRL</span>, <span class="va">gisticOV</span>, <span class="va">ovsubs</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>## (0.21,0.658] (0.658,0.77]  (0.77,0.84]   (0.84,0.9]      (0.9,1] 
 ##    0.2804451    0.3909148    0.1793591    0.2038877    0.2316690</code></pre>
-<div class="sourceCode" id="cb76"><pre class="downlit">
+<div class="sourceCode" id="cb77"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">sebin</span><span class="op">[</span><span class="op">-</span><span class="fl">1</span><span class="op">]</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ids</span><span class="op">)</span> <span class="fu">analyzeStrata</span><span class="op">(</span><span class="va">ids</span>, <span class="va">absGRL</span>, <span class="va">gisticOV</span>, <span class="va">ovsubs</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>## (0.368,0.526] (0.526,0.684] (0.684,0.842]     (0.842,1] 
 ##     0.2298369     0.1667571     0.2469272     0.3788186</code></pre>
-<div class="sourceCode" id="cb78"><pre class="downlit">
+<div class="sourceCode" id="cb79"><pre class="downlit">
 <span class="fu">plotPurityStrata</span><span class="op">(</span><span class="va">puri.ploi</span>, <span class="va">ovsubs</span>, <span class="va">gisticOV</span>, <span class="va">absGRL</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/plotPurStrat-1.png" width="100%"></p>
-<div class="sourceCode" id="cb79"><pre class="downlit">
+<div class="sourceCode" id="cb80"><pre class="downlit">
 <span class="fu">plotPurityStrata</span><span class="op">(</span><span class="va">puri.ploi</span>, <span class="va">ovsubs</span>, <span class="va">gisticOV</span>, <span class="va">absGRL</span>, method<span class="op">=</span><span class="st">"quintile"</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/plotPurStrat-2.png" width="100%"></p>
-<div class="sourceCode" id="cb80"><pre class="downlit">
+<div class="sourceCode" id="cb81"><pre class="downlit">
 <span class="fu">rowRanges</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span><span class="op">$</span><span class="va">adj.pval</span> <span class="op">&lt;-</span> <span class="va">adj.pvals</span>
 <span class="fu">rowRanges</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span><span class="op">$</span><span class="va">subcl</span> <span class="op">&lt;-</span> <span class="va">subcl.score</span> </pre></div>
 </div>
@@ -533,7 +609,7 @@
 <div id="read-and-order" class="section level3">
 <h3 class="hasAnchor">
 <a href="#read-and-order" class="anchor"></a>Read and order</h3>
-<div class="sourceCode" id="cb81"><pre class="downlit">
+<div class="sourceCode" id="cb82"><pre class="downlit">
 <span class="va">ppp.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"PureCN_Purity_Ploidy.txt"</span><span class="op">)</span>
 <span class="va">puriploi.pcn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.table</a></span><span class="op">(</span><span class="va">ppp.file</span><span class="op">)</span> 
 <span class="va">puriploi.pcn</span> <span class="op">&lt;-</span> <span class="va">puriploi.pcn</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/duplicated.html">duplicated</a></span><span class="op">(</span><span class="va">puriploi.pcn</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">)</span>,<span class="op">]</span>
@@ -559,10 +635,10 @@
 ## TCGA-61-2012-01       0.59   2.868254        0.59    2.864081
 ## TCGA-13-0751-01       0.92   2.808227          NA          NA
 ## TCGA-23-2078-01       0.59   1.944129        0.59    1.995981</code></pre>
-<div class="sourceCode" id="cb83"><pre class="downlit">
+<div class="sourceCode" id="cb84"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="va">puriploi.pcn</span><span class="op">[</span>,<span class="st">"purity"</span><span class="op">]</span>, <span class="va">puriploi.pcn</span><span class="op">[</span>,<span class="st">"Purity_wes"</span><span class="op">]</span>, use<span class="op">=</span><span class="st">"complete.obs"</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 0.7684567</code></pre>
-<div class="sourceCode" id="cb85"><pre class="downlit">
+<div class="sourceCode" id="cb86"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="va">puriploi.pcn</span><span class="op">[</span>,<span class="st">"Purity_wes"</span><span class="op">]</span>, <span class="va">puriploi.pcn</span><span class="op">[</span>,<span class="st">"Purity_snp6"</span><span class="op">]</span>, use<span class="op">=</span><span class="st">"complete.obs"</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 0.8265775</code></pre>
 </div>
@@ -570,7 +646,7 @@
 <h3 class="hasAnchor">
 <a href="#cn-concordance-with-absolute" class="anchor"></a>CN concordance with ABSOLUTE</h3>
 <p>PureCN calls for S0293689 capture kit:</p>
-<div class="sourceCode" id="cb87"><pre class="downlit">
+<div class="sourceCode" id="cb88"><pre class="downlit">
 <span class="va">pcn.call.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"PureCN_OV_S0293689_grangeslist.rds"</span><span class="op">)</span>
 <span class="va">pcn.calls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="va">pcn.call.file</span><span class="op">)</span>
 <span class="va">pcn.calls</span></pre></div>
@@ -595,7 +671,7 @@
 ## 
 ## ...
 ## &lt;170 more elements&gt;</code></pre>
-<div class="sourceCode" id="cb89"><pre class="downlit">
+<div class="sourceCode" id="cb90"><pre class="downlit">
 <span class="co"># select samples that intersect with ABSOLUTE data</span>
 <span class="va">isect.samples</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html">intersect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">pcn.calls</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">absGRL</span><span class="op">)</span><span class="op">)</span>
 <span class="va">pcn.calls</span> <span class="op">&lt;-</span> <span class="va">pcn.calls</span><span class="op">[</span><span class="va">isect.samples</span><span class="op">]</span>
@@ -609,7 +685,7 @@
 ##   TCGA-13-0807-01
 ## colData names(0):</code></pre>
 <p>Get corresponding ABSOLUTE calls:</p>
-<div class="sourceCode" id="cb91"><pre class="downlit">
+<div class="sourceCode" id="cb92"><pre class="downlit">
 <span class="va">abs.calls</span> <span class="op">&lt;-</span> <span class="va">absGRL</span><span class="op">[</span><span class="va">isect.samples</span><span class="op">]</span>
 <span class="va">abs.calls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">abs.calls</span><span class="op">)</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">5</span>,<span class="fl">8</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span><span class="op">]</span>
 <span class="va">totalCN</span> <span class="op">&lt;-</span> <span class="va">abs.calls</span><span class="op">[</span>,<span class="st">"Modal_HSCN_1"</span><span class="op">]</span> <span class="op">+</span> <span class="va">abs.calls</span><span class="op">[</span>,<span class="st">"Modal_HSCN_2"</span><span class="op">]</span>
@@ -638,11 +714,11 @@
 ## 
 ## ...
 ## &lt;165 more elements&gt;</code></pre>
-<div class="sourceCode" id="cb93"><pre class="downlit">
+<div class="sourceCode" id="cb94"><pre class="downlit">
 <span class="va">abs.calls.ra</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/RaggedExperiment/man/RaggedExperiment-class.html">RaggedExperiment</a></span><span class="op">(</span><span class="va">abs.calls</span><span class="op">)</span>
 <span class="va">abs.calls.ra</span> <span class="op">&lt;-</span> <span class="va">abs.calls.ra</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">pcn.calls.ra</span><span class="op">)</span><span class="op">]</span></pre></div>
 <p>OVC GISTIC2 regions on hg19 (ABSOLUTE) and hg38 (PureCN)</p>
-<div class="sourceCode" id="cb94"><pre class="downlit">
+<div class="sourceCode" id="cb95"><pre class="downlit">
 <span class="va">gisticOV.ranges.hg19</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"gisticOV_ranges_hg19.txt"</span><span class="op">)</span> 
 <span class="va">gisticOV.ranges.hg19</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/scan.html">scan</a></span><span class="op">(</span><span class="va">gisticOV.ranges.hg19</span>, what<span class="op">=</span><span class="st">"character"</span><span class="op">)</span>
 <span class="va">gisticOV.ranges.hg19</span> <span class="op">&lt;-</span> <span class="fu">GRanges</span><span class="op">(</span><span class="va">gisticOV.ranges.hg19</span><span class="op">)</span> 
@@ -663,7 +739,7 @@
 ##   [65]    chr22   48668761-51304566      *
 ##   -------
 ##   seqinfo: 22 sequences from an unspecified genome; no seqlengths</code></pre>
-<div class="sourceCode" id="cb96"><pre class="downlit">
+<div class="sourceCode" id="cb97"><pre class="downlit">
 <span class="va">gisticOV.ranges.hg38</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"gisticOV_ranges_hg38.txt"</span><span class="op">)</span> 
 <span class="va">gisticOV.ranges.hg38</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/scan.html">scan</a></span><span class="op">(</span><span class="va">gisticOV.ranges.hg38</span>, what<span class="op">=</span><span class="st">"character"</span><span class="op">)</span>
 <span class="va">gisticOV.ranges.hg38</span> <span class="op">&lt;-</span> <span class="fu">GRanges</span><span class="op">(</span><span class="va">gisticOV.ranges.hg38</span><span class="op">)</span> 
@@ -690,7 +766,7 @@
 </li>
 <li>a weighted mean of calls overlapping a GISTIC region</li>
 </ul>
-<div class="sourceCode" id="cb98"><pre class="downlit">
+<div class="sourceCode" id="cb99"><pre class="downlit">
 <span class="va">.largest</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">score</span>, <span class="va">range</span>, <span class="va">qrange</span><span class="op">)</span> 
 <span class="op">{</span>
     <span class="va">return.type</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span><span class="op">(</span><span class="va">score</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
@@ -725,7 +801,7 @@
 </li>
 <li>fraction of GISTIC regions that deviate by max. 1 copy</li>
 </ul>
-<div class="sourceCode" id="cb99"><pre class="downlit">
+<div class="sourceCode" id="cb100"><pre class="downlit">
 <span class="co"># largest</span>
 <span class="va">fract.equal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">isect.samples</span><span class="op">)</span>, 
         <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">pcn.rassay</span><span class="op">[</span>,<span class="va">i</span><span class="op">]</span> <span class="op">==</span> <span class="va">abs.rassay</span><span class="op">[</span>,<span class="va">i</span><span class="op">]</span><span class="op">)</span>, 
@@ -756,7 +832,7 @@
                             <span class="op">(</span><span class="va">pcn.rassay2</span><span class="op">[</span>,<span class="va">i</span><span class="op">]</span> <span class="op">==</span> <span class="va">abs.rassay2</span><span class="op">[</span>,<span class="va">i</span><span class="op">]</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span>, 
         <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></pre></div>
 <p>Plot concordance:</p>
-<div class="sourceCode" id="cb100"><pre class="downlit">
+<div class="sourceCode" id="cb101"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mar<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">5.1</span>, <span class="fl">4.1</span>, <span class="fl">4.1</span>, <span class="fl">8.1</span><span class="op">)</span>, xpd<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/boxplot.html">boxplot</a></span><span class="op">(</span><span class="va">fract.equal</span>, <span class="va">fract.equal2</span>, 
         <span class="va">fract.type</span>, <span class="va">fract.type2</span>,
@@ -770,7 +846,7 @@
 <div id="select-large-losses-called-subclonal-by-absolute" class="section level3">
 <h3 class="hasAnchor">
 <a href="#select-large-losses-called-subclonal-by-absolute" class="anchor"></a>Select large losses called subclonal by ABSOLUTE</h3>
-<div class="sourceCode" id="cb101"><pre class="downlit">
+<div class="sourceCode" id="cb102"><pre class="downlit">
 <span class="va">selectAbsCalls</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">sample</span>, <span class="va">min.size</span><span class="op">=</span><span class="fl">3000000</span><span class="op">)</span>
 <span class="op">{</span>
     <span class="va">gr</span> <span class="op">&lt;-</span> <span class="va">absGRL</span><span class="op">[[</span><span class="va">sample</span><span class="op">]</span><span class="op">]</span>
@@ -801,7 +877,7 @@
 <li>
 <code><a href="https://rdrr.io/pkg/rtracklayer/man/liftOver.html">rtracklayer::liftOver</a></code> only provides chain mappings</li>
 </ul>
-<div class="sourceCode" id="cb103"><pre class="downlit">
+<div class="sourceCode" id="cb104"><pre class="downlit">
 <span class="va">chain.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"hg19ToHg38.over.chain"</span><span class="op">)</span>
 <span class="va">ch</span> <span class="op">&lt;-</span> <span class="fu">rtracklayer</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rtracklayer/man/Chain-class.html">import.chain</a></span><span class="op">(</span><span class="va">chain.file</span><span class="op">)</span>
 <span class="op">(</span><span class="va">hg19.call</span> <span class="op">&lt;-</span> <span class="va">absGRL</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></pre></div>
@@ -811,7 +887,7 @@
 ##   [1]     chr1 3218923-74907316      * |            2            2         0
 ##   -------
 ##   seqinfo: 22 sequences from an unspecified genome; no seqlengths</code></pre>
-<div class="sourceCode" id="cb105"><pre class="downlit">
+<div class="sourceCode" id="cb106"><pre class="downlit">
 <span class="op">(</span><span class="va">blocks</span> <span class="op">&lt;-</span> <span class="fu">rtracklayer</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rtracklayer/man/liftOver.html">liftOver</a></span><span class="op">(</span><span class="va">hg19.call</span>, <span class="va">ch</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>## GRangesList object of length 1:
 ## [[1]]
@@ -844,7 +920,7 @@
 ##   [1072]         0
 ##   -------
 ##   seqinfo: 2 sequences from an unspecified genome; no seqlengths</code></pre>
-<div class="sourceCode" id="cb107"><pre class="downlit">
+<div class="sourceCode" id="cb108"><pre class="downlit">
 <span class="va">blocks</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html">unlist</a></span><span class="op">(</span><span class="va">blocks</span><span class="op">)</span>
 <span class="co"># harmonize chromosome by majority vote</span>
 <span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="fu">seqnames</span><span class="op">(</span><span class="va">blocks</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> 
@@ -862,11 +938,11 @@
 <div id="select-gistic-regions-of-high-subtype-association-and-subclonality" class="section level3">
 <h3 class="hasAnchor">
 <a href="#select-gistic-regions-of-high-subtype-association-and-subclonality" class="anchor"></a>Select GISTIC regions of high subtype association and subclonality</h3>
-<div class="sourceCode" id="cb109"><pre class="downlit">
+<div class="sourceCode" id="cb110"><pre class="downlit">
 <span class="va">tests</span> <span class="op">&lt;-</span> <span class="fu">testSubtypes</span><span class="op">(</span><span class="va">gisticOV</span>, <span class="va">ovsubs</span>, what<span class="op">=</span><span class="st">"full"</span><span class="op">)</span>
 <span class="va">extraL</span> <span class="op">&lt;-</span> <span class="fu">stratifySubclonality</span><span class="op">(</span><span class="va">gisticOV</span>, <span class="va">subcl.gisticOV</span>, <span class="va">ovsubs</span>,
                                <span class="va">tests</span>, st.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">stcols</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>,<span class="fl">3</span>,<span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></pre></div>
-<div class="sourceCode" id="cb110"><pre class="downlit">
+<div class="sourceCode" id="cb111"><pre class="downlit">
 <span class="co"># highest subtype association</span>
 <span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">assoc.score</span>, decreasing<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 <span class="fu">rowRanges</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span><span class="op">[</span><span class="va">ind</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></pre></div>
@@ -881,7 +957,7 @@
 ##   [2]    19p13.12 2.04648e-07  0.507163
 ##   -------
 ##   seqinfo: 23 sequences from an unspecified genome; no seqlengths</code></pre>
-<div class="sourceCode" id="cb112"><pre class="downlit">
+<div class="sourceCode" id="cb113"><pre class="downlit">
 <span class="co"># 20q11.21 (BCL2L1)</span>
 <span class="va">x</span> <span class="op">&lt;-</span> <span class="va">tests</span><span class="op">[[</span><span class="va">ind</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">]</span>
 <span class="op">(</span><span class="va">ot</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">$</span><span class="va">observed</span><span class="op">)</span></pre></div>
@@ -890,19 +966,19 @@
 ##   0 44 41 72 68
 ##   1 77 55 32 59
 ##   2 55 14 14 24</code></pre>
-<div class="sourceCode" id="cb114"><pre class="downlit">
+<div class="sourceCode" id="cb115"><pre class="downlit">
 <span class="va">x</span><span class="op">$</span><span class="va">expected</span></pre></div>
 <pre><code>##    subtys
 ## x          1        2        3        4
 ##   0 71.35135 44.59459 47.83784 61.21622
 ##   1 70.71712 44.19820 47.41261 60.67207
 ##   2 33.93153 21.20721 22.74955 29.11171</code></pre>
-<div class="sourceCode" id="cb116"><pre class="downlit">
+<div class="sourceCode" id="cb117"><pre class="downlit">
 <span class="va">diff</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">$</span><span class="va">observed</span> <span class="op">-</span> <span class="va">x</span><span class="op">$</span><span class="va">expected</span>
 <span class="op">(</span><span class="va">csums</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">colSums</a></span><span class="op">(</span><span class="va">diff</span><span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="va">x</span><span class="op">$</span><span class="va">expected</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>##         1         2         3         4 
 ## 24.124538  5.378997 20.579286  1.695401</code></pre>
-<div class="sourceCode" id="cb118"><pre class="downlit">
+<div class="sourceCode" id="cb119"><pre class="downlit">
 <span class="co"># 19p13.12 (BRD4)</span>
 <span class="va">x</span> <span class="op">&lt;-</span> <span class="va">tests</span><span class="op">[[</span><span class="va">ind</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">]</span>
 <span class="op">(</span><span class="va">ot</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">$</span><span class="va">observed</span><span class="op">)</span></pre></div>
@@ -911,19 +987,19 @@
 ##   0 62 67 48 76
 ##   1 49 36 45 54
 ##   2 65  7 25 21</code></pre>
-<div class="sourceCode" id="cb120"><pre class="downlit">
+<div class="sourceCode" id="cb121"><pre class="downlit">
 <span class="va">x</span><span class="op">$</span><span class="va">expected</span></pre></div>
 <pre><code>##    subtys
 ## x          1        2        3        4
 ##   0 80.23063 50.14414 53.79099 68.83423
 ##   1 58.34955 36.46847 39.12072 50.06126
 ##   2 37.41982 23.38739 25.08829 32.10450</code></pre>
-<div class="sourceCode" id="cb122"><pre class="downlit">
+<div class="sourceCode" id="cb123"><pre class="downlit">
 <span class="va">diff</span> <span class="op">&lt;-</span> <span class="va">x</span><span class="op">$</span><span class="va">observed</span> <span class="op">-</span> <span class="va">x</span><span class="op">$</span><span class="va">expected</span>
 <span class="op">(</span><span class="va">csums</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">colSums</a></span><span class="op">(</span><span class="va">diff</span><span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="va">x</span><span class="op">$</span><span class="va">expected</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>##         1         2         3         4 
 ## 25.968516 17.154615  1.507324  4.896757</code></pre>
-<div class="sourceCode" id="cb124"><pre class="downlit">
+<div class="sourceCode" id="cb125"><pre class="downlit">
 <span class="co"># highest subclonality</span>
 <span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">subcl.score</span>, decreasing<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 <span class="fu">rowRanges</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span><span class="op">[</span><span class="va">ind</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span></pre></div>
@@ -938,7 +1014,7 @@
 ##   [2]            *    20q13.33 0.000428776  0.562982
 ##   -------
 ##   seqinfo: 23 sequences from an unspecified genome; no seqlengths</code></pre>
-<div class="sourceCode" id="cb126"><pre class="downlit">
+<div class="sourceCode" id="cb127"><pre class="downlit">
 <span class="va">x</span> <span class="op">&lt;-</span> <span class="va">extraL</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">subcl.score</span>, decreasing<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">7</span><span class="op">)</span><span class="op">]</span><span class="op">]</span>
 <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"8q24.21 (MYC)"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"20q13.33"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"19p13.12 (BRD4)"</span><span class="op">)</span><span class="op">)</span>
 <span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">extraL</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">subcl.score</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">7</span>,<span class="fl">9</span><span class="op">)</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
@@ -946,7 +1022,7 @@
 <span class="fu">ggplotSubtypeStrata</span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span><span class="op">:</span><span class="fl">6</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span><span class="op">]</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"loss"</span>,<span class="st">"gain"</span><span class="op">)</span>, each<span class="op">=</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/clonalSubclOV-1.png" width="100%"></p>
 <p>Strongest subtype association:</p>
-<div class="sourceCode" id="cb127"><pre class="downlit">
+<div class="sourceCode" id="cb128"><pre class="downlit">
 <span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">assoc.score</span>, decreasing<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 <span class="va">x</span> <span class="op">&lt;-</span> <span class="va">extraL</span><span class="op">[</span><span class="va">ind</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">3</span><span class="op">:</span><span class="fl">5</span>,<span class="fl">7</span>,<span class="fl">9</span><span class="op">)</span><span class="op">]</span><span class="op">]</span>
 <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"20q11.21 (BCL2L1)"</span>, <span class="st">"12q15 (FRS2)"</span>, <span class="st">"3q26.2 (MECOM)"</span>, 
@@ -954,13 +1030,13 @@
 <span class="fu">ggplotSubtypeStrata</span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="st">"gain"</span>, <span class="fl">6</span><span class="op">)</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/selecttopplotOV-1.png" width="100%"></p>
 <p>Regions of frequent loss in HGSOC:</p>
-<div class="sourceCode" id="cb128"><pre class="downlit">
+<div class="sourceCode" id="cb129"><pre class="downlit">
 <span class="va">x</span> <span class="op">&lt;-</span> <span class="va">extraL</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">34</span>,<span class="fl">44</span>,<span class="fl">55</span><span class="op">)</span><span class="op">]</span>
 <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"10q23.31 (PTEN)"</span>, <span class="st">"13q14.2 (RB1)"</span>, <span class="st">"17q11.2 (NF1)"</span><span class="op">)</span>
 <span class="fu">ggplotSubtypeStrata</span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="st">"loss"</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/freqLossRegs-1.png" width="100%"></p>
 <p>Enrichment of deletions in predom. clonal regions</p>
-<div class="sourceCode" id="cb129"><pre class="downlit">
+<div class="sourceCode" id="cb130"><pre class="downlit">
 <span class="fu">rowRanges</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span><span class="op">$</span><span class="va">type</span><span class="op">[</span><span class="va">subcl.score</span> <span class="op">&lt;</span> <span class="fl">0.3</span><span class="op">]</span></pre></div>
 <pre><code>##  [1] "Amplification" "Deletion"      "Deletion"      "Deletion"     
 ##  [5] "Deletion"      "Deletion"      "Deletion"      "Deletion"     
@@ -971,13 +1047,13 @@
 <div id="other-cancer-types" class="section level1">
 <h1 class="hasAnchor">
 <a href="#other-cancer-types" class="anchor"></a>Other cancer types</h1>
-<div class="sourceCode" id="cb131"><pre class="downlit">
+<div class="sourceCode" id="cb132"><pre class="downlit">
 <span class="va">allFile</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"all_cancer_types.rds"</span><span class="op">)</span>
 <span class="va">allCT</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="va">allFile</span><span class="op">)</span></pre></div>
 <div id="number-of-samples" class="section level2">
 <h2 class="hasAnchor">
 <a href="#number-of-samples" class="anchor"></a>Number of samples</h2>
-<div class="sourceCode" id="cb132"><pre class="downlit">
+<div class="sourceCode" id="cb133"><pre class="downlit">
 <span class="va">st</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">allCT</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">ct</span><span class="op">$</span><span class="va">subtypes</span><span class="op">)</span><span class="op">)</span>
 <span class="va">gs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">allCT</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">ct</span><span class="op">$</span><span class="va">gistic</span><span class="op">)</span><span class="op">)</span>
 <span class="va">as</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">allCT</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">ct</span><span class="op">$</span><span class="va">subtypes</span><span class="op">)</span> <span class="op">%in%</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">absGRL</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
@@ -988,7 +1064,7 @@
 <div id="number-of-subtypes-gistic-regions" class="section level2">
 <h2 class="hasAnchor">
 <a href="#number-of-subtypes-gistic-regions" class="anchor"></a>Number of subtypes &amp; GISTIC regions</h2>
-<div class="sourceCode" id="cb133"><pre class="downlit">
+<div class="sourceCode" id="cb134"><pre class="downlit">
 <span class="va">nr.sts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">allCT</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">ct</span><span class="op">$</span><span class="va">subtypes</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 <span class="va">nr.gregs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">allCT</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">ct</span><span class="op">$</span><span class="va">gistic</span><span class="op">)</span><span class="op">)</span>
 <span class="fu">plotNrSubtypesVsNrGisticRegions</span><span class="op">(</span><span class="va">nr.sts</span>, <span class="va">nr.gregs</span><span class="op">)</span></pre></div>
@@ -997,7 +1073,7 @@
 <div id="subclonality-1" class="section level2">
 <h2 class="hasAnchor">
 <a href="#subclonality-1" class="anchor"></a>Subclonality</h2>
-<div class="sourceCode" id="cb134"><pre class="downlit">
+<div class="sourceCode" id="cb135"><pre class="downlit">
 <span class="va">subcl.scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">allCT</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="va">ct</span><span class="op">$</span><span class="va">subcl.score</span><span class="op">)</span>
 <span class="fu">plotSubclonalityDistributions</span><span class="op">(</span><span class="va">subcl.scores</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/subclDistrs-1.png" width="100%"></p>
@@ -1005,7 +1081,7 @@
 <div id="correlation-subtype-association-subclonality" class="section level2">
 <h2 class="hasAnchor">
 <a href="#correlation-subtype-association-subclonality" class="anchor"></a>Correlation: subtype association &amp; subclonality</h2>
-<div class="sourceCode" id="cb135"><pre class="downlit">
+<div class="sourceCode" id="cb136"><pre class="downlit">
 <span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">allCT</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="va">ct</span><span class="op">$</span><span class="va">rho</span><span class="op">)</span>
 <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">allCT</span>, <span class="kw">function</span><span class="op">(</span><span class="va">ct</span><span class="op">)</span> <span class="va">ct</span><span class="op">$</span><span class="va">p</span><span class="op">)</span>
 <span class="fu">volcanoCorrelation</span><span class="op">(</span><span class="va">rho</span>, <span class="va">p</span><span class="op">)</span></pre></div>
@@ -1014,32 +1090,32 @@
 <div id="intrinsic-subtypes-sarcoma" class="section level2">
 <h2 class="hasAnchor">
 <a href="#intrinsic-subtypes-sarcoma" class="anchor"></a>Intrinsic subtypes: sarcoma</h2>
-<div class="sourceCode" id="cb136"><pre class="downlit">
+<div class="sourceCode" id="cb137"><pre class="downlit">
 <span class="va">gisticSARC</span> <span class="op">&lt;-</span> <span class="fu">gistic2RSE</span><span class="op">(</span>ctype<span class="op">=</span><span class="st">"SARC"</span>, peak<span class="op">=</span><span class="st">"wide"</span><span class="op">)</span>
 <span class="va">sarcsubs</span> <span class="op">&lt;-</span> <span class="fu">getBroadSubtypes</span><span class="op">(</span>ctype<span class="op">=</span><span class="st">"SARC"</span>, clust.alg<span class="op">=</span><span class="st">"CNMF"</span><span class="op">)</span></pre></div>
 <pre><code>## Warning in getBroadSubtypes(ctype = "SARC", clust.alg = "CNMF"): mRNA clustering
 ## not available for SARC - mRNAseq clustering is taken instead</code></pre>
-<div class="sourceCode" id="cb138"><pre class="downlit">
+<div class="sourceCode" id="cb139"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">sarcsubs</span><span class="op">$</span><span class="va">cluster</span><span class="op">)</span></pre></div>
 <pre><code>## 
 ##   1   2   3 
 ## 116  78  65</code></pre>
-<div class="sourceCode" id="cb140"><pre class="downlit">
+<div class="sourceCode" id="cb141"><pre class="downlit">
 <span class="va">pvals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html">suppressWarnings</a></span><span class="op">(</span> <span class="fu">testSubtypes</span><span class="op">(</span><span class="va">gisticSARC</span>, <span class="va">sarcsubs</span>, padj.method<span class="op">=</span><span class="st">"none"</span><span class="op">)</span> <span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">pvals</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 64</code></pre>
-<div class="sourceCode" id="cb142"><pre class="downlit">
+<div class="sourceCode" id="cb143"><pre class="downlit">
 <span class="va">adj.pvals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/p.adjust.html">p.adjust</a></span><span class="op">(</span><span class="va">pvals</span>, method<span class="op">=</span><span class="st">"BH"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">adj.pvals</span> <span class="op">&lt;</span> <span class="fl">0.1</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 41</code></pre>
-<div class="sourceCode" id="cb144"><pre class="downlit">
+<div class="sourceCode" id="cb145"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/graphics/hist.html">hist</a></span><span class="op">(</span><span class="va">pvals</span>, breaks<span class="op">=</span><span class="fl">25</span>, col<span class="op">=</span><span class="st">"firebrick"</span>,xlab<span class="op">=</span><span class="st">"Subtype association p-value"</span>, main<span class="op">=</span><span class="st">""</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/sarcSubtyAssoc-1.png" width="100%"></p>
-<div class="sourceCode" id="cb145"><pre class="downlit">
+<div class="sourceCode" id="cb146"><pre class="downlit">
 <span class="va">sarc.clin</span> <span class="op">&lt;-</span> <span class="fu">RTCGAToolbox</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/RTCGAToolbox/man/getFirehoseData.html">getFirehoseData</a></span><span class="op">(</span>dataset<span class="op">=</span><span class="st">"SARC"</span>, runDate<span class="op">=</span><span class="st">"20160128"</span><span class="op">)</span></pre></div>
 <pre><code>## gdac.broadinstitute.org_SARC.Clinical_Pick_Tier1.Level_4.2016012800.0.0.tar.gz</code></pre>
 <pre><code>## gdac.broadinstitute.org_SARC.Clinical_Pick_Tier1.Level_4.2016012800.0.0</code></pre>
-<div class="sourceCode" id="cb148"><pre class="downlit">
+<div class="sourceCode" id="cb149"><pre class="downlit">
 <span class="va">sarc.clin</span> <span class="op">&lt;-</span> <span class="fu">RTCGAToolbox</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/RTCGAToolbox/man/getData.html">getData</a></span><span class="op">(</span><span class="va">sarc.clin</span>, <span class="st">"clinical"</span><span class="op">)</span>
 <span class="va">ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">sarcsubs</span><span class="op">)</span>
 <span class="va">ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html">tolower</a></span><span class="op">(</span><span class="va">ids</span><span class="op">)</span>
@@ -1091,7 +1167,7 @@
 ##                                                        6 
 ##               undifferentiated pleomorphic sarcoma (ups) 
 ##                                                        5</code></pre>
-<div class="sourceCode" id="cb150"><pre class="downlit">
+<div class="sourceCode" id="cb151"><pre class="downlit">
 <span class="va">assoc.score</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html">suppressWarnings</a></span><span class="op">(</span> <span class="fu">testSubtypes</span><span class="op">(</span><span class="va">gisticSARC</span>, <span class="va">sarcsubs</span>, what<span class="op">=</span><span class="st">"statistic"</span><span class="op">)</span> <span class="op">)</span>
 <span class="va">raSARC</span> <span class="op">&lt;-</span> <span class="fu">getMatchedAbsoluteCalls</span><span class="op">(</span><span class="va">absGRL</span>, <span class="va">sarcsubs</span><span class="op">)</span>
 <span class="va">subcl.gisticSARC</span> <span class="op">&lt;-</span> <span class="fu">querySubclonality</span><span class="op">(</span><span class="va">raSARC</span>, query<span class="op">=</span><span class="fu">rowRanges</span><span class="op">(</span><span class="va">gisticSARC</span><span class="op">)</span>, sum.method<span class="op">=</span><span class="st">"any"</span><span class="op">)</span>
@@ -1099,13 +1175,13 @@
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">subcl.score</span><span class="op">)</span></pre></div>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##  0.2486  0.3667  0.4736  0.4701  0.5573  0.6788</code></pre>
-<div class="sourceCode" id="cb152"><pre class="downlit">
+<div class="sourceCode" id="cb153"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="va">assoc.score</span>, <span class="va">subcl.score</span>, method<span class="op">=</span><span class="st">"spearman"</span><span class="op">)</span></pre></div>
 <pre><code>## [1] -0.364473</code></pre>
-<div class="sourceCode" id="cb154"><pre class="downlit">
+<div class="sourceCode" id="cb155"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/stats/cor.test.html">cor.test</a></span><span class="op">(</span><span class="va">assoc.score</span>, <span class="va">subcl.score</span>, method<span class="op">=</span><span class="st">"spearman"</span>, exact<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span><span class="op">$</span><span class="va">p.value</span></pre></div>
 <pre><code>## [1] 0.003067494</code></pre>
-<div class="sourceCode" id="cb156"><pre class="downlit">
+<div class="sourceCode" id="cb157"><pre class="downlit">
 <span class="va">sarc.cols</span> <span class="op">&lt;-</span> <span class="va">stcols</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">3</span>,<span class="fl">2</span><span class="op">)</span><span class="op">]</span>
 <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">sarc.cols</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"MFS/UPS"</span>, <span class="st">"LMS"</span>, <span class="st">"DDLPS"</span><span class="op">)</span>
 <span class="va">sts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html">suppressWarnings</a></span><span class="op">(</span> <span class="fu">testSubtypes</span><span class="op">(</span><span class="va">gisticSARC</span>, <span class="va">sarcsubs</span>, what<span class="op">=</span><span class="st">"subtype"</span><span class="op">)</span> <span class="op">)</span>
@@ -1127,7 +1203,7 @@
 <span class="fu"><a href="https://rdrr.io/r/graphics/text.html">text</a></span><span class="op">(</span>x<span class="op">=</span><span class="fl">17.4</span>, y<span class="op">=</span><span class="fl">0.625</span>, <span class="st">"20q13.33"</span>, pos<span class="op">=</span><span class="fl">2</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/text.html">text</a></span><span class="op">(</span>x<span class="op">=</span><span class="fl">55.915</span>, y<span class="op">=</span><span class="fl">0.262</span>, <span class="st">"12q15 (MDM2)"</span>, pos<span class="op">=</span><span class="fl">2</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/sarcPlot-1.png" width="100%"></p>
-<div class="sourceCode" id="cb157"><pre class="downlit">
+<div class="sourceCode" id="cb158"><pre class="downlit">
 <span class="va">gisticSARC</span> <span class="op">&lt;-</span> <span class="fu">annotateCytoBands</span><span class="op">(</span><span class="va">gisticSARC</span>, <span class="va">cbands</span><span class="op">)</span>
 <span class="fu">rowRanges</span><span class="op">(</span><span class="va">gisticSARC</span><span class="op">)</span><span class="op">$</span><span class="va">assoc.score</span> <span class="op">&lt;-</span> <span class="va">assoc.score</span>
 <span class="fu">rowRanges</span><span class="op">(</span><span class="va">gisticSARC</span><span class="op">)</span><span class="op">$</span><span class="va">subcl</span> <span class="op">&lt;-</span> <span class="va">subcl.score</span> 
@@ -1164,7 +1240,7 @@
 ##   [64]    0.641115  0.610738       DDLPS
 ##   -------
 ##   seqinfo: 23 sequences from an unspecified genome; no seqlengths</code></pre>
-<div class="sourceCode" id="cb159"><pre class="downlit">
+<div class="sourceCode" id="cb160"><pre class="downlit">
 <span class="fu">rowRanges</span><span class="op">(</span><span class="va">gisticSARC</span><span class="op">)</span><span class="op">[</span><span class="va">ind.subcl</span><span class="op">]</span></pre></div>
 <pre><code>## GRanges object with 64 ranges and 5 metadata columns:
 ##        seqnames              ranges strand |          type        band
@@ -1195,11 +1271,11 @@
 ##   [64]    30.25732  0.248588       DDLPS
 ##   -------
 ##   seqinfo: 23 sequences from an unspecified genome; no seqlengths</code></pre>
-<div class="sourceCode" id="cb161"><pre class="downlit">
+<div class="sourceCode" id="cb162"><pre class="downlit">
 <span class="va">tests</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html">suppressWarnings</a></span><span class="op">(</span> <span class="fu">testSubtypes</span><span class="op">(</span><span class="va">gisticSARC</span>, <span class="va">sarcsubs</span>, what<span class="op">=</span><span class="st">"full"</span><span class="op">)</span> <span class="op">)</span>
 <span class="va">extraL</span> <span class="op">&lt;-</span> <span class="fu">stratifySubclonality</span><span class="op">(</span><span class="va">gisticSARC</span>, <span class="va">subcl.gisticSARC</span>, 
     <span class="va">sarcsubs</span>, <span class="va">tests</span>, st.names<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">sarc.cols</span><span class="op">)</span><span class="op">)</span></pre></div>
-<div class="sourceCode" id="cb162"><pre class="downlit">
+<div class="sourceCode" id="cb163"><pre class="downlit">
 <span class="va">x</span> <span class="op">&lt;-</span> <span class="va">extraL</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html">order</a></span><span class="op">(</span><span class="va">subcl.score</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span>,<span class="fl">4</span><span class="op">)</span><span class="op">]</span><span class="op">]</span>
 <span class="co"># loss, gain, loss</span>
 <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"13q14.2 (RB1)"</span>, <span class="st">"12q15 (MDM2)"</span>, <span class="st">"10q23.31 (PTEN)"</span><span class="op">)</span>
@@ -1210,7 +1286,7 @@
 <span class="fu">ggplotSubtypeStrata</span><span class="op">(</span><span class="va">x</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"loss"</span>,<span class="st">"gain"</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="st">"loss"</span>, <span class="fl">3</span><span class="op">)</span>, <span class="st">"gain"</span><span class="op">)</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/clonalSubclSARC-1.png" width="100%"></p>
 <p>Using histopathological classification for subtype assignment:</p>
-<div class="sourceCode" id="cb163"><pre class="downlit">
+<div class="sourceCode" id="cb164"><pre class="downlit">
 <span class="va">histcl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">nrow</a></span><span class="op">(</span><span class="va">sarcsubs</span><span class="op">)</span><span class="op">)</span>
 <span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">grep</a></span><span class="op">(</span><span class="st">"myxofibrosarcoma"</span>, <span class="va">sarcsubs</span><span class="op">$</span><span class="va">histType</span><span class="op">)</span>
 <span class="va">histcl</span><span class="op">[</span><span class="va">ind</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">1</span>
@@ -1222,7 +1298,7 @@
 <span class="va">histcl</span><span class="op">[</span><span class="va">ind</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">3</span>
 <span class="va">histsubs</span> <span class="op">&lt;-</span> <span class="va">sarcsubs</span><span class="op">[</span><span class="va">histcl</span> <span class="op">!=</span> <span class="fl">4</span>,<span class="op">]</span>
 <span class="va">histsubs</span><span class="op">$</span><span class="va">cluster</span> <span class="op">&lt;-</span> <span class="va">histcl</span><span class="op">[</span><span class="va">histcl</span> <span class="op">!=</span> <span class="fl">4</span><span class="op">]</span>  </pre></div>
-<div class="sourceCode" id="cb164"><pre class="downlit">
+<div class="sourceCode" id="cb165"><pre class="downlit">
 <span class="va">assoc.score</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html">suppressWarnings</a></span><span class="op">(</span> <span class="fu">testSubtypes</span><span class="op">(</span><span class="va">gisticSARC</span>, <span class="va">histsubs</span>, what<span class="op">=</span><span class="st">"statistic"</span><span class="op">)</span> <span class="op">)</span>
 <span class="va">raSARC</span> <span class="op">&lt;-</span> <span class="fu">getMatchedAbsoluteCalls</span><span class="op">(</span><span class="va">absGRL</span>, <span class="va">histsubs</span><span class="op">)</span>
 <span class="va">subcl.gisticSARC</span> <span class="op">&lt;-</span> <span class="fu">querySubclonality</span><span class="op">(</span><span class="va">raSARC</span>, query<span class="op">=</span><span class="fu">rowRanges</span><span class="op">(</span><span class="va">gisticSARC</span><span class="op">)</span>, sum.method<span class="op">=</span><span class="st">"any"</span><span class="op">)</span>
@@ -1230,16 +1306,16 @@
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">subcl.score</span><span class="op">)</span></pre></div>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##  0.2308  0.3677  0.4748  0.4713  0.5511  0.6788</code></pre>
-<div class="sourceCode" id="cb166"><pre class="downlit">
+<div class="sourceCode" id="cb167"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="va">assoc.score</span>, <span class="va">subcl.score</span>, method<span class="op">=</span><span class="st">"spearman"</span><span class="op">)</span></pre></div>
 <pre><code>## [1] -0.3810298</code></pre>
-<div class="sourceCode" id="cb168"><pre class="downlit">
+<div class="sourceCode" id="cb169"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/stats/cor.test.html">cor.test</a></span><span class="op">(</span><span class="va">assoc.score</span>, <span class="va">subcl.score</span>, method<span class="op">=</span><span class="st">"spearman"</span>, exact<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span><span class="op">$</span><span class="va">p.value</span></pre></div>
 <pre><code>## [1] 0.001894787</code></pre>
 <div id="overlapping-scnas-between-ov-and-sarc" class="section level3">
 <h3 class="hasAnchor">
 <a href="#overlapping-scnas-between-ov-and-sarc" class="anchor"></a>Overlapping SCNAs between OV and SARC</h3>
-<div class="sourceCode" id="cb170"><pre class="downlit">
+<div class="sourceCode" id="cb171"><pre class="downlit">
 <span class="va">sarcranges</span> <span class="op">&lt;-</span> <span class="fu">rowRanges</span><span class="op">(</span><span class="va">gisticSARC</span><span class="op">)</span>
 <span class="va">sarcranges</span><span class="op">$</span><span class="va">adj.pval</span> <span class="op">&lt;-</span> <span class="va">adj.pvals</span>
 <span class="va">sarcranges</span><span class="op">$</span><span class="va">subcl</span> <span class="op">&lt;-</span> <span class="va">subcl.score</span>
@@ -1256,7 +1332,7 @@
 <h2 class="hasAnchor">
 <a href="#subtype-classification" class="anchor"></a>Subtype classification</h2>
 <p>Genes considered by the <code>consensusOV</code> classifier:</p>
-<div class="sourceCode" id="cb171"><pre class="downlit">
+<div class="sourceCode" id="cb172"><pre class="downlit">
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.pmgenomics.ca/bhklab/software/consensusOV">consensusOV</a></span><span class="op">)</span>
 <span class="va">clgenes</span> <span class="op">&lt;-</span> <span class="fu">getClassifierGenes</span><span class="op">(</span><span class="op">)</span>
 <span class="va">clgenes</span></pre></div>
@@ -1274,12 +1350,12 @@
 ##  [89] "84707"  "8522"   "8533"   "8564"   "861"    "8655"   "8764"   "9246"  
 ##  [97] "9447"   "9610"   "9766"   "9854"   "9891"   "9940"   "9961"</code></pre>
 <p>Single cell data restricted to classifier genes:</p>
-<div class="sourceCode" id="cb173"><pre class="downlit">
+<div class="sourceCode" id="cb174"><pre class="downlit">
 <span class="va">sc.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"scRNAseq_consensusOV_genes.txt"</span><span class="op">)</span>
 <span class="va">sc.expr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.delim</a></span><span class="op">(</span><span class="va">sc.file</span>, row.names<span class="op">=</span><span class="fl">1L</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">sc.expr</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 103  67</code></pre>
-<div class="sourceCode" id="cb175"><pre class="downlit">
+<div class="sourceCode" id="cb176"><pre class="downlit">
 <span class="va">sc.expr</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></pre></div>
 <pre><code>##       Bulk_2 X1_C01 X1_C02 X1_C03 X1_C08
 ## 26271  19.62      0      0      0   0.00
@@ -1287,14 +1363,14 @@
 ## 57007  93.28      0      0      0   0.00
 ## 81831   0.00      0      0      0  16.29
 ## 5569    5.15      0      0      0   0.00</code></pre>
-<div class="sourceCode" id="cb177"><pre class="downlit">
+<div class="sourceCode" id="cb178"><pre class="downlit">
 <span class="co"># exclude all zero </span>
 <span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">sc.expr</span>, <span class="fl">1</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/all.html">all</a></span><span class="op">(</span><span class="va">x</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
 <span class="va">sc.expr</span> <span class="op">&lt;-</span> <span class="va">sc.expr</span><span class="op">[</span><span class="op">!</span><span class="va">ind</span>,<span class="op">]</span>
 <span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">sc.expr</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 99 67</code></pre>
 <p>Get consensus subtypes:</p>
-<div class="sourceCode" id="cb179"><pre class="downlit">
+<div class="sourceCode" id="cb180"><pre class="downlit">
 <span class="co"># consensus.subtypes &lt;- get.consensus.subtypes(sc.expr, rownames(sc.expr))</span>
 <span class="va">res.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"consensus_subtypes_verhaak100.rds"</span><span class="op">)</span>
 <span class="va">consensus.subtypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="va">res.file</span><span class="op">)</span></pre></div>
@@ -1303,7 +1379,7 @@
 <h2 class="hasAnchor">
 <a href="#cell-type-annotation" class="anchor"></a>Cell type annotation</h2>
 <p>Manual cell type annotation from Winterhoff el al:</p>
-<div class="sourceCode" id="cb180"><pre class="downlit">
+<div class="sourceCode" id="cb181"><pre class="downlit">
 <span class="va">c2t.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"scRNAseq_celltypes.txt"</span><span class="op">)</span>
 <span class="va">c2t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.delim</a></span><span class="op">(</span><span class="va">c2t.file</span>, as.is<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 <span class="va">n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="st">"X"</span>, <span class="va">c2t</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">)</span>
@@ -1312,13 +1388,13 @@
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">c2t</span><span class="op">)</span> </pre></div>
 <pre><code>##   X1_C02   X1_C15   X1_C27   X1_C30   X1_C41   X1_C42 
 ## "Stroma" "Stroma" "Stroma" "Stroma" "Stroma" "Stroma"</code></pre>
-<div class="sourceCode" id="cb182"><pre class="downlit">
+<div class="sourceCode" id="cb183"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">c2t</span><span class="op">)</span></pre></div>
 <pre><code>## c2t
 ## Epithelial     Stroma 
 ##         37         29</code></pre>
 <p>Expression heatmap incl. subtype and cell type annotation:</p>
-<div class="sourceCode" id="cb184"><pre class="downlit">
+<div class="sourceCode" id="cb185"><pre class="downlit">
 <span class="va">sind</span> <span class="op">&lt;-</span> <span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">sc.expr</span><span class="op">)</span>
 <span class="va">sc.subtypes</span> <span class="op">&lt;-</span> <span class="va">consensus.subtypes</span>
 <span class="va">sc.subtypes</span><span class="op">$</span><span class="va">consensusOV.subtypes</span> <span class="op">&lt;-</span> <span class="va">sc.subtypes</span><span class="op">$</span><span class="va">consensusOV.subtypes</span><span class="op">[</span><span class="va">sind</span><span class="op">]</span>
@@ -1326,7 +1402,7 @@
 <span class="fu">scHeatmap</span><span class="op">(</span><span class="va">sc.expr</span><span class="op">[</span>,<span class="va">sind</span><span class="op">]</span>, <span class="va">sc.subtypes</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/scHeatmap-1.png" width="100%"></p>
 <p>Subtype by cell type:</p>
-<div class="sourceCode" id="cb185"><pre class="downlit">
+<div class="sourceCode" id="cb186"><pre class="downlit">
 <span class="co"># subtype</span>
 <span class="va">st</span> <span class="op">&lt;-</span> <span class="va">consensus.subtypes</span><span class="op">$</span><span class="va">consensusOV.subtypes</span><span class="op">[</span><span class="va">sind</span><span class="op">]</span>
 <span class="va">st</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">sub</a></span><span class="op">(</span><span class="st">"_consensus$"</span>, <span class="st">""</span>, <span class="va">st</span><span class="op">)</span>
@@ -1338,7 +1414,7 @@
 <pre><code>## 
 ##   DIF   IMR 
 ## 0.108 0.892</code></pre>
-<div class="sourceCode" id="cb187"><pre class="downlit">
+<div class="sourceCode" id="cb188"><pre class="downlit">
 <span class="va">stro</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">st</span><span class="op">[</span><span class="va">ct</span><span class="op">==</span><span class="st">"Stroma"</span><span class="op">]</span><span class="op">)</span>
 <span class="va">stro</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">stro</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">stro</span><span class="op">)</span>, digits<span class="op">=</span><span class="fl">3</span><span class="op">)</span>
 <span class="va">stro</span></pre></div>
@@ -1346,7 +1422,7 @@
 ##   IMR   MES 
 ## 0.724 0.276</code></pre>
 <p>Contrasting manual with computational cell type annotation:</p>
-<div class="sourceCode" id="cb189"><pre class="downlit">
+<div class="sourceCode" id="cb190"><pre class="downlit">
 <span class="va">sc.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"scRNAseq_symbols.rds"</span><span class="op">)</span>
 <span class="va">sc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="va">sc.file</span><span class="op">)</span>
 <span class="va">sc</span></pre></div>
@@ -1358,12 +1434,12 @@
 ## rowData names(0):
 ## colnames(93): Bulk_2 X1_C01 ... X2_C89 X2_C95
 ## colData names(0):</code></pre>
-<div class="sourceCode" id="cb191"><pre class="downlit">
+<div class="sourceCode" id="cb192"><pre class="downlit">
 <span class="fu">assay</span><span class="op">(</span><span class="va">sc</span>, <span class="st">"logcounts"</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="fu">assay</span><span class="op">(</span><span class="va">sc</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span>
 <span class="va">hpc</span> <span class="op">&lt;-</span> <span class="fu">transferCellType</span><span class="op">(</span><span class="va">sc</span><span class="op">[</span>,<span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">sc</span><span class="op">)</span><span class="op">]</span>, <span class="st">"hpca"</span><span class="op">)</span>
 <span class="va">encode</span> <span class="op">&lt;-</span> <span class="fu">transferCellType</span><span class="op">(</span><span class="va">sc</span><span class="op">[</span>,<span class="fl">2</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">sc</span><span class="op">)</span><span class="op">]</span>, <span class="st">"encode"</span><span class="op">)</span></pre></div>
 <p>Verhaak subtypes:</p>
-<div class="sourceCode" id="cb192"><pre class="downlit">
+<div class="sourceCode" id="cb193"><pre class="downlit">
 <span class="va">sc.entrez</span> <span class="op">&lt;-</span> <span class="fu">EnrichmentBrowser</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/EnrichmentBrowser/man/idMap.html">idMap</a></span><span class="op">(</span><span class="va">sc</span>, from <span class="op">=</span> <span class="st">"SYMBOL"</span>, to <span class="op">=</span> <span class="st">"ENTREZID"</span><span class="op">)</span>
 <span class="va">sc.entrez</span> <span class="op">&lt;-</span> <span class="va">sc.entrez</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html">rowSums</a></span><span class="op">(</span><span class="fu">assay</span><span class="op">(</span><span class="va">sc.entrez</span><span class="op">)</span><span class="op">[</span>,<span class="fl">2</span><span class="op">:</span><span class="fl">93</span><span class="op">]</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">10</span>,<span class="op">]</span>
 <span class="va">vst</span> <span class="op">&lt;-</span> <span class="fu">consensusOV</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/consensusOV/man/get.verhaak.subtypes.html">get.verhaak.subtypes</a></span><span class="op">(</span><span class="fu">assay</span><span class="op">(</span><span class="va">sc.entrez</span>, <span class="st">"logcounts"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">sc.entrez</span><span class="op">)</span><span class="op">)</span></pre></div>
@@ -1559,18 +1635,18 @@
   |===================================================================== |  99%
   |                                                                            
   |======================================================================| 100%</code></pre>
-<div class="sourceCode" id="cb194"><pre class="downlit">
+<div class="sourceCode" id="cb195"><pre class="downlit">
 <span class="va">vst</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">vst</span><span class="op">$</span><span class="va">Verhaak.subtypes</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">vst</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">sc.entrez</span><span class="op">)</span></pre></div>
-<div class="sourceCode" id="cb195"><pre class="downlit">
+<div class="sourceCode" id="cb196"><pre class="downlit">
 <span class="va">acol</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>Winterhoff <span class="op">=</span> <span class="va">c2t</span>, Verhaak <span class="op">=</span> <span class="va">vst</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">c2t</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
 <span class="fu">SingleR</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SingleR/man/plotScoreHeatmap.html">plotScoreHeatmap</a></span><span class="op">(</span><span class="va">encode</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">c2t</span><span class="op">)</span>,<span class="op">]</span>, annotation_col <span class="op">=</span> <span class="va">acol</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/unnamed-chunk-4-1.png" width="100%"></p>
-<div class="sourceCode" id="cb196"><pre class="downlit">
+<div class="sourceCode" id="cb197"><pre class="downlit">
 <span class="fu">SingleR</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SingleR/man/plotScoreHeatmap.html">plotScoreHeatmap</a></span><span class="op">(</span><span class="va">hpc</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">c2t</span><span class="op">)</span>,<span class="op">]</span>, annotation_col <span class="op">=</span> <span class="va">acol</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/unnamed-chunk-4-2.png" width="100%"> ## Margin score distribution</p>
 <p>Margin scores in comparison to TCGA bulk:</p>
-<div class="sourceCode" id="cb197"><pre class="downlit">
+<div class="sourceCode" id="cb198"><pre class="downlit">
 <span class="va">m100</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.0060</span>, <span class="fl">0.1425</span>, <span class="fl">0.2450</span>, <span class="fl">0.2551</span>, <span class="fl">0.3580</span>, <span class="fl">0.8460</span><span class="op">)</span>
 <span class="va">m800</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.0020</span>, <span class="fl">0.1270</span>, <span class="fl">0.2050</span>, <span class="fl">0.2061</span>, <span class="fl">0.2860</span>, <span class="fl">0.4420</span><span class="op">)</span>
 <span class="va">tcga.ma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.0060</span>,  <span class="fl">0.2265</span>,  <span class="fl">0.5250</span>,  <span class="fl">0.5196</span>,  <span class="fl">0.8115</span>,  <span class="fl">1.0000</span><span class="op">)</span>
@@ -1600,7 +1676,7 @@
     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">xlab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"margin score"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_grey</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">18</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html">coord_flip</a></span><span class="op">(</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/marginCompTCGA-1.png" width="100%"></p>
 <p>Consistency of subtpye calls (TCGA OV microarray vs RNA-seq):</p>
-<div class="sourceCode" id="cb198"><pre class="downlit">
+<div class="sourceCode" id="cb199"><pre class="downlit">
 <span class="va">m</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">73</span>, <span class="fl">6</span>, <span class="fl">1</span>, <span class="fl">2</span>,
         <span class="fl">7</span>, <span class="fl">67</span>, <span class="fl">1</span>, <span class="fl">1</span>,
         <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">76</span>, <span class="fl">0</span>,
@@ -1640,25 +1716,25 @@
 <div id="extension-of-consensus-classifier" class="section level2">
 <h2 class="hasAnchor">
 <a href="#extension-of-consensus-classifier" class="anchor"></a>Extension of consensus classifier</h2>
-<div class="sourceCode" id="cb199"><pre class="downlit">
+<div class="sourceCode" id="cb200"><pre class="downlit">
 <span class="co"># Supplementary Table S8A from Verhaak et al, JCI, 2013</span>
 <span class="va">verhaak.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"Verhaak_supplementT8A.txt"</span><span class="op">)</span>
 <span class="va">verhaak800</span> <span class="op">&lt;-</span> <span class="fu">getExtendedVerhaakSignature</span><span class="op">(</span><span class="va">verhaak.file</span>, nr.genes.per.subtype<span class="op">=</span><span class="fl">200</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">verhaak800</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 800</code></pre>
-<div class="sourceCode" id="cb201"><pre class="downlit">
+<div class="sourceCode" id="cb202"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">verhaak800</span><span class="op">)</span></pre></div>
 <pre><code>## [1] "ABHD11" "ABTB2"  "ACE2"   "ACP6"   "ACSBG1" "ACSL5"</code></pre>
-<div class="sourceCode" id="cb203"><pre class="downlit">
+<div class="sourceCode" id="cb204"><pre class="downlit">
 <span class="co"># Supplementary Table S7 from Verhaak et al, JCI, 2013</span>
 <span class="va">verhaak100.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"Verhaak_100genes.txt"</span><span class="op">)</span>
 <span class="va">verhaak100</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.delim</a></span><span class="op">(</span><span class="va">verhaak100.file</span>, as.is<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>
 <span class="va">verhaak100</span> <span class="op">&lt;-</span> <span class="va">verhaak100</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">101</span>,<span class="fl">1</span><span class="op">]</span></pre></div>
 <p>Merge:</p>
-<div class="sourceCode" id="cb204"><pre class="downlit">
+<div class="sourceCode" id="cb205"><pre class="downlit">
 <span class="va">verhaak800</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">verhaak100</span>, <span class="va">verhaak800</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></pre></div>
 <p>Build extended training set based on extended verhaak signature:</p>
-<div class="sourceCode" id="cb205"><pre class="downlit">
+<div class="sourceCode" id="cb206"><pre class="downlit">
 <span class="va">selectGenes</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">eset</span><span class="op">)</span>
 <span class="op">{</span>
     <span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu">fData</span><span class="op">(</span><span class="va">eset</span><span class="op">)</span><span class="op">$</span><span class="va">gene</span> <span class="op">%in%</span> <span class="va">verhaak800</span>
@@ -1669,7 +1745,7 @@
 <span class="va">esets.merged</span> <span class="op">&lt;-</span> <span class="fu">consensusOV</span><span class="fu">:::</span><span class="fu"><a href="https://rdrr.io/pkg/consensusOV/man/dataset.merging.html">dataset.merging</a></span><span class="op">(</span><span class="va">esets</span>, method <span class="op">=</span> <span class="st">"intersect"</span>, standardization <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></pre></div>
 <pre><code>## Warning in `[&lt;-.factor`(`*tmp*`, ri, value = c(62L, 151L, 106L, 111L, 122L, :
 ## invalid factor level, NA generated</code></pre>
-<div class="sourceCode" id="cb207"><pre class="downlit">
+<div class="sourceCode" id="cb208"><pre class="downlit">
 <span class="co"># sanity check</span>
 <span class="va">fnames</span> <span class="op">&lt;-</span> <span class="fu">featureNames</span><span class="op">(</span><span class="fu">consensusOV</span><span class="fu">:::</span><span class="va">consensus.training.dataset.full</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>
 <span class="va">snames</span> <span class="op">&lt;-</span> <span class="fu">sampleNames</span><span class="op">(</span><span class="fu">consensusOV</span><span class="fu">:::</span><span class="va">consensus.training.dataset.full</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span>
@@ -1680,7 +1756,7 @@
 ##              E.MTAB.386_DFCI.4 E.MTAB.386_DFCI.6
 ## geneid.10278        -0.0242163         0.5624844
 ## geneid.10395        -1.1021949         0.9263993</code></pre>
-<div class="sourceCode" id="cb209"><pre class="downlit">
+<div class="sourceCode" id="cb210"><pre class="downlit">
 <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/tidyeval.html">exprs</a></span><span class="op">(</span><span class="fu">consensusOV</span><span class="fu">:::</span><span class="va">consensus.training.dataset.full</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></pre></div>
 <pre><code>##              E.MTAB.386_DFCI.1 E.MTAB.386_DFCI.2 E.MTAB.386_DFCI.3
 ## geneid.10278        -1.2563391       -0.46432113         1.2824999
@@ -1688,10 +1764,10 @@
 ##              E.MTAB.386_DFCI.4 E.MTAB.386_DFCI.6
 ## geneid.10278        -0.0242163         0.5624844
 ## geneid.10395        -1.1021949         0.9263993</code></pre>
-<div class="sourceCode" id="cb211"><pre class="downlit">
+<div class="sourceCode" id="cb212"><pre class="downlit">
 <span class="va">training.ext</span> <span class="op">&lt;-</span> <span class="va">esets.merged</span></pre></div>
 <p>Single cell data restricted to verhaak800 signature:</p>
-<div class="sourceCode" id="cb212"><pre class="downlit">
+<div class="sourceCode" id="cb213"><pre class="downlit">
 <span class="va">sc.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"scRNAseq_verhaak800.txt"</span><span class="op">)</span>
 <span class="va">sc.expr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.delim</a></span><span class="op">(</span><span class="va">sc.file</span>, row.names<span class="op">=</span><span class="fl">1L</span><span class="op">)</span><span class="op">)</span>
 <span class="va">sc.expr</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></pre></div>
@@ -1701,14 +1777,14 @@
 ## 1009   60.05      0   0.26   0.00    0.0
 ## 10137  15.54      0   0.00   0.00    1.3
 ## 1019   45.57      0   0.00  16.67    0.0</code></pre>
-<div class="sourceCode" id="cb214"><pre class="downlit">
+<div class="sourceCode" id="cb215"><pre class="downlit">
 <span class="co"># exclude NA</span>
 <span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">sc.expr</span>, <span class="fl">1</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/any.html">any</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 <span class="va">sc.expr</span> <span class="op">&lt;-</span> <span class="va">sc.expr</span><span class="op">[</span><span class="op">!</span><span class="va">ind</span>,<span class="op">]</span>
 <span class="co"># exclude all zero </span>
 <span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">sc.expr</span>, <span class="fl">1</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/all.html">all</a></span><span class="op">(</span><span class="va">x</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span>
 <span class="va">sc.expr</span> <span class="op">&lt;-</span> <span class="va">sc.expr</span><span class="op">[</span><span class="op">!</span><span class="va">ind</span>,<span class="op">]</span></pre></div>
-<div class="sourceCode" id="cb215"><pre class="downlit">
+<div class="sourceCode" id="cb216"><pre class="downlit">
 <span class="co"># takes a while</span>
 <span class="co"># consensus.subtypes &lt;- get.consensus.subtypes(sc.expr, rownames(sc.expr), .training.dataset=training.ext)</span>
 <span class="va">res.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"consensus_subtypes_verhaak800.rds"</span><span class="op">)</span>
@@ -1717,7 +1793,7 @@
 <pre><code>## 
 ## IMR_consensus DIF_consensus PRO_consensus MES_consensus 
 ##            57             2             0             8</code></pre>
-<div class="sourceCode" id="cb217"><pre class="downlit">
+<div class="sourceCode" id="cb218"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">consensus.subtypes</span><span class="op">$</span><span class="va">rf.probs</span><span class="op">)</span></pre></div>
 <pre><code>##        DIF_consensus IMR_consensus MES_consensus PRO_consensus
 ## Bulk_2         0.126         0.638         0.186         0.050
@@ -1726,30 +1802,30 @@
 ## X1_C03         0.338         0.508         0.068         0.086
 ## X1_C08         0.286         0.616         0.050         0.048
 ## X1_C15         0.256         0.360         0.256         0.128</code></pre>
-<div class="sourceCode" id="cb219"><pre class="downlit">
+<div class="sourceCode" id="cb220"><pre class="downlit">
 <span class="co"># Margins</span>
 <span class="va">my.predictions.margins</span> <span class="op">&lt;-</span> <span class="fu">subtypeHeterogeneity</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/consensusOV/man/get.consensus.subtypes.html">margin</a></span><span class="op">(</span><span class="va">consensus.subtypes</span><span class="op">$</span><span class="va">rf.probs</span><span class="op">)</span>
 <span class="co"># Bulk</span>
 <span class="va">my.predictions.margins</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></pre></div>
 <pre><code>## Bulk_2 
 ##  0.452</code></pre>
-<div class="sourceCode" id="cb221"><pre class="downlit">
+<div class="sourceCode" id="cb222"><pre class="downlit">
 <span class="co"># Cells</span>
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">my.predictions.margins</span><span class="op">[</span><span class="va">sind</span><span class="op">]</span><span class="op">)</span></pre></div>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##  0.0020  0.1270  0.2050  0.2061  0.2860  0.4420</code></pre>
-<div class="sourceCode" id="cb223"><pre class="downlit">
+<div class="sourceCode" id="cb224"><pre class="downlit">
 <span class="va">sc.subtypes</span> <span class="op">&lt;-</span> <span class="va">consensus.subtypes</span>
 <span class="va">sc.subtypes</span><span class="op">$</span><span class="va">consensusOV.subtypes</span> <span class="op">&lt;-</span> <span class="va">sc.subtypes</span><span class="op">$</span><span class="va">consensusOV.subtypes</span><span class="op">[</span><span class="va">sind</span><span class="op">]</span>
 <span class="va">sc.subtypes</span><span class="op">$</span><span class="va">rf.probs</span> <span class="op">&lt;-</span> <span class="va">sc.subtypes</span><span class="op">$</span><span class="va">rf.probs</span><span class="op">[</span><span class="va">sind</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,<span class="fl">4</span>,<span class="fl">3</span><span class="op">)</span><span class="op">]</span>
 <span class="fu">scHeatmap</span><span class="op">(</span><span class="va">sc.expr</span><span class="op">[</span>,<span class="va">sind</span><span class="op">]</span>, <span class="va">sc.subtypes</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/consSubtypesExt-1.png" width="100%"></p>
-<div class="sourceCode" id="cb224"><pre class="downlit">
+<div class="sourceCode" id="cb225"><pre class="downlit">
 <span class="va">expr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">sc.expr</span> <span class="op">+</span> <span class="fl">1</span>, base<span class="op">=</span><span class="fl">2</span><span class="op">)</span>
 <span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">rowSums</a></span><span class="op">(</span><span class="va">expr</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">3</span>
 <span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">sc.expr</span><span class="op">[</span><span class="va">ind</span>,<span class="op">]</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 355  67</code></pre>
-<div class="sourceCode" id="cb226"><pre class="downlit">
+<div class="sourceCode" id="cb227"><pre class="downlit">
 <span class="co"># consensus.subtypes2 &lt;- get.consensus.subtypes(sc.expr[ind,], rownames(sc.expr)[ind], .training.dataset=esets.merged)</span>
 <span class="va">res.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"consensus_subtypes_verhaak800_logTPMgr3.rds"</span><span class="op">)</span>
 <span class="va">consensus.subtypes2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="va">res.file</span><span class="op">)</span>
@@ -1757,7 +1833,7 @@
 <pre><code>## 
 ## IMR_consensus DIF_consensus PRO_consensus MES_consensus 
 ##            52             4             0            11</code></pre>
-<div class="sourceCode" id="cb228"><pre class="downlit">
+<div class="sourceCode" id="cb229"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">consensus.subtypes2</span><span class="op">$</span><span class="va">rf.probs</span><span class="op">)</span></pre></div>
 <pre><code>##        DIF_consensus IMR_consensus MES_consensus PRO_consensus
 ## Bulk_2         0.122         0.630         0.194         0.054
@@ -1766,14 +1842,14 @@
 ## X1_C03         0.372         0.446         0.092         0.090
 ## X1_C08         0.340         0.522         0.074         0.064
 ## X1_C15         0.258         0.360         0.228         0.154</code></pre>
-<div class="sourceCode" id="cb230"><pre class="downlit">
+<div class="sourceCode" id="cb231"><pre class="downlit">
 <span class="co"># Margins</span>
 <span class="va">my.predictions.margins</span> <span class="op">&lt;-</span> <span class="fu">subtypeHeterogeneity</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/consensusOV/man/get.consensus.subtypes.html">margin</a></span><span class="op">(</span><span class="va">consensus.subtypes2</span><span class="op">$</span><span class="va">rf.probs</span><span class="op">)</span>
 <span class="co"># Bulk</span>
 <span class="va">my.predictions.margins</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></pre></div>
 <pre><code>## Bulk_2 
 ##  0.436</code></pre>
-<div class="sourceCode" id="cb232"><pre class="downlit">
+<div class="sourceCode" id="cb233"><pre class="downlit">
 <span class="co"># Cells</span>
 <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">my.predictions.margins</span><span class="op">[</span><span class="va">sind</span><span class="op">]</span><span class="op">)</span></pre></div>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -1783,7 +1859,7 @@
 <h2 class="hasAnchor">
 <a href="#downsampling" class="anchor"></a>Downsampling</h2>
 <p>Full scRNA-seq dataset based on gene symbols:</p>
-<div class="sourceCode" id="cb234"><pre class="downlit">
+<div class="sourceCode" id="cb235"><pre class="downlit">
 <span class="va">sc.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"scRNAseq_symbols.rds"</span><span class="op">)</span>
 <span class="va">sc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="va">sc.file</span><span class="op">)</span>
 <span class="va">sc</span></pre></div>
@@ -1796,7 +1872,7 @@
 ## colnames(93): Bulk_2 X1_C01 ... X2_C89 X2_C95
 ## colData names(0):</code></pre>
 <p>TCGA bulk RNA-seq data:</p>
-<div class="sourceCode" id="cb236"><pre class="downlit">
+<div class="sourceCode" id="cb237"><pre class="downlit">
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">curatedTCGAData</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/message.html">suppressMessages</a></span><span class="op">(</span><span class="va">tcga</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/curatedTCGAData/man/curatedTCGAData.html">curatedTCGAData</a></span><span class="op">(</span><span class="st">"OV"</span>, <span class="st">"RNASeq2GeneNorm"</span>, <span class="cn">FALSE</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>
 <span class="va">tcga</span></pre></div>
@@ -1811,23 +1887,23 @@
 ##   TCGA-WR-A838-01A-12R-A406-31
 ## colData names(0):</code></pre>
 <p>Restrict to intersecting genes:</p>
-<div class="sourceCode" id="cb238"><pre class="downlit">
+<div class="sourceCode" id="cb239"><pre class="downlit">
 <span class="va">tcga</span> <span class="op">&lt;-</span> <span class="va">tcga</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">sc</span><span class="op">)</span>,<span class="op">]</span></pre></div>
 <p>Check library sizes:</p>
-<div class="sourceCode" id="cb239"><pre class="downlit">
+<div class="sourceCode" id="cb240"><pre class="downlit">
 <span class="op">(</span><span class="va">sc.ls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html">colSums</a></span><span class="op">(</span><span class="fu">assay</span><span class="op">(</span><span class="va">sc</span><span class="op">)</span><span class="op">[</span>,<span class="va">sind</span><span class="op">]</span>, na.rm<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##   13517  655358  751744  670003  778344  831553</code></pre>
-<div class="sourceCode" id="cb241"><pre class="downlit">
+<div class="sourceCode" id="cb242"><pre class="downlit">
 <span class="op">(</span><span class="va">tcga.ls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html">colSums</a></span><span class="op">(</span><span class="fu">assay</span><span class="op">(</span><span class="va">tcga</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 ## 15419902 17620434 18369353 18503730 19208051 24798574</code></pre>
-<div class="sourceCode" id="cb243"><pre class="downlit">
+<div class="sourceCode" id="cb244"><pre class="downlit">
 <span class="op">(</span><span class="va">ls.prob</span> <span class="op">&lt;-</span> <span class="va">sc.ls</span><span class="op">[</span><span class="st">"Median"</span><span class="op">]</span> <span class="op">/</span> <span class="va">tcga.ls</span><span class="op">[</span><span class="st">"Median"</span><span class="op">]</span><span class="op">)</span> </pre></div>
 <pre><code>##    Median 
 ## 0.0409238</code></pre>
 <p>Downsampling:</p>
-<div class="sourceCode" id="cb245"><pre class="downlit">
+<div class="sourceCode" id="cb246"><pre class="downlit">
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">DropletUtils</span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">EnrichmentBrowser</span><span class="op">)</span>
 <span class="va">tcga.down</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/DropletUtils/man/downsampleMatrix.html">downsampleMatrix</a></span><span class="op">(</span><span class="fu">assay</span><span class="op">(</span><span class="va">tcga</span><span class="op">)</span>, prop<span class="op">=</span><span class="va">ls.prob</span><span class="op">)</span>
@@ -1835,14 +1911,14 @@
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##  630723  720783  751429  756927  785743 1014545</code></pre>
 <p>Consensus subtyping and margin score distribution:</p>
-<div class="sourceCode" id="cb247"><pre class="downlit">
+<div class="sourceCode" id="cb248"><pre class="downlit">
 <span class="va">tcga.down</span> <span class="op">&lt;-</span> <span class="fu">SummarizedExperiment</span><span class="op">(</span>assays<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">tcga.down</span><span class="op">)</span><span class="op">)</span>
 <span class="va">tcga.down</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/EnrichmentBrowser/man/idMap.html">idMap</a></span><span class="op">(</span><span class="va">tcga.down</span>, org<span class="op">=</span><span class="st">"hsa"</span>, from<span class="op">=</span><span class="st">"SYMBOL"</span>, to<span class="op">=</span><span class="st">"ENTREZID"</span><span class="op">)</span></pre></div>
 <pre><code>## Encountered 4 from.IDs with &gt;1 corresponding to.ID</code></pre>
 <pre><code>## (the first to.ID was chosen for each of them)</code></pre>
 <pre><code>## Excluded 237 from.IDs without a corresponding to.ID</code></pre>
 <pre><code>## Mapped from.IDs have been added to the rowData column SYMBOL</code></pre>
-<div class="sourceCode" id="cb252"><pre class="downlit">
+<div class="sourceCode" id="cb253"><pre class="downlit">
 <span class="co">#consensus.subtypes &lt;- get.consensus.subtypes(assay(tcga.down), names(tcga.down))</span>
 <span class="va">st.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"consensus_subtypes_downsampled_tcgabulk_rseq.rds"</span><span class="op">)</span>
 <span class="va">consensus.subtypes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="va">st.file</span><span class="op">)</span>
@@ -1855,21 +1931,21 @@
 <h1 class="hasAnchor">
 <a href="#tissue-of-origin" class="anchor"></a>Tissue of origin</h1>
 <p>Using the signature from Hao et al., Clin Cancer Res, 2017, to distinguish between tumors originating from fallopian tube (FT) or ovarian surface epithelium (OSE).</p>
-<div class="sourceCode" id="cb254"><pre class="downlit">
+<div class="sourceCode" id="cb255"><pre class="downlit">
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">curatedTCGAData</span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.pmgenomics.ca/bhklab/software/consensusOV">consensusOV</a></span><span class="op">)</span></pre></div>
 <p>Get the TCGA OV microarray data:</p>
-<div class="sourceCode" id="cb255"><pre class="downlit">
+<div class="sourceCode" id="cb256"><pre class="downlit">
 <span class="va">ov.ctd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/curatedTCGAData/man/curatedTCGAData.html">curatedTCGAData</a></span><span class="op">(</span>diseaseCode<span class="op">=</span><span class="st">"OV"</span>, assays<span class="op">=</span><span class="st">"mRNAArray_huex*"</span>, dry.run<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span>
 <span class="va">se</span> <span class="op">&lt;-</span> <span class="va">ov.ctd</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>
 <span class="fu">assays</span><span class="op">(</span><span class="va">se</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="fu">assay</span><span class="op">(</span><span class="va">se</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 <span class="va">res.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"consensus_subtypes_TCGA_marray_huex.rds"</span><span class="op">)</span>
 <span class="va">se</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/EnrichmentBrowser/man/idMap.html">idMap</a></span><span class="op">(</span><span class="va">se</span>, org<span class="op">=</span><span class="st">"hsa"</span>, from<span class="op">=</span><span class="st">"SYMBOL"</span>, to<span class="op">=</span><span class="st">"ENTREZID"</span><span class="op">)</span></pre></div>
 <p>Assign consensus subtypes:</p>
-<div class="sourceCode" id="cb256"><pre class="downlit">
+<div class="sourceCode" id="cb257"><pre class="downlit">
 <span class="va">cst</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/consensusOV/man/get.consensus.subtypes.html">get.consensus.subtypes</a></span><span class="op">(</span><span class="fu">assay</span><span class="op">(</span><span class="va">se</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">se</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="va">cst</span>, file<span class="op">=</span><span class="va">res.file</span><span class="op">)</span></pre></div>
-<div class="sourceCode" id="cb257"><pre class="downlit">
+<div class="sourceCode" id="cb258"><pre class="downlit">
 <span class="va">res.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"consensus_subtypes_TCGA_marray_huex.rds"</span><span class="op">)</span>
 <span class="va">cst</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="va">res.file</span><span class="op">)</span>
 <span class="va">sts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html">as.vector</a></span><span class="op">(</span><span class="va">cst</span><span class="op">$</span><span class="va">consensusOV.subtypes</span><span class="op">)</span>
@@ -1877,21 +1953,21 @@
 <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">sts</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html">substring</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">se</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">15</span><span class="op">)</span>
 <span class="va">margins</span> <span class="op">&lt;-</span> <span class="fu">subtypeHeterogeneity</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/consensusOV/man/get.consensus.subtypes.html">margin</a></span><span class="op">(</span><span class="va">cst</span><span class="op">$</span><span class="va">rf.probs</span><span class="op">)</span></pre></div>
 <p>Compute tissue-of-origin scores:</p>
-<div class="sourceCode" id="cb258"><pre class="downlit">
+<div class="sourceCode" id="cb259"><pre class="downlit">
 <span class="va">tsc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/consensusOV/man/get.hao.subtypes.html">get.hao.subtypes</a></span><span class="op">(</span><span class="fu">assay</span><span class="op">(</span><span class="va">se</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="fu">assay</span><span class="op">(</span><span class="va">se</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>## Warning in get.hao.subtypes(assay(se), rownames(assay(se))): 7 of 35 FT genes
 ## not present</code></pre>
 <pre><code>## Warning in get.hao.subtypes(assay(se), rownames(assay(se))): 5 of 77 OSE genes
 ## not present</code></pre>
 <p>Group by subtype:</p>
-<div class="sourceCode" id="cb261"><pre class="downlit">
+<div class="sourceCode" id="cb262"><pre class="downlit">
 <span class="va">sub.split</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/split.html">split</a></span><span class="op">(</span><span class="va">tsc</span><span class="op">$</span><span class="va">tissues</span>, <span class="va">sts</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">sapply</a></span><span class="op">(</span><span class="va">sub.split</span>, <span class="va">table</span><span class="op">)</span></pre></div>
 <pre><code>##     DIF IMR MES PRO
 ## FT  157 133   9  98
 ## OSE  10  35 121  12</code></pre>
 <p>Dispay score distribution per subtype:</p>
-<div class="sourceCode" id="cb263"><pre class="downlit">
+<div class="sourceCode" id="cb264"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>pch<span class="op">=</span><span class="fl">20</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>cex.axis<span class="op">=</span><span class="fl">1.1</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>cex<span class="op">=</span><span class="fl">1.1</span><span class="op">)</span>
@@ -1901,13 +1977,13 @@
 <span class="fu"><a href="https://rdrr.io/r/graphics/abline.html">abline</a></span><span class="op">(</span>h<span class="op">=</span><span class="fl">0</span>, col<span class="op">=</span><span class="st">"grey"</span>, lty<span class="op">=</span><span class="fl">2</span><span class="op">)</span></pre></div>
 <p><img src="subtypeHeterogeneity_files/figure-html/unnamed-chunk-11-1.png" width="100%"></p>
 <p>Prepare data for visualization:</p>
-<div class="sourceCode" id="cb264"><pre class="downlit">
+<div class="sourceCode" id="cb265"><pre class="downlit">
 <span class="va">sc.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"scRNAseq_consensusOV_genes.txt"</span><span class="op">)</span>
 <span class="va">sc.expr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.delim</a></span><span class="op">(</span><span class="va">sc.file</span>, row.names<span class="op">=</span><span class="fl">1L</span><span class="op">)</span><span class="op">)</span>
 <span class="va">ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html">intersect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">sc.expr</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">se</span><span class="op">)</span><span class="op">)</span>
 <span class="va">se.restr</span> <span class="op">&lt;-</span> <span class="va">se</span><span class="op">[</span><span class="va">ind</span>, <span class="op">]</span></pre></div>
 <p>Heatmap:</p>
-<div class="sourceCode" id="cb265"><pre class="downlit">
+<div class="sourceCode" id="cb266"><pre class="downlit">
 <span class="va">margin.ramp</span> <span class="op">&lt;-</span> <span class="fu">circlize</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/circlize/man/colorRamp2.html">colorRamp2</a></span><span class="op">(</span>
                     <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">margins</span>, <span class="fl">0.01</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html">quantile</a></span><span class="op">(</span><span class="va">margins</span>, 
                     <span class="fl">0.99</span><span class="op">)</span>, length <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"blue"</span>, <span class="st">"#EEEEEE"</span>, <span class="st">"red"</span><span class="op">)</span><span class="op">)</span>
@@ -1935,7 +2011,7 @@
 <div id="tcga" class="section level2">
 <h2 class="hasAnchor">
 <a href="#tcga" class="anchor"></a>TCGA</h2>
-<div class="sourceCode" id="cb266"><pre class="downlit">
+<div class="sourceCode" id="cb267"><pre class="downlit">
 <span class="va">sts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/vector.html">as.vector</a></span><span class="op">(</span><span class="va">cst</span><span class="op">$</span><span class="va">consensusOV.subtypes</span><span class="op">)</span>
 <span class="va">sts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">sub</a></span><span class="op">(</span><span class="st">"_consensus$"</span>, <span class="st">""</span>, <span class="va">sts</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">sts</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html">substring</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">ov.ctd</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">12</span><span class="op">)</span>
@@ -1955,24 +2031,24 @@
 ##   MES          1        101       26
 ##   PRO          7         82       10</code></pre>
 <p>Overall proportions:</p>
-<div class="sourceCode" id="cb268"><pre class="downlit">
+<div class="sourceCode" id="cb269"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">dat</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">dat</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>## 
 ##       DIF       IMR       MES       PRO 
 ## 0.2902655 0.2867257 0.2283186 0.1946903</code></pre>
-<div class="sourceCode" id="cb270"><pre class="downlit">
+<div class="sourceCode" id="cb271"><pre class="downlit">
 <span class="va">tab</span><span class="op">[</span>,<span class="st">"stage iiic"</span><span class="op">]</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">tab</span><span class="op">[</span>,<span class="st">"stage iiic"</span><span class="op">]</span><span class="op">)</span></pre></div>
 <pre><code>##       DIF       IMR       MES       PRO 
 ## 0.2810945 0.2636816 0.2512438 0.2039801</code></pre>
 <p>Stage I tumors:</p>
-<div class="sourceCode" id="cb272"><pre class="downlit">
+<div class="sourceCode" id="cb273"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html">rowSums</a></span><span class="op">(</span><span class="va">tab</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 16</code></pre>
-<div class="sourceCode" id="cb274"><pre class="downlit">
+<div class="sourceCode" id="cb275"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/colSums.html">rowSums</a></span><span class="op">(</span><span class="va">tab</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colSums.html">rowSums</a></span><span class="op">(</span><span class="va">tab</span><span class="op">[</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>##    DIF    IMR    MES    PRO 
 ## 0.6250 0.1875 0.0000 0.1875</code></pre>
-<div class="sourceCode" id="cb276"><pre class="downlit">
+<div class="sourceCode" id="cb277"><pre class="downlit">
 <span class="va">rfprobs</span> <span class="op">&lt;-</span> <span class="va">cst</span><span class="op">$</span><span class="va">rf.probs</span>
 <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">rfprobs</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/substr.html">substring</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">ov.ctd</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">12</span><span class="op">)</span>
 <span class="va">rfprobs</span> <span class="op">&lt;-</span> <span class="va">rfprobs</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="fu">colData</span><span class="op">(</span><span class="va">ov.ctd</span><span class="op">)</span><span class="op">)</span>,<span class="op">]</span>
@@ -1995,7 +2071,7 @@
 ## TCGA-61-2087         0.474         0.468         0.022         0.036
 ## TCGA-61-2096         0.234         0.536         0.144         0.086</code></pre>
 <p>Odds ratio of being stage I and DIF:</p>
-<div class="sourceCode" id="cb278"><pre class="downlit">
+<div class="sourceCode" id="cb279"><pre class="downlit">
 <span class="va">de</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">tab</span><span class="op">[</span><span class="fl">1</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>
 <span class="va">dn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">tab</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">4</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span>
 <span class="va">he</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">tab</span><span class="op">[</span><span class="fl">1</span>,<span class="fl">7</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span><span class="op">)</span>
@@ -2013,7 +2089,7 @@
 ## odds ratio 
 ##   4.204473</code></pre>
 <p>Odds ratio of being stage I-II and DIF/IMR:</p>
-<div class="sourceCode" id="cb280"><pre class="downlit">
+<div class="sourceCode" id="cb281"><pre class="downlit">
 <span class="va">de</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">tab</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span><span class="op">)</span>
 <span class="va">dn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">tab</span><span class="op">[</span><span class="fl">3</span><span class="op">:</span><span class="fl">4</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span><span class="op">)</span>
 <span class="va">he</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">tab</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>,<span class="fl">7</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span><span class="op">)</span>
@@ -2035,7 +2111,7 @@
 <h2 class="hasAnchor">
 <a href="#early-stage-ovarian-carcinoma-study-gse101108" class="anchor"></a>Early-stage ovarian carcinoma study (GSE101108)</h2>
 <p>Obtain the supplementary file from GEO</p>
-<div class="sourceCode" id="cb282"><pre class="downlit">
+<div class="sourceCode" id="cb283"><pre class="downlit">
 <span class="va">raw.dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html">read.delim</a></span><span class="op">(</span><span class="st">"GSE101108_OV106-391_counts.txt"</span>, row.names <span class="op">=</span> <span class="fl">1L</span><span class="op">)</span>
 <span class="va">raw.dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">raw.dat</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/mode.html">mode</a></span><span class="op">(</span><span class="va">raw.dat</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="st">"numeric"</span>
@@ -2044,7 +2120,7 @@
 <span class="va">raw.se</span> <span class="op">&lt;-</span> <span class="fu">EnrichmentBrowser</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/EnrichmentBrowser/man/idMap.html">idMap</a></span><span class="op">(</span><span class="va">raw.se</span>, org<span class="op">=</span><span class="st">"hsa"</span>, from<span class="op">=</span><span class="st">"ENSEMBL"</span>, to<span class="op">=</span><span class="st">"ENTREZID"</span><span class="op">)</span>
 <span class="va">cst</span> <span class="op">&lt;-</span> <span class="fu">consensusOV</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/consensusOV/man/get.consensus.subtypes.html">get.consensus.subtypes</a></span><span class="op">(</span><span class="fu">assay</span><span class="op">(</span><span class="va">raw.se</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">raw.se</span><span class="op">)</span><span class="op">)</span></pre></div>
 <p>Obtain pre-computed consensus subtype annotation and histotype annotation</p>
-<div class="sourceCode" id="cb283"><pre class="downlit">
+<div class="sourceCode" id="cb284"><pre class="downlit">
 <span class="va">res.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"GSE101108_consensus_subtypes.rds"</span><span class="op">)</span>
 <span class="va">cst</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="va">res.file</span><span class="op">)</span>
 <span class="va">map.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"GSE101108_metadata_histotype.txt"</span><span class="op">)</span>
@@ -2085,10 +2161,10 @@
 ## 4 1_150617_AC6VVCANXX_P1767_151_2_val_2.fq.gz
 ## 5 1_150617_AC6VVCANXX_P1767_152_2_val_2.fq.gz
 ## 6 1_150617_AC6VVCANXX_P1767_155_2_val_2.fq.gz</code></pre>
-<div class="sourceCode" id="cb285"><pre class="downlit">
+<div class="sourceCode" id="cb286"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/all.html">all</a></span><span class="op">(</span><span class="va">map</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">cst</span><span class="op">$</span><span class="va">rf.probs</span><span class="op">)</span><span class="op">)</span></pre></div>
 <pre><code>## [1] TRUE</code></pre>
-<div class="sourceCode" id="cb287"><pre class="downlit">
+<div class="sourceCode" id="cb288"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">map</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">sub</a></span><span class="op">(</span><span class="st">"^characteristics.."</span>, <span class="st">""</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">map</span><span class="op">)</span><span class="op">)</span>
 <span class="va">map</span><span class="op">[</span>,<span class="st">"histotype"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">gsub</a></span><span class="op">(</span><span class="st">" "</span>, <span class="st">""</span>, <span class="va">map</span><span class="op">[</span>,<span class="st">"histotype"</span><span class="op">]</span><span class="op">)</span>
 <span class="va">map</span><span class="op">[</span>,<span class="st">"FIGO.stage"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html">gsub</a></span><span class="op">(</span><span class="st">" "</span>, <span class="st">""</span>, <span class="va">map</span><span class="op">[</span>,<span class="st">"FIGO.stage"</span><span class="op">]</span><span class="op">)</span>
@@ -2096,18 +2172,18 @@
 <pre><code>## 
 ##  CCC   EC HGSC LgSC   MC 
 ##   17   17   50    1   11</code></pre>
-<div class="sourceCode" id="cb289"><pre class="downlit">
+<div class="sourceCode" id="cb290"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">map</span><span class="op">[</span>,<span class="st">"FIGO.stage"</span><span class="op">]</span><span class="op">)</span></pre></div>
 <pre><code>## 
 ##  I II 
 ## 64 32</code></pre>
-<div class="sourceCode" id="cb291"><pre class="downlit">
+<div class="sourceCode" id="cb292"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">map</span><span class="op">[</span>,<span class="st">"FIGO.stage"</span><span class="op">]</span>, <span class="va">map</span><span class="op">[</span>,<span class="st">"histotype"</span><span class="op">]</span><span class="op">)</span></pre></div>
 <pre><code>##     
 ##      CCC EC HGSC LgSC MC
 ##   I   14 12   29    0  9
 ##   II   3  5   21    1  2</code></pre>
-<div class="sourceCode" id="cb293"><pre class="downlit">
+<div class="sourceCode" id="cb294"><pre class="downlit">
 <span class="va">hgsc.ind</span> <span class="op">&lt;-</span> <span class="va">map</span><span class="op">[</span>,<span class="st">"histotype"</span><span class="op">]</span> <span class="op">==</span> <span class="st">"HGSC"</span>
 <span class="va">stageI.ind</span> <span class="op">&lt;-</span> <span class="va">map</span><span class="op">[</span>,<span class="st">"FIGO.stage"</span><span class="op">]</span> <span class="op">==</span> <span class="st">"I"</span>
 <span class="va">stageII.ind</span> <span class="op">&lt;-</span> <span class="va">map</span><span class="op">[</span>,<span class="st">"FIGO.stage"</span><span class="op">]</span> <span class="op">==</span> <span class="st">"II"</span>
@@ -2115,17 +2191,17 @@
 <pre><code>## 
 ## IMR_consensus DIF_consensus PRO_consensus MES_consensus 
 ##            20            14            11             5</code></pre>
-<div class="sourceCode" id="cb295"><pre class="downlit">
+<div class="sourceCode" id="cb296"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">cst</span><span class="op">$</span><span class="va">consensusOV.subtypes</span><span class="op">[</span><span class="va">hgsc.ind</span> <span class="op">&amp;</span> <span class="va">stageI.ind</span><span class="op">]</span><span class="op">)</span></pre></div>
 <pre><code>## 
 ## IMR_consensus DIF_consensus PRO_consensus MES_consensus 
 ##             8            11             7             3</code></pre>
-<div class="sourceCode" id="cb297"><pre class="downlit">
+<div class="sourceCode" id="cb298"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">cst</span><span class="op">$</span><span class="va">consensusOV.subtypes</span><span class="op">[</span><span class="va">hgsc.ind</span> <span class="op">&amp;</span> <span class="va">stageII.ind</span><span class="op">]</span><span class="op">)</span></pre></div>
 <pre><code>## 
 ## IMR_consensus DIF_consensus PRO_consensus MES_consensus 
 ##            12             3             4             2</code></pre>
-<div class="sourceCode" id="cb299"><pre class="downlit">
+<div class="sourceCode" id="cb300"><pre class="downlit">
 <span class="va">cst</span><span class="op">$</span><span class="va">rf.probs</span><span class="op">[</span><span class="va">hgsc.ind</span> <span class="op">&amp;</span> <span class="va">stageI.ind</span>,<span class="op">]</span></pre></div>
 <pre><code>##       IMR_consensus DIF_consensus PRO_consensus MES_consensus
 ## OV172         0.966         0.016         0.010         0.008
@@ -2158,32 +2234,28 @@
 ## OV383         0.346         0.418         0.174         0.062
 ## OV390         0.002         0.006         0.974         0.018</code></pre>
 </div>
-<div id="early-stage-ovarian-carcinoma-study-gse101108-1" class="section level2">
-<h2 class="hasAnchor">
-<a href="#early-stage-ovarian-carcinoma-study-gse101108-1" class="anchor"></a>Early-stage ovarian carcinoma study (GSE101108)</h2>
-</div>
 <div id="metagxovarian-data-collection" class="section level2">
 <h2 class="hasAnchor">
 <a href="#metagxovarian-data-collection" class="anchor"></a>MetaGxOvarian data collection</h2>
-<div class="sourceCode" id="cb301"><pre class="downlit">
+<div class="sourceCode" id="cb302"><pre class="downlit">
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">MetaGxOvarian</span><span class="op">)</span>
 <span class="va">esets</span> <span class="op">&lt;-</span> <span class="fu">MetaGxOvarian</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MetaGxOvarian/man/loadOvarianEsets.html">loadOvarianEsets</a></span><span class="op">(</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></pre></div>
 <p>Identifying early-stage HGS ovarian tumors:</p>
-<div class="sourceCode" id="cb302"><pre class="downlit">
+<div class="sourceCode" id="cb303"><pre class="downlit">
 <span class="va">stageI.hgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">esets</span>, <span class="kw">function</span><span class="op">(</span><span class="va">eset</span><span class="op">)</span> <span class="va">eset</span><span class="op">$</span><span class="va">histological_type</span> <span class="op">==</span> <span class="st">"ser"</span> <span class="op">&amp;</span> 
                                           <span class="va">eset</span><span class="op">$</span><span class="va">tumorstage</span> <span class="op">==</span> <span class="fl">1</span> <span class="op">&amp;</span> 
                                           <span class="va">eset</span><span class="op">$</span><span class="va">summarygrade</span> <span class="op">==</span> <span class="st">"high"</span><span class="op">)</span>
 <span class="va">nr.stageI</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">stageI.hgs</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">x</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/integer.html">integer</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">nr.stageI</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 52</code></pre>
-<div class="sourceCode" id="cb304"><pre class="downlit">
+<div class="sourceCode" id="cb305"><pre class="downlit">
 <span class="va">early.hgs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">esets</span>, <span class="kw">function</span><span class="op">(</span><span class="va">eset</span><span class="op">)</span> <span class="va">eset</span><span class="op">$</span><span class="va">histological_type</span> <span class="op">==</span> <span class="st">"ser"</span> <span class="op">&amp;</span> 
                                           <span class="va">eset</span><span class="op">$</span><span class="va">summarystage</span> <span class="op">==</span> <span class="st">"early"</span> <span class="op">&amp;</span> 
                                           <span class="va">eset</span><span class="op">$</span><span class="va">summarygrade</span> <span class="op">==</span> <span class="st">"high"</span><span class="op">)</span>
 <span class="va">nr.early</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">early.hgs</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">x</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/integer.html">integer</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">nr.early</span><span class="op">)</span></pre></div>
 <pre><code>## [1] 95</code></pre>
-<div class="sourceCode" id="cb306"><pre class="downlit">
+<div class="sourceCode" id="cb307"><pre class="downlit">
 <span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">esets</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="fu">fData</span><span class="op">(</span><span class="va">esets</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">3</span><span class="op">)</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"PROBEID"</span>, <span class="st">"ENTREZID"</span><span class="op">)</span>
 <span class="va">esets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">esets</span>, <span class="fu">EnrichmentBrowser</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/EnrichmentBrowser/man/probe2gene.html">probe2gene</a></span><span class="op">)</span>
 <span class="kw">for</span><span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">esets</span><span class="op">)</span><span class="op">)</span> <span class="fu">assay</span><span class="op">(</span><span class="va">esets</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu">EnrichmentBrowser</span><span class="fu">:::</span><span class="fu">.naTreat</span><span class="op">(</span><span class="fu">assay</span><span class="op">(</span><span class="va">esets</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
@@ -2195,7 +2267,7 @@
                                        <span class="fu"><a href="https://rdrr.io/r/base/colnames.html">rownames</a></span><span class="op">(</span><span class="va">esets</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
 <span class="op">}</span>
 <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a></span><span class="op">(</span><span class="op">)</span></pre></div>
-<div class="sourceCode" id="cb307"><pre class="downlit">
+<div class="sourceCode" id="cb308"><pre class="downlit">
 <span class="va">res.file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">data.dir</span>, <span class="st">"MetaGxOvarian_consensus_subtypes.rds"</span><span class="op">)</span>
 <span class="va">cst</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html">readRDS</a></span><span class="op">(</span><span class="va">res.file</span><span class="op">)</span>
 <span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>,<span class="fl">8</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">esets</span><span class="op">)</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/table.html">table</a></span><span class="op">(</span><span class="va">cst</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">consensusOV.subtypes</span><span class="op">[</span><span class="va">stageI.hgs</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/integer.html">integer</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>    
@@ -2207,7 +2279,7 @@
 <div id="session-info" class="section level1">
 <h1 class="hasAnchor">
 <a href="#session-info" class="anchor"></a>Session info</h1>
-<div class="sourceCode" id="cb309"><pre class="downlit">
+<div class="sourceCode" id="cb310"><pre class="downlit">
 <span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></pre></div>
 <pre><code>## R version 4.0.0 (2020-04-24)
 ## Platform: x86_64-pc-linux-gnu (64-bit)
@@ -2240,7 +2312,7 @@
 ## [17] graph_1.66.0                RaggedExperiment_1.12.0    
 ## [19] consensusOV_1.10.0          subtypeHeterogeneity_1.0.0 
 ## [21] SingleCellExperiment_1.10.1 SummarizedExperiment_1.18.2
-## [23] DelayedArray_0.14.1         matrixStats_0.56.0         
+## [23] DelayedArray_0.14.1         matrixStats_0.57.0         
 ## [25] Biobase_2.48.0              GenomicRanges_1.40.0       
 ## [27] GenomeInfoDb_1.24.2         IRanges_2.22.2             
 ## [29] S4Vectors_0.26.1            BiocGenerics_0.34.0        
@@ -2248,74 +2320,73 @@
 ## 
 ## loaded via a namespace (and not attached):
 ##   [1] R.utils_2.10.1                tidyselect_1.1.0             
-##   [3] RSQLite_2.2.0                 BiocParallel_1.22.0          
-##   [5] cpp11_0.2.1                   munsell_0.5.0                
-##   [7] codetools_0.2-16              ragg_0.3.1                   
-##   [9] withr_2.3.0                   colorspace_1.4-1             
-##  [11] labeling_0.3                  KEGGgraph_1.48.0             
-##  [13] GenomeInfoDbData_1.2.3        bit64_4.0.5                  
-##  [15] farver_2.0.3                  pheatmap_1.0.12              
-##  [17] rhdf5_2.32.2                  rprojroot_1.3-2              
-##  [19] vctrs_0.3.4                   generics_0.0.2               
-##  [21] xfun_0.17                     randomForest_4.6-14          
-##  [23] R6_2.4.1                      clue_0.3-57                  
-##  [25] rsvd_1.0.3                    RJSONIO_1.3-1.4              
-##  [27] locfit_1.5-9.4                AnnotationFilter_1.12.0      
-##  [29] bitops_1.0-6                  assertthat_0.2.1             
-##  [31] promises_1.1.1                scales_1.1.1                 
-##  [33] gtable_0.3.0                  ensembldb_2.12.1             
-##  [35] rlang_0.4.7                   systemfonts_0.3.1            
-##  [37] GlobalOptions_0.1.2           splines_4.0.0                
-##  [39] rtracklayer_1.48.0            lazyeval_0.2.2               
-##  [41] BiocManager_1.30.10           yaml_2.2.1                   
-##  [43] reshape2_1.4.4                GenomicFeatures_1.40.1       
-##  [45] backports_1.1.10              httpuv_1.5.4                 
-##  [47] tools_4.0.0                   TCGAutils_1.8.1              
-##  [49] ellipsis_0.3.1                RColorBrewer_1.1-2           
-##  [51] Rcpp_1.0.5                    plyr_1.8.6                   
-##  [53] progress_1.2.2                zlibbioc_1.34.0              
-##  [55] purrr_0.3.4                   RCurl_1.98-1.2               
-##  [57] prettyunits_1.1.1             openssl_1.4.3                
-##  [59] GetoptLong_1.0.2              viridis_0.5.1                
-##  [61] cluster_2.1.0                 fs_1.5.0                     
-##  [63] magrittr_1.5                  data.table_1.13.0            
-##  [65] circlize_0.4.10               ProtGenerics_1.20.0          
-##  [67] hms_0.5.3                     mime_0.9                     
-##  [69] evaluate_0.14                 GSVA_1.36.2                  
-##  [71] xtable_1.8-4                  XML_3.99-0.5                 
-##  [73] gridExtra_2.3                 shape_1.4.5                  
-##  [75] compiler_4.0.0                biomaRt_2.44.1               
-##  [77] tibble_3.0.3                  crayon_1.3.4                 
-##  [79] R.oo_1.24.0                   htmltools_0.5.0              
-##  [81] later_1.1.0.1                 DBI_1.1.0                    
-##  [83] rappdirs_0.3.1                EnsDb.Hsapiens.v75_2.99.0    
-##  [85] Matrix_1.2-18                 readr_1.3.1                  
-##  [87] R.methodsS3_1.8.1             gdata_2.18.0                 
-##  [89] pkgconfig_2.0.3               pkgdown_1.6.1                
-##  [91] GenomicAlignments_1.24.0      RCircos_1.2.1                
-##  [93] xml2_1.3.2                    annotate_1.66.0              
-##  [95] dqrng_0.2.1                   XVector_0.28.0               
-##  [97] rvest_0.3.6                   stringr_1.4.0                
-##  [99] digest_0.6.25                 Biostrings_2.56.0            
-## [101] rmarkdown_2.3                 fastmatch_1.1-0              
-## [103] edgeR_3.30.3                  DelayedMatrixStats_1.10.1    
-## [105] GSEABase_1.50.1               curl_4.3                     
-## [107] gtools_3.8.2                  shiny_1.5.0                  
-## [109] Rsamtools_2.4.0               rjson_0.2.20                 
-## [111] lifecycle_0.2.0               GenomicDataCommons_1.12.0    
-## [113] jsonlite_1.7.1                Rhdf5lib_1.10.1              
-## [115] BiocNeighbors_1.6.0           desc_1.2.0                   
-## [117] viridisLite_0.3.0             askpass_1.1                  
-## [119] limma_3.44.3                  pillar_1.4.6                 
-## [121] fastmap_1.0.1                 httr_1.4.2                   
-## [123] survival_3.2-3                interactiveDisplayBase_1.26.3
-## [125] glue_1.4.2                    png_0.1-7                    
-## [127] shinythemes_1.1.2             BiocVersion_3.11.1           
-## [129] bit_4.0.4                     stringi_1.5.3                
-## [131] HDF5Array_1.16.1              blob_1.2.1                   
-## [133] BiocSingular_1.4.0            memoise_1.1.0                
-## [135] RTCGAToolbox_2.18.0           dplyr_1.0.2                  
-## [137] irlba_2.3.3</code></pre>
+##   [3] RSQLite_2.2.1                 BiocParallel_1.22.0          
+##   [5] munsell_0.5.0                 codetools_0.2-16             
+##   [7] ragg_0.3.1                    withr_2.3.0                  
+##   [9] colorspace_1.4-1              labeling_0.3                 
+##  [11] KEGGgraph_1.48.0              GenomeInfoDbData_1.2.3       
+##  [13] bit64_4.0.5                   farver_2.0.3                 
+##  [15] pheatmap_1.0.12               rhdf5_2.32.3                 
+##  [17] rprojroot_1.3-2               vctrs_0.3.4                  
+##  [19] generics_0.0.2                xfun_0.18                    
+##  [21] randomForest_4.6-14           R6_2.4.1                     
+##  [23] clue_0.3-57                   rsvd_1.0.3                   
+##  [25] RJSONIO_1.3-1.4               locfit_1.5-9.4               
+##  [27] AnnotationFilter_1.12.0       bitops_1.0-6                 
+##  [29] assertthat_0.2.1              promises_1.1.1               
+##  [31] scales_1.1.1                  gtable_0.3.0                 
+##  [33] ensembldb_2.12.1              rlang_0.4.7                  
+##  [35] systemfonts_0.3.2             GlobalOptions_0.1.2          
+##  [37] splines_4.0.0                 rtracklayer_1.48.0           
+##  [39] lazyeval_0.2.2                BiocManager_1.30.10          
+##  [41] yaml_2.2.1                    reshape2_1.4.4               
+##  [43] GenomicFeatures_1.40.1        backports_1.1.10             
+##  [45] httpuv_1.5.4                  tools_4.0.0                  
+##  [47] TCGAutils_1.8.1               ellipsis_0.3.1               
+##  [49] RColorBrewer_1.1-2            Rcpp_1.0.5                   
+##  [51] plyr_1.8.6                    progress_1.2.2               
+##  [53] zlibbioc_1.34.0               purrr_0.3.4                  
+##  [55] RCurl_1.98-1.2                prettyunits_1.1.1            
+##  [57] openssl_1.4.3                 GetoptLong_1.0.3             
+##  [59] viridis_0.5.1                 cluster_2.1.0                
+##  [61] fs_1.5.0                      magrittr_1.5                 
+##  [63] data.table_1.13.0             circlize_0.4.10              
+##  [65] ProtGenerics_1.20.0           hms_0.5.3                    
+##  [67] mime_0.9                      evaluate_0.14                
+##  [69] GSVA_1.36.2                   xtable_1.8-4                 
+##  [71] XML_3.99-0.5                  gridExtra_2.3                
+##  [73] shape_1.4.5                   compiler_4.0.0               
+##  [75] biomaRt_2.44.1                tibble_3.0.3                 
+##  [77] crayon_1.3.4                  R.oo_1.24.0                  
+##  [79] htmltools_0.5.0               later_1.1.0.1                
+##  [81] DBI_1.1.0                     rappdirs_0.3.1               
+##  [83] EnsDb.Hsapiens.v75_2.99.0     Matrix_1.2-18                
+##  [85] readr_1.3.1                   R.methodsS3_1.8.1            
+##  [87] gdata_2.18.0                  pkgconfig_2.0.3              
+##  [89] pkgdown_1.6.1                 GenomicAlignments_1.24.0     
+##  [91] RCircos_1.2.1                 xml2_1.3.2                   
+##  [93] annotate_1.66.0               dqrng_0.2.1                  
+##  [95] XVector_0.28.0                rvest_0.3.6                  
+##  [97] stringr_1.4.0                 digest_0.6.25                
+##  [99] Biostrings_2.56.0             rmarkdown_2.4                
+## [101] fastmatch_1.1-0               edgeR_3.30.3                 
+## [103] DelayedMatrixStats_1.10.1     GSEABase_1.50.1              
+## [105] curl_4.3                      gtools_3.8.2                 
+## [107] shiny_1.5.0                   Rsamtools_2.4.0              
+## [109] rjson_0.2.20                  lifecycle_0.2.0              
+## [111] GenomicDataCommons_1.12.0     jsonlite_1.7.1               
+## [113] Rhdf5lib_1.10.1               BiocNeighbors_1.6.0          
+## [115] desc_1.2.0                    viridisLite_0.3.0            
+## [117] askpass_1.1                   limma_3.44.3                 
+## [119] pillar_1.4.6                  fastmap_1.0.1                
+## [121] httr_1.4.2                    survival_3.2-7               
+## [123] interactiveDisplayBase_1.26.3 glue_1.4.2                   
+## [125] png_0.1-7                     shinythemes_1.1.2            
+## [127] BiocVersion_3.11.1            bit_4.0.4                    
+## [129] stringi_1.5.3                 HDF5Array_1.16.1             
+## [131] blob_1.2.1                    BiocSingular_1.4.0           
+## [133] memoise_1.1.0                 RTCGAToolbox_2.18.0          
+## [135] dplyr_1.0.2                   irlba_2.3.3</code></pre>
 </div>
   </div>
 
