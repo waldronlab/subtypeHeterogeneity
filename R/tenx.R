@@ -235,7 +235,7 @@ subsetByCellType <- function(sce, cell.type = "EPI", subtype = c("DIF", "PRO"))
     sce <- sce[,!is.na(sce$celltype)]
     sce <- sce[,sce$celltype %in% cell.type]
     sce <- sce[,sce$subtype %in% subtype]
-    ind <- do.call(order, colData(sce)[,c("subtype", "margin")])
+    ind <- do.call(order, as.data.frame(colData(sce)[,c("subtype", "margin")]))
     sce[,ind]
 }
 
@@ -338,8 +338,8 @@ facetTumors <- function(sces, col = "subtype", pal = stcols, cont = FALSE, shape
     colnames(df)[3] <- col
     df <- df[!is.na(df[[col]]),] 
     if(!cont) shape <- col
-    p <- ggplot2::ggplot(df, ggplot2::aes_string(x = "X", y = "Y", fill = col, shape = shape, color = col)) + 
-            ggplot2::geom_point(alpha = 0.7, size = 0.75, shape = shape) +
+    p <- ggplot2::ggplot(df, ggplot2::aes_string(x = "X", y = "Y", fill = col, shape = 21, color = col)) + 
+            ggplot2::geom_point(alpha = 0.7, size = 0.75, shape = 21) +
         ggplot2::facet_wrap(~tumor, nrow=1, ncol=5) +
         ggplot2::xlab("Dimension 1") +
         ggplot2::ylab("Dimension 2") +

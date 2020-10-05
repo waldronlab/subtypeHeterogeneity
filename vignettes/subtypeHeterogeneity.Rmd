@@ -62,7 +62,7 @@ names(stcols) <- SUBTYPES
 
 ## Cancer types
 ```{r ctypes}
-TCGAutils::diseaseCodes
+TCGAutils::diseaseCodes[,c("Study.Abbreviation", "Study.Name")]
 ```
 
 ## ABSOLUTE

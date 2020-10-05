@@ -44,6 +44,7 @@ Imports:
 Suggests: 
     DropletUtils,
     EnrichmentBrowser,
+    EnsDb.Hsapiens.v86,
     MetaGxOvarian,
     RTCGAToolbox,
     curatedTCGAData,
