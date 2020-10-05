@@ -48,10 +48,11 @@ Imports:
     RTCGAToolbox,
     curatedTCGAData,
     dplyr,
-    knitr, 
     pheatmap,
+    rtracklayer
+Suggests:
+    knitr, 
     rmarkdown,
-    rtracklayer,
     pkgdown
 Description: Multi-omic analysis of HGS ovarian cancer subtypes.
 License: Artistic-2.0
