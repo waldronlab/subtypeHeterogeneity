@@ -599,7 +599,7 @@ clabs <- getRecurrentDriverGenes(rownames(obs.mat))
 ```
 
 Plot the heatmap:
-```{r}
+```{r, eval = FALSE}
 im <- ComplexHeatmap::Heatmap(t(obs.mat),
     #top_annotation = ta,
     right_annotation = ra,
@@ -747,9 +747,13 @@ bc <- bc + geom_signif(annotations = "1.8e-07",
 gs <- ggscatter(df, x = "G1", y = "G2M", 
                 color = "subtype", palette = stcols[c("DIF", "PRO")], 
                 ggtheme = ggplot2::theme_bw(), legend = "none")
+bc <- ggarrange(bc, gs, ncol = 2, labels = c("B", "C"))
+bcd <- ggarrange(bc, m, nrow = 2, labels = c("", "D"))
+bcd
+```
 
-ggarrange(im, ggarrange(ggarrange(bc, gs, ncol = 2, labels = c("B", "C")), m, 
-          nrow = 2, labels = c("", "D")), ncol = 2, labels = c("A",""))
+```{r, eval = FALSE}
+ggarrange(im, bcd, ncol = 2, labels = c("A",""))
 ```
 
 ### Tumor 77
