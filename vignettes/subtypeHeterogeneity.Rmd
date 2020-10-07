@@ -13,6 +13,7 @@ output:
 ```{r, include = FALSE}
 library(knitr)
 opts_chunk$set(out.width = "100%", cache = TRUE)
+knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"))
 options(repos = c(CRAN = 'https://cloud.r-project.org')) 
 ```
 

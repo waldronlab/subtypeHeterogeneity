@@ -13,6 +13,7 @@ output:
 ```{r, include = FALSE}
 library(knitr)
 opts_chunk$set(out.width = "100%", cache = TRUE)
+knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"))
 options(repos = c(CRAN = 'https://cloud.r-project.org')) 
 ```
 
@@ -66,15 +67,19 @@ Parallel computation:
 bp <- BiocParallel::registered()[[1]]
 ```
 
-**Note**: Sections 2 - 5.3 described the processing of the CellRanger output
-files at the example of Tumor T90. Tumors T59, T76, T77, and T89 were processed
-analogously. Execution of the code in Sections 2 - 5.3 thus requires download
+**Note**: The sections _Preprocessing_, _Dimensionsality reduction_, and 
+_Clustering_ describe the processing of the CellRanger output files 
+at the example of Tumor T90.
+Tumors T59, T76, T77, and T89 were processed analogously.
+Execution of the code in these sections requires download
 of the CellRanger output files deposited in GEO 
 (accession number: [GSE154600](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE154600)).  
 
-Sections 5.4 - 7 decribe how Figures 4 and 5 of the main manuscript were created
-based on the fully processed and annotated `SingleCellExperiment`s (resulting from
-upstream processing steps described in Sections 2 - 5.3).
+Section _Annotation_, Subsection _Visualization of results (all tumors)_,
+and subsequent sections describe how Figures 4 and 5 of the main manuscript
+were created.
+The code is based on the fully processed and annotated `SingleCellExperiment`s
+(resulting from processing steps described in Section 2 - Section 5.3).
 
 # Preprocessing 
 
@@ -165,7 +170,7 @@ sce <- scater::logNormCounts(sce)
 sce
 ```
 
-# Dimension reduction
+# Dimensionality reduction
 
 Modelling the mean-variance trend:
 
@@ -316,7 +321,7 @@ vapply(sces, function(sce) table(sce$subtype), integer(4))
 ```
 
 Display cell type and subtype annotation for one tumor at a time:
-```{r, fig.height = 6, fig.wide = TRUE}
+```{r}
 p2a <- plotType(sces[[1]])
 p2b <- plotType(sces[[1]], type = "subtype")
 p2 <- ggarrange(p2b + theme_bw() + theme(plot.margin = margin(r = 1)), 
@@ -329,7 +334,7 @@ p2
 ```
 
 Facet cell type and subtype visualization for all tumors:
-```{r, fig.wide = TRUE, fig.height = 6}
+```{r}
 stp <- facetTumors(sces, col = "subtype", pal = stcols)
 pal <- ggpubr::get_palette("npg", 5)
 names(pal) <- CELL.TYPES
@@ -349,7 +354,7 @@ prop.test(cttab["EPI",], total)
 prop.test(cttab["STROM",], total)
 ```
 
-```{r, fig.height = 6}
+```{r}
 stbp <- bpType(sces, "subtype", pal = stcols)
 ctbp <- bpType(sces, "celltype", pal = pal)
 ```
@@ -395,7 +400,7 @@ df[[2]] <- factor(df[[2]], levels = CELL.TYPES)
 ```
 
 Boxplot of margin scores:
-```{r, fig.height = 4}
+```{r}
 ggboxplot(df, x = "CELL.TYPE", y = "MARGIN", width = 0.8, notch = TRUE,
             fill = "CELL.TYPE", palette = get_palette("lancet", 5),
             facet.by = "TUMOR", nrow = 1,  
@@ -485,7 +490,7 @@ mat <- mat[c(3,4,1,2),c(1,3,2,4)]
 ```
 
 
-```{r, fig.height = 8}
+```{r}
 mat <- rbind(c(0.15, 0.02, 0.5, 0.13, 0.12),
              c(0.59, 0.03, 0.14, 0.77, 0.07),
              c(0.22, 0.85, 0.03, 0.08, 0.3),
@@ -594,7 +599,7 @@ clabs <- getRecurrentDriverGenes(rownames(obs.mat))
 ```
 
 Plot the heatmap:
-```{r, fig.wide = TRUE, fig.height = 10}
+```{r}
 im <- ComplexHeatmap::Heatmap(t(obs.mat),
     #top_annotation = ta,
     right_annotation = ra,
@@ -627,7 +632,7 @@ sce59 <- subsetByCellType(sces[[1]], cell.type = "EPI", subtype = c("DIF", "PRO"
 sce59
 ```
 
-```{r, fig.height = 6}
+```{r}
 cyclin.genes <- grep("^CCN[ABDE][0-9]$", names(sce59), value = TRUE)
 cyclin.genes
 markerHeatmap(sce59, cyclin.genes)
@@ -650,7 +655,7 @@ bpCyclins(sce90)
 
 ### Tumor 59
 
-```{r, fig.height = 6}
+```{r}
 markers59 <- scran::findMarkers(sce59, groups = sce59$subtype)
 head(markers59$DIF)
 markers59$DIF["CCND1",]
@@ -659,7 +664,7 @@ markerHeatmap(sce59, rownames(markers59$DIF)[1:25])
 ```
 
 Contrast with bulk markers
-```{r, fig.height = 6}
+```{r}
 data.dir <- system.file("extdata", package = "subtypeHeterogeneity")
 verhaak.file <- file.path(data.dir, "Verhaak_supplementT8A.txt")
 bulk.markers <- getExtendedVerhaakSignature(verhaak.file, 
@@ -671,7 +676,7 @@ markerHeatmap(sce59, rownames(bmarkers59), row.split = TRUE)
 ```
 
 ### Tumor 77
-```{r, fig.height = 6}
+```{r}
 markers77 <- scran::findMarkers(sce77, groups = sce77$subtype)
 markerHeatmap(sce77, rownames(markers77$DIF)[1:25])
 bmarkers77 <- compileMarkers(markers77, bulk.markers)
@@ -679,7 +684,7 @@ markerHeatmap(sce77, rownames(bmarkers77), row.split = TRUE)
 ```
 
 ### Tumor 90
-```{r, fig.height = 6}
+```{r}
 markers90 <- scran::findMarkers(sce90, groups = sce90$subtype)
 markerHeatmap(sce90, rownames(markers90$DIF)[1:25])
 bmarkers90 <- compileMarkers(markers90, bulk.markers)

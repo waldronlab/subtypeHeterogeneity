@@ -12,6 +12,8 @@ navbar:
   left:
     - text: Absolute SCNA analysis
       href: articles/subtypeHeterogeneity.html
+    - text: Single cell analysis
+      href: articles/singlecell.html
   right:
     - icon: fa-github
       href: https://github.com/waldronlab/subtypeHeterogeneity
