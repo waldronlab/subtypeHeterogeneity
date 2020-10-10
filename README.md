@@ -54,8 +54,9 @@ and select the `Absolute SCNA analysis` HTML vignette.
 The code for reproducing Figures 4 and 5 can be found in the
 [vignettes/singlecell.Rmd](https://github.com/waldronlab/subtypeHeterogeneity/blob/master/vignettes/singlecell.Rmd) file.
 
-To view the fully rendered HTML document containing literate programming output
-from within R:
+To view the fully rendered HTML document containing literate programming output 
+see either [here](https://waldronlab.io/subtypeHeterogeneity/articles/singlecell.html), 
+or from within your local R installation:
 
 ```
 browseVignettes("subtypeHeterogeneity")
