@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">subtypeHeterogeneity</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.4</span>
       </span>
     </div>
 
@@ -39,6 +39,9 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="../articles/subtypeHeterogeneity.html">Absolute SCNA analysis</a>
+</li>
+<li>
+  <a href="../articles/singlecell.html">Single cell analysis</a>
 </li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
@@ -109,45 +112,45 @@
 <h2 class="hasAnchor">
 <a href="#cancer-types" class="anchor"></a>Cancer types</h2>
 <div class="sourceCode" id="cb3"><pre class="downlit">
-<span class="fu">TCGAutils</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/TCGAutils/man/diseaseCodes.html">diseaseCodes</a></span></pre></div>
-<pre><code>##    Study.Abbreviation Available SubtypeData
-## 1                 ACC       Yes         Yes
-## 2                BLCA       Yes         Yes
-## 3                BRCA       Yes         Yes
-## 4                CESC       Yes          No
-## 5                CHOL       Yes          No
-## 6                CNTL        No          No
-## 7                COAD       Yes         Yes
-## 8                DLBC       Yes          No
-## 9                ESCA       Yes          No
-## 10               FPPP        No          No
-## 11                GBM       Yes         Yes
-## 12               HNSC       Yes         Yes
-## 13               KICH       Yes         Yes
-## 14               KIRC       Yes         Yes
-## 15               KIRP       Yes         Yes
-## 16               LAML       Yes         Yes
-## 17               LCML        No          No
-## 18                LGG       Yes         Yes
-## 19               LIHC       Yes          No
-## 20               LUAD       Yes         Yes
-## 21               LUSC       Yes         Yes
-## 22               MESO       Yes          No
-## 23               MISC        No          No
-## 24                 OV       Yes         Yes
-## 25               PAAD       Yes          No
-## 26               PCPG       Yes          No
-## 27               PRAD       Yes         Yes
-## 28               READ       Yes          No
-## 29               SARC       Yes          No
-## 30               SKCM       Yes         Yes
-## 31               STAD       Yes         Yes
-## 32               TGCT       Yes          No
-## 33               THCA       Yes         Yes
-## 34               THYM       Yes          No
-## 35               UCEC       Yes         Yes
-## 36                UCS       Yes          No
-## 37                UVM       Yes          No
+<span class="fu">TCGAutils</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/TCGAutils/man/diseaseCodes.html">diseaseCodes</a></span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Study.Abbreviation"</span>, <span class="st">"Study.Name"</span><span class="op">)</span><span class="op">]</span></pre></div>
+<pre><code>##    Study.Abbreviation
+## 1                 ACC
+## 2                BLCA
+## 3                BRCA
+## 4                CESC
+## 5                CHOL
+## 6                CNTL
+## 7                COAD
+## 8                DLBC
+## 9                ESCA
+## 10               FPPP
+## 11                GBM
+## 12               HNSC
+## 13               KICH
+## 14               KIRC
+## 15               KIRP
+## 16               LAML
+## 17               LCML
+## 18                LGG
+## 19               LIHC
+## 20               LUAD
+## 21               LUSC
+## 22               MESO
+## 23               MISC
+## 24                 OV
+## 25               PAAD
+## 26               PCPG
+## 27               PRAD
+## 28               READ
+## 29               SARC
+## 30               SKCM
+## 31               STAD
+## 32               TGCT
+## 33               THCA
+## 34               THYM
+## 35               UCEC
+## 36                UCS
+## 37                UVM
 ##                                                          Study.Name
 ## 1                                          Adrenocortical carcinoma
 ## 2                                      Bladder Urothelial Carcinoma
@@ -566,7 +569,7 @@
 <span class="va">perm.cor</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">replicate</a></span><span class="op">(</span><span class="fl">1000</span>, 
     <span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="va">assoc.score</span><span class="op">)</span>, <span class="va">subcl.score</span>, method<span class="op">=</span><span class="st">"spearman"</span><span class="op">)</span><span class="op">)</span>
 <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">perm.cor</span> <span class="op">&gt;=</span> <span class="va">obs.cor</span><span class="op">)</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1000</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span></pre></div>
-<pre><code>## [1] 0.005994006</code></pre>
+<pre><code>## [1] 0.003996004</code></pre>
 <div class="sourceCode" id="cb74"><pre class="downlit">
 <span class="fu">plotCorrelation</span><span class="op">(</span><span class="va">assoc.score</span>, <span class="va">subcl.score</span>, 
     subtypes<span class="op">=</span><span class="fu">mcols</span><span class="op">(</span><span class="va">gisticOV</span><span class="op">)</span><span class="op">$</span><span class="va">subtype</span>, stcols<span class="op">=</span><span class="va">stcols</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>,<span class="fl">3</span>,<span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
@@ -2310,7 +2313,7 @@
 ## [13] MultiAssayExperiment_1.14.0 ggplot2_3.3.2              
 ## [15] ComplexHeatmap_2.4.3        EnrichmentBrowser_2.18.2   
 ## [17] graph_1.66.0                RaggedExperiment_1.12.0    
-## [19] consensusOV_1.10.0          subtypeHeterogeneity_1.0.0 
+## [19] consensusOV_1.10.0          subtypeHeterogeneity_1.0.4 
 ## [21] SingleCellExperiment_1.10.1 SummarizedExperiment_1.18.2
 ## [23] DelayedArray_0.14.1         matrixStats_0.57.0         
 ## [25] Biobase_2.48.0              GenomicRanges_1.40.0       
@@ -2322,11 +2325,11 @@
 ##   [1] R.utils_2.10.1                tidyselect_1.1.0             
 ##   [3] RSQLite_2.2.1                 BiocParallel_1.22.0          
 ##   [5] munsell_0.5.0                 codetools_0.2-16             
-##   [7] ragg_0.3.1                    withr_2.3.0                  
+##   [7] ragg_0.4.0                    withr_2.3.0                  
 ##   [9] colorspace_1.4-1              labeling_0.3                 
 ##  [11] KEGGgraph_1.48.0              GenomeInfoDbData_1.2.3       
-##  [13] bit64_4.0.5                   farver_2.0.3                 
-##  [15] pheatmap_1.0.12               rhdf5_2.32.3                 
+##  [13] pheatmap_1.0.12               bit64_4.0.5                  
+##  [15] farver_2.0.3                  rhdf5_2.32.4                 
 ##  [17] rprojroot_1.3-2               vctrs_0.3.4                  
 ##  [19] generics_0.0.2                xfun_0.18                    
 ##  [21] randomForest_4.6-14           R6_2.4.1                     
@@ -2335,7 +2338,7 @@
 ##  [27] AnnotationFilter_1.12.0       bitops_1.0-6                 
 ##  [29] assertthat_0.2.1              promises_1.1.1               
 ##  [31] scales_1.1.1                  gtable_0.3.0                 
-##  [33] ensembldb_2.12.1              rlang_0.4.7                  
+##  [33] ensembldb_2.12.1              rlang_0.4.8                  
 ##  [35] systemfonts_0.3.2             GlobalOptions_0.1.2          
 ##  [37] splines_4.0.0                 rtracklayer_1.48.0           
 ##  [39] lazyeval_0.2.2                BiocManager_1.30.10          
@@ -2353,7 +2356,7 @@
 ##  [63] data.table_1.13.0             circlize_0.4.10              
 ##  [65] ProtGenerics_1.20.0           hms_0.5.3                    
 ##  [67] mime_0.9                      evaluate_0.14                
-##  [69] GSVA_1.36.2                   xtable_1.8-4                 
+##  [69] GSVA_1.36.3                   xtable_1.8-4                 
 ##  [71] XML_3.99-0.5                  gridExtra_2.3                
 ##  [73] shape_1.4.5                   compiler_4.0.0               
 ##  [75] biomaRt_2.44.1                tibble_3.0.3                 
@@ -2361,8 +2364,8 @@
 ##  [79] htmltools_0.5.0               later_1.1.0.1                
 ##  [81] DBI_1.1.0                     rappdirs_0.3.1               
 ##  [83] EnsDb.Hsapiens.v75_2.99.0     Matrix_1.2-18                
-##  [85] readr_1.3.1                   R.methodsS3_1.8.1            
-##  [87] gdata_2.18.0                  pkgconfig_2.0.3              
+##  [85] readr_1.4.0                   gdata_2.18.0                 
+##  [87] R.methodsS3_1.8.1             pkgconfig_2.0.3              
 ##  [89] pkgdown_1.6.1                 GenomicAlignments_1.24.0     
 ##  [91] RCircos_1.2.1                 xml2_1.3.2                   
 ##  [93] annotate_1.66.0               dqrng_0.2.1                  
@@ -2384,9 +2387,10 @@
 ## [125] png_0.1-7                     shinythemes_1.1.2            
 ## [127] BiocVersion_3.11.1            bit_4.0.4                    
 ## [129] stringi_1.5.3                 HDF5Array_1.16.1             
-## [131] blob_1.2.1                    BiocSingular_1.4.0           
-## [133] memoise_1.1.0                 RTCGAToolbox_2.18.0          
-## [135] dplyr_1.0.2                   irlba_2.3.3</code></pre>
+## [131] blob_1.2.1                    textshaping_0.1.2            
+## [133] BiocSingular_1.4.0            memoise_1.1.0                
+## [135] RTCGAToolbox_2.18.0           dplyr_1.0.2                  
+## [137] irlba_2.3.3</code></pre>
 </div>
   </div>
 

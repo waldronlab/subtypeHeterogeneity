@@ -2,8 +2,9 @@ pandoc: 2.7.3
 pkgdown: 1.6.1
 pkgdown_sha: ~
 articles:
+  singlecell: singlecell.html
   subtypeHeterogeneity: subtypeHeterogeneity.html
-last_built: 2020-10-04T21:36Z
+last_built: 2020-10-10T02:02Z
 urls:
   reference: https://waldronlab.io/subtypeHeterogeneity/reference
   article: https://waldronlab.io/subtypeHeterogeneity/articles
