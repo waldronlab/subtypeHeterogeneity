@@ -19,7 +19,7 @@ Analysis as documented in this repository was carried out using
 
 Option 1: Docker
 
-[Docker image](https://hub.docker.com/repository/docker/ludwigg/enrichomics) 
+[Docker image](https://hub.docker.com/repository/docker/ludwigg/subtypeheterogeneity) 
 that comes with all dependencies already installed
 
 Option 2: Local installation
