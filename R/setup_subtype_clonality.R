@@ -7,8 +7,13 @@
 # 
 ############################################################
 
+## DATA LOAD
+dataenv <- new.env(parent = emptyenv())
+data("diseaseCodes", package = "TCGAutils", envir = dataenv)
+diseaseCodes <- dataenv[["diseaseCodes"]]
+
 ## SETUP
-ctypes <- TCGAutils::diseaseCodes[,"Study.Abbreviation"]
+ctypes <- diseaseCodes[,"Study.Abbreviation"]
 
 ## cancer types
 .isSubClonal <- function(x) as.integer(x$Subclonal_HSCN_a1 | x$Subclonal_HSCN_a2)
@@ -56,7 +61,7 @@ ctypes <- TCGAutils::diseaseCodes[,"Study.Abbreviation"]
 
 ## GISTIC
 # @returns: a RangedSummarizedExperiment
-gistic2RSE <- function(ctype=TCGAutils::diseaseCodes[,"Study.Abbreviation"], 
+gistic2RSE <- function(ctype=ctypes,
     peak=c("wide", "narrow", "full"), cache=TRUE)
 {
     ctype <- match.arg(ctype)
@@ -141,7 +146,7 @@ gistic2RSE <- function(ctype=TCGAutils::diseaseCodes[,"Study.Abbreviation"],
 
 ## Broad subtypes
 # @returns: a matrix with sample IDs as rownames and at least a column "cluster"
-getBroadSubtypes <- function(ctype=TCGAutils::diseaseCodes[,"Study.Abbreviation"], 
+getBroadSubtypes <- function(ctype=ctypes,
     clust.alg=c("CNMF", "Consensus_Plus"), cache=TRUE)
 {
     ctype <- match.arg(ctype)
