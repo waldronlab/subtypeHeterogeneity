@@ -1,14 +1,18 @@
 on: [push]
 jobs:
   job1:
-    # Change: Downgraded the runner to a version compatible with the old container.
-    runs-on: ubuntu-22.04 
+    runs-on: ubuntu-latest
     container: bioconductor/bioconductor_docker:RELEASE_3_11
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
     steps:
-      # Change: Updated actions/checkout to a secure, compatible version.
-      - uses: actions/checkout@v4
+      # Change: Replaced the incompatible actions/checkout@v4 with a manual git clone.
+      # The container has git installed. We must also fetch the full history for pkgdown.
+      - name: Checkout code
+        run: |
+          git clone https://github.com/${{ github.repository }} .
+          git fetch --prune --unshallow
+          git checkout ${{ github.sha }}
 
       - name: Query dependencies
         run: |
@@ -16,13 +20,7 @@ jobs:
           saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
         shell: Rscript {0}
         
-      - name: Cache R packages
-        if: runner.os != 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: /usr/local/lib/R/site-library
-          key: ${{ runner.os }}-r-1-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ runner.os }}-r-1-
+      # Change: The actions/cache step has been removed as it is incompatible.
 
       - name: Install system dependencies
         if: runner.os == 'Linux'
@@ -48,7 +46,6 @@ jobs:
         run: rcmdcheck::rcmdcheck(args = c("--no-manual"), error_on = "error", check_dir = "check")
         shell: Rscript {0}
         
-      # Change: Updated docker/build-push-action to a secure, compatible version.
       - uses: docker/build-push-action@v5
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -62,17 +59,14 @@ jobs:
         run: |
           PATH=$PATH:$HOME/bin/ Rscript -e 'pkgdown::build_site(".")'
 
-      # Change: Fixed indentation for this step.
       - name: Install deploy dependencies
         run: |
           apt-get update
           apt-get -y install rsync
 
       - name: Deploy 🚀
-        # Change: Updated action to a secure, compatible version.
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages
-          # Change: Fixed indentation for this line.
           FOLDER: docs
