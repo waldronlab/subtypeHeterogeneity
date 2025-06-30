@@ -6,7 +6,6 @@ jobs:
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
     steps:
-      # Change: Removed the unnecessary `git fetch --prune --unshallow` command.
       - name: Checkout code
         run: |
           git clone https://github.com/${{ github.repository }} .
@@ -30,6 +29,9 @@ jobs:
           sudo -s eval "$sysreqs"
           
       - name: Install dependencies
+        # Change: Add the GH_PAT secret as an environment variable
+        env:
+          GITHUB_PAT: ${{ secrets.GH_PAT }}
         run: |
           options(repos = c(CRAN = "https://cloud.r-project.org"))
           remotes::install_local(dependencies = TRUE, repos = BiocManager::repositories(), build_vignettes = TRUE, upgrade = TRUE)
@@ -39,6 +41,7 @@ jobs:
       - name: Check
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
+          GITHUB_PAT: ${{ secrets.GH_PAT }} # Also add here if check step accesses private repos
         run: rcmdcheck::rcmdcheck(args = c("--no-manual"), error_on = "error", check_dir = "check")
         shell: Rscript {0}
         
@@ -52,6 +55,8 @@ jobs:
           tags: latest
  
       - name: Build pkgdown
+        env:
+          GITHUB_PAT: ${{ secrets.GH_PAT }} # Also add here for pkgdown
         run: |
           PATH=$PATH:$HOME/bin/ Rscript -e 'pkgdown::build_site(".")'
 
@@ -66,3 +71,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages
           FOLDER: docs
+	  
