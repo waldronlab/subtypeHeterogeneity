@@ -12,7 +12,7 @@ Available as CSV files in the `inst/extdata` directory of this repository:
 [T89](https://github.com/waldronlab/subtypeHeterogeneity/blob/master/inst/extdata/T89_cell_metadata.csv)
 [T90](https://github.com/waldronlab/subtypeHeterogeneity/blob/master/inst/extdata/T90_cell_metadata.csv)
 
-**Option 2: R SummarizedExperiment objects**
+**Option 2: R/Bioconductor SingleCellExperiment objects**
 
 Assuming familiarity with R and with the [SingleCellExperiment](https://bioconductor.org/books/release/OSCA.intro/the-singlecellexperiment-class.html) container, all you would need to do is to carry out lines 290-310 here:
 
