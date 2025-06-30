@@ -4,7 +4,10 @@ jobs:
     runs-on: ubuntu-latest
     container: bioconductor/bioconductor_docker:RELEASE_3_11
     env:
+      # Add PAT to the entire job to authenticate all GitHub API calls
+      GITHUB_PAT: ${{ secrets.GH_PAT }}
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      
     steps:
       - name: Checkout code
         run: |
@@ -28,23 +31,13 @@ jobs:
           sysreqs=$(Rscript -e "cat(sysreqs::sysreq_commands('DESCRIPTION'))")
           sudo -s eval "$sysreqs"
           
-      # Change: This step is now more robust. It uses BiocManager to install
-      # dependencies before installing the local package.
       - name: Install dependencies
         run: |
           options(repos = c(CRAN = "https://cloud.r-project.org"))
           install.packages("remotes")
-          
-          # Get all dependencies from the DESCRIPTION file
           deps <- remotes::dev_package_deps(dependencies = TRUE)
-          
-          # Use the robust BiocManager installer to handle all dependencies
           BiocManager::install(deps$package, update = FALSE, ask = FALSE)
-
-          # Install the local package itself (dependencies are already installed)
           remotes::install_local(dependencies = FALSE)
-          
-          # Install rcmdcheck separately
           BiocManager::install("rcmdcheck", update = FALSE, ask = FALSE)
         shell: Rscript {0}
 
