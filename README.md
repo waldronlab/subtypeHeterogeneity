@@ -1,5 +1,48 @@
 # Ovarian cancer subtype heterogeneity
 
+## How can I obtain cell metadata inclluding cell type and subtype annotation (Figure 4)?
+
+**Option 1: CSV files**
+
+Available as CSV files in the `inst/extdata` directory of this repository: 
+
+* [T59](https://github.com/waldronlab/subtypeHeterogeneity/blob/master/inst/extdata/T59_cell_metadata.csv)
+[T76](https://github.com/waldronlab/subtypeHeterogeneity/blob/master/inst/extdata/T76_cell_metadata.csv)
+[T77](https://github.com/waldronlab/subtypeHeterogeneity/blob/master/inst/extdata/T77_cell_metadata.csv)
+[T89](https://github.com/waldronlab/subtypeHeterogeneity/blob/master/inst/extdata/T89_cell_metadata.csv)
+[T90](https://github.com/waldronlab/subtypeHeterogeneity/blob/master/inst/extdata/T90_cell_metadata.csv)
+
+**Option 2: R SummarizedExperiment objects**
+
+Assuming familiarity with R and with the [SingleCellExperiment](https://bioconductor.org/books/release/OSCA.intro/the-singlecellexperiment-class.html) container, all you would need to do is to carry out lines 290-310 here:
+
+https://github.com/waldronlab/subtypeHeterogeneity/blob/0f275d2f5a582046a1f36f4150970157da6e6fe1/vignettes/singlecell.Rmd#L290
+
+and access the colData of the obtained SingleCellExperiments which includes, among other things, the cell type annotation.
+
+For example here for Tumor T59:
+
+```R
+> colData(sces[["T59"]])[,c("Barcode", "subtype", "celltype")]
+DataFrame with 13040 rows and 3 columns
+                 Barcode     subtype    celltype
+             <character> <character> <character>
+1     AAACCTGAGCTGCCCA-1         DIF         MYE
+2     AAACCTGAGTCATCCA-1         DIF         MYE
+3     AAACCTGCAAGCCCAC-1         IMR         MYE
+4     AAACCTGCAAGCGCTC-1         DIF         EPI
+5     AAACCTGCACGTAAGG-1         DIF         EPI
+...                  ...         ...         ...
+13036 TTTGTCATCCCTTGCA-1         DIF         MYE
+13037 TTTGTCATCCGTACAA-1         DIF         MYE
+13038 TTTGTCATCCTCCTAG-1         DIF         EPI
+13039 TTTGTCATCGGTCTAA-1         DIF         EPI
+13040 TTTGTCATCTAACTCT-1         DIF         MYE
+```
+
+
+## Overview
+
 This repository contains code and analysis scripts that were used for
 conducting analysis and producing the figures of the publication:
 
@@ -15,14 +58,14 @@ Analysis as documented in this repository was carried out using
 [R-4.0.2](https://cran.r-project.org/) and
 [Bioconductor-3.11](https://www.bioconductor.org/install/).
 
-**Installation:**
+## Installation:
 
-Option 1: Docker
+**Option 1: Docker**
 
 [Docker image](https://hub.docker.com/repository/docker/ludwigg/subtypeheterogeneity) 
 that comes with all dependencies already installed
 
-Option 2: Local installation
+**Option 2: Local installation**
 
 Assuming [R](https://cran.r-project.org/) and 
 [Bioconductor](https://www.bioconductor.org/install/) 
