@@ -28,20 +28,29 @@ jobs:
           sysreqs=$(Rscript -e "cat(sysreqs::sysreq_commands('DESCRIPTION'))")
           sudo -s eval "$sysreqs"
           
+      # Change: This step is now more robust. It uses BiocManager to install
+      # dependencies before installing the local package.
       - name: Install dependencies
-        # Change: Add the GH_PAT secret as an environment variable
-        env:
-          GITHUB_PAT: ${{ secrets.GH_PAT }}
         run: |
           options(repos = c(CRAN = "https://cloud.r-project.org"))
-          remotes::install_local(dependencies = TRUE, repos = BiocManager::repositories(), build_vignettes = TRUE, upgrade = TRUE)
-          BiocManager::install("rcmdcheck", update = TRUE, ask = FALSE)
+          install.packages("remotes")
+          
+          # Get all dependencies from the DESCRIPTION file
+          deps <- remotes::dev_package_deps(dependencies = TRUE)
+          
+          # Use the robust BiocManager installer to handle all dependencies
+          BiocManager::install(deps$package, update = FALSE, ask = FALSE)
+
+          # Install the local package itself (dependencies are already installed)
+          remotes::install_local(dependencies = FALSE)
+          
+          # Install rcmdcheck separately
+          BiocManager::install("rcmdcheck", update = FALSE, ask = FALSE)
         shell: Rscript {0}
 
       - name: Check
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
-          GITHUB_PAT: ${{ secrets.GH_PAT }} # Also add here if check step accesses private repos
         run: rcmdcheck::rcmdcheck(args = c("--no-manual"), error_on = "error", check_dir = "check")
         shell: Rscript {0}
         
@@ -55,8 +64,6 @@ jobs:
           tags: latest
  
       - name: Build pkgdown
-        env:
-          GITHUB_PAT: ${{ secrets.GH_PAT }} # Also add here for pkgdown
         run: |
           PATH=$PATH:$HOME/bin/ Rscript -e 'pkgdown::build_site(".")'
 
